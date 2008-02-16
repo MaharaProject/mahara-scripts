@@ -50,10 +50,11 @@ my @SRC_DIRS = ('htdocs', 'test');
 # strings in:
 #    - COPYING
 #    - debian/copyright
+my $copyright_years = '2006-2008';
 my $copyright_text = <<END_OF_COPYRIGHT_TEXT;
 /**
  * Mahara: Electronic portfolio, weblog, resume builder and social networking
- * Copyright (C) 2006-2007 Catalyst IT Ltd (http://www.catalyst.net.nz)
+ * Copyright (C) $copyright_years Catalyst IT Ltd (http://www.catalyst.net.nz)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -71,8 +72,8 @@ END_OF_COPYRIGHT_TEXT
 
 sub process_file
 {
-    my $filename = shift;
-    print "Processing $filename... ";
+    my ($filename, $fullpath) = @_;
+    print "Processing $File::Find::name... ";
     open INPUT, "$filename" or die "Cannot open $filename as input.";
 
     my $in_copyright = 0; # 0 = before the header
@@ -87,18 +88,27 @@ sub process_file
         elsif (1 == $in_copyright and m|^ \* This program is part of (.*)$|) {
             $product = $1;
         }
+        elsif (1 == $in_copyright and m|^ \* Mahara:|) {
+            $product = 'Mahara';
+        }
         elsif (2 == $in_copyright and 
-               m|^ \* \@copyright.*\([cC]\)\w*(.*)Catalyst IT Ltd http://catalyst.net.nz|) {
+               m|^ \* \@copyright.*\([cC]\) (\d+,\d+) Catalyst IT Ltd|) {
             $copyright_holder = 'Catalyst IT';
             push @after_license_lines, $_;
         }
         elsif (1 == $in_copyright and 
-               m|^ \*  Foundation, Inc\., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA|) {
+               m|^ \* along with this program\.  If not, see|) {
             $in_copyright = 2; # 2 = after the license text
         }
         elsif (m|\*/| and (1 == $in_copyright or 2 == $in_copyright)) {
             $in_copyright = 3; # 3 = after the header
             push @lines, $copyright_text;
+            # Correct any catalyst IT copyright lines
+            for my $line (@after_license_lines) {
+                if ($line =~ m|^ \* \@copyright.*\([cC]\) (\d+[,-]\d+) Catalyst IT Ltd|) {
+                    $line =~ s/$1/$copyright_years/;
+                }
+            }
             push @lines, @after_license_lines;
             push @lines, " */\n";
         } 
