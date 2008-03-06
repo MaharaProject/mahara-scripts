@@ -18,7 +18,7 @@ fi
 MAJOR=${1:0:3}
 MINOR=${1:4:1}
 MICRO=${1:5}
-BUILDDIR="/tmp/mahara_release"
+BUILDDIR="/tmp/mahara/tarballs"
 CURRENTDIR="`pwd`"
 
 if [ -z "${MAJOR}" ] || [ -z "${MINOR}" ]; then
@@ -42,16 +42,12 @@ git clone -n "http://git.catalyst.net.nz/mahara.git" mahara
 pushd ${BUILDDIR}/mahara
 
 # Switch to the release tag
-#git checkout -b "${MAJOR}_STABLE" "origin/${MAJOR}_STABLE"
 RELEASETAG="`echo $VERSION | tr '[:lower:]' '[:upper:]'`_RELEASE"
 git checkout $RELEASETAG
 
 # Remove git stuff
 rm .git -rf
 find . -name '.gitignore' -exec rm {} \;
-
-# Pack MochiKit
-bash scripts/pack.sh
 
 popd
 
@@ -62,4 +58,4 @@ tar jcf ${CURRENTDIR}/mahara-${VERSION}.tar.bz2 mahara-${VERSION}
 zip -qrT9 ${CURRENTDIR}/mahara-${VERSION}.zip mahara-${VERSION}
 
 popd
-#rm -rf ${BUILDDIR}
+rm -rf ${BUILDDIR}
