@@ -32,7 +32,7 @@ if [ -d ${BUILDDIR} ]; then
     rm -rf ${BUILDDIR}
 fi
 
-mkdir ${BUILDDIR}
+mkdir -p ${BUILDDIR}
 
 pushd ${BUILDDIR}
 
