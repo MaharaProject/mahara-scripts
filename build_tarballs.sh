@@ -37,7 +37,7 @@ mkdir -p ${BUILDDIR}
 pushd ${BUILDDIR}
 
 # Get the stable branch
-git clone -n "http://git.catalyst.net.nz/mahara.git" mahara
+git clone -n "http://git.mahara.org/git/mahara.git" mahara
 
 pushd ${BUILDDIR}/mahara
 
