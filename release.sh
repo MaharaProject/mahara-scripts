@@ -27,8 +27,8 @@ MICROB=`echo ${MICRO} | sed 's/[a-z]//g'`
 
 BRANCH=$2
 OPTION=$3
-#BUILDDIR="/tmp/mahara/tarballs"
-BUILDDIR="/home/richard/foobar44/mahara/tarballs"
+BUILDDIR="/tmp/mahara/tarballs"
+#BUILDDIR="/home/richard/foobar44/mahara/tarballs"
 CURRENTDIR="`pwd`"
 
 if [ -z "${MAJOR}" ] || [ -z "${MINOR}" ]; then
@@ -51,35 +51,27 @@ pushd ${BUILDDIR}/mahara
 PUBLIC="http://git.mahara.org/git/mahara.git"
 SECURITY="git+ssh://git.catalyst.net.nz/var/gitprivate/mahara-security.git"
 
-echo "Cloning public repository $PUBLIC"
+echo "Cloning public repository ${PUBLIC} in ${BUILDDIR}/mahara"
 git-init
 git-remote add -t ${BRANCH} mahara ${PUBLIC}
-git fetch mahara
+git fetch -q mahara
+git checkout -b ${BRANCH} mahara/${BRANCH}
 
-
-if [ "$OPTION" = "--public" ]; then
-    REPOSITORY=${PUBLIC}
-else
-    REPOSITORY=${SECURITY}
-fi
-
-
-if [ $REPOSITORY = $PUBLIC ]; then
-    git checkout -b ${BRANCH} mahara/${BRANCH}
-else
-    echo "Checking out security repository $SECURITY"
+if [ "$OPTION" != "--public" ]; then
+    echo "Checking out security repository ${SECURITY}..."
     git-remote add -t ${BRANCH} mahara-security ${SECURITY}
-    git fetch mahara-security
+    git fetch -q mahara-security
     git checkout -b S_${BRANCH} mahara-security/${BRANCH}
     echo "Merging $BRANCH (public) into $BRANCH (security)"
-    git merge mahara/${BRANCH}
+    git merge ${BRANCH}
 fi
 
 
+
+# Update ChangeLog
 
 RELEASE="${MAJOR}.${MINOR}${MICRO}"
 
-# Edit ChangeLog
 if [ -f "ChangeLog" ]; then
     cp ChangeLog ChangeLog.back
     echo "$RELEASE (`date +%Y-%m-%d`)" > ChangeLog
@@ -93,30 +85,37 @@ fi
 
 
 
-# Version bump for the release
+# Add a version bump commit for the release
 
 VERSIONFILE=htdocs/lib/version.php
 
-if [ "$BRANCH" = "master" ]; then
-    NEWVERSION=`date +%Y%m%d`00
-else
+# If there's no 'micro' part of the version number, assume it's a stable release, and
+# bump version by 1.  If it's an unstable release, use 
+if [ -z "${MICRO}" ]; then
     OLDVERSION=$(perl -n -e 'print if s/^\$config->version = (\d{10}).*/$1/' < ${VERSIONFILE})
     NEWVERSION=$(( ${OLDVERSION} + 1 ))
+else
+    NEWVERSION=`date +%Y%m%d`00
 fi
 
 sed "s/\$config->version = [0-9]\{10\};/\$config->version = $NEWVERSION;/" ${VERSIONFILE} > ${VERSIONFILE}.temp
 sed "s/\$config->release = .*/\$config->release = '$RELEASE';/" ${VERSIONFILE}.temp > ${VERSIONFILE}
 
+echo
 git add ${VERSIONFILE}
 git commit -m "Version bump for $RELEASE"
 
+
+
+# Tag the version bump commit
 RELEASETAG="`echo $RELEASE | tr '[:lower:]' '[:upper:]'`_RELEASE"
+echo -e "\nTag new version bump commit as '$RELEASETAG'"
 git tag -s ${RELEASETAG} -m "$RELEASE release"
 
 
 
-
 # Create tarballs
+
 echo "Creating mahara-${RELEASE}.tar.gz"
 git archive --format=tar ${RELEASETAG} | gzip > ${CURRENTDIR}/mahara-${RELEASE}.tar.gz
 echo "Creating mahara-${RELEASE}.tar.bz2"
@@ -126,14 +125,13 @@ git archive --format=zip -9 ${RELEASETAG} > ${CURRENTDIR}/mahara-${RELEASE}.zip
 
 
 
-
 # Second version bump for post-release
 
 NEWVERSION=$(( ${NEWVERSION} + 1 ))
-if [ "$BRANCH" = "master" ]; then
-    NEWRELEASE="${MAJOR}.${MINOR}${MICROA}$(( ${MICROB} + 1 ))dev"
-else
+if [ -z "${MICRO}" ]; then
     NEWRELEASE="${MAJOR}.$(( ${MINOR} + 1 ))testing"
+else
+    NEWRELEASE="${MAJOR}.${MINOR}${MICROA}$(( ${MICROB} + 1 ))dev"
 fi
 
 sed "s/\$config->version = [0-9]\{10\};/\$config->version = $NEWVERSION;/" ${VERSIONFILE} > ${VERSIONFILE}.temp
