@@ -30,6 +30,7 @@ OPTION=$3
 BUILDDIR="/tmp/mahara/tarballs"
 #BUILDDIR="/home/richard/foobar44/mahara/tarballs"
 CURRENTDIR="`pwd`"
+SCRIPTDIR=$( readlink -f -- "${0%/*}" )
 
 if [ -z "${MAJOR}" ] || [ -z "${MINOR}" ]; then
     print_usage
@@ -64,21 +65,25 @@ if [ "$OPTION" != "--public" ]; then
     git checkout -b S_${BRANCH} mahara-security/${BRANCH}
     echo "Merging $BRANCH (public) into $BRANCH (security)"
     git merge ${BRANCH}
+    # Check for merge conflicts
 fi
 
 
 
-# Update ChangeLog
+# Edit ChangeLog
 
 RELEASE="${MAJOR}.${MINOR}${MICRO}"
+
+echo -e "#\n# Please add a description of the major changes in this release, one per line:\n#\n" > ${CURRENTDIR}/ChangeLog.temp
+sensible-editor ${CURRENTDIR}/ChangeLog.temp
+grep -v "^#" ${CURRENTDIR}/ChangeLog.temp > ${CURRENTDIR}/changes.temp
 
 if [ -f "ChangeLog" ]; then
     cp ChangeLog ChangeLog.back
     echo "$RELEASE (`date +%Y-%m-%d`)" > ChangeLog
-    echo "- " >> ChangeLog
+    sed 's/^/- /g' ${CURRENTDIR}/changes.temp >> ChangeLog
     echo >> ChangeLog
     cat ChangeLog.back >> ChangeLog
-    sensible-editor ${BUILDDIR}/mahara/ChangeLog
     git add ChangeLog
 fi
 
@@ -108,6 +113,7 @@ git commit -m "Version bump for $RELEASE"
 
 
 # Tag the version bump commit
+
 RELEASETAG="`echo $RELEASE | tr '[:lower:]' '[:upper:]'`_RELEASE"
 echo -e "\nTag new version bump commit as '$RELEASETAG'"
 git tag -s ${RELEASETAG} -m "$RELEASE release"
@@ -122,6 +128,38 @@ echo "Creating mahara-${RELEASE}.tar.bz2"
 git archive --format=tar ${RELEASETAG} | bzip2 > ${CURRENTDIR}/mahara-${RELEASE}.tar.bz2
 echo "Creating mahara-${RELEASE}.zip"
 git archive --format=zip -9 ${RELEASETAG} > ${CURRENTDIR}/mahara-${RELEASE}.zip
+
+
+
+# Save git changelog
+
+OLDRELEASETAG=`git tag -l '*_RELEASE' | tail -2 | head -1`
+if [ -n "${OLDRELEASETAG}" ] ; then
+    git log --pretty=oneline ${OLDRELEASETAG}..${RELEASETAG} > ${CURRENTDIR}/${RELEASETAG}.cl
+else
+    git log --pretty=oneline ${RELEASETAG} > ${CURRENTDIR}/${RELEASETAG}.cl
+fi
+OLDRELEASE=${OLDRELEASETAG%_RELEASE}
+
+
+
+# Prepare eduforge release notes
+
+TMP_M4_FILE=/tmp/mahara-releasnotes.m4.tmp
+echo "changecom" > $TMP_M4_FILE
+echo "define(\`__RELEASE__',\`${RELEASE}')dnl" >> $TMP_M4_FILE
+echo "define(\`__OLDRELEASE__',\`${OLDRELEASE}')dnl" >> $TMP_M4_FILE
+echo "define(\`__MAJOR__',\`${MAJOR}')dnl" >> $TMP_M4_FILE
+sed 's/^/ * /g' ${CURRENTDIR}/changes.temp >> ${CURRENTDIR}/changes.eduforge.temp
+echo "define(\`__CHANGES__',\`include(\`${CURRENTDIR}/changes.eduforge.temp')')dnl" >> $TMP_M4_FILE
+
+if [ -z "${MICRO}" ]; then
+    TEMPLATE=releasenotes.stable.template
+else
+    TEMPLATE=releasenotes.${MICROA}.template
+fi
+
+m4 ${TMP_M4_FILE} ${SCRIPTDIR}/${TEMPLATE} > ${CURRENTDIR}/releasenotes-${RELEASE}.txt
 
 
 

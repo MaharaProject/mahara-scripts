@@ -1,0 +1,20 @@
+Mahara __RELEASE__ Release Notes
+
+            *** THERE IS NO UPGRADE PATH TO THIS RELEASE ***
+
+You MUST install this from scratch, upgrading from trunk or from a previous
+stable release is NOT supported.
+
+This is a preview release of Mahara __MAJOR__. Things will be broken!
+Please do not file bug reports, but we are interested to hear your
+feedback on the new features, through #mahara on freenode, e-mail to
+dev@mahara.org or the forums at www.mahara.org.
+
+This release includes:
+
+__CHANGES__
+
+As mentioned, there is no supported upgrade path. Attempting to upgrade an
+existing Mahara will result in a broken system, so do not try this yet.
+
+

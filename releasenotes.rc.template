@@ -1,0 +1,24 @@
+Mahara __RELEASE__ Release Notes
+
+This is a release candidate of Mahara __MAJOR__. Release candidates should
+have no major bugs affecting the installation, upgrade path or general Mahara
+usage, but nevertheless may have bugs in these areas. You can report bugs to
+the tracker:
+
+https://eduforge.org/tracker/?func=add&group_id=176&atid=739
+
+Please choose '__MAJOR__ stable branch' as the version of your bug.
+
+In this release, upgrading from the 1.0 stable version is possible. This does
+not mean that this should be done on a live website! Please perform any testing
+you might want to make on either a new install of this release or a copy of
+your site.
+
+This release includes:
+
+__CHANGES__
+
+As mentioned above, the upgrade should not be attempted on a live site yet.
+Instead, make a copy of your database and dataroot, set up a new Mahara using
+them, and test upgrading on that.
+
