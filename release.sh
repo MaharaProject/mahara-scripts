@@ -179,7 +179,45 @@ git add ${VERSIONFILE}
 git commit -m "Version bump for $NEWRELEASE"
 
 
-exit
 
-popd
-rm -rf ${BUILDDIR}
+# Merge security back into public
+
+if [ "$OPTION" != "--public" ]; then
+    git checkout ${BRANCH}
+    git merge S_${BRANCH}
+fi
+
+
+
+# Output commands to push to the remote repository and clean up
+
+CLEANUPSCRIPT=release-${RELEASE}-cleanup.sh
+echo "cd ${BUILDDIR}/mahara" > ${CURRENTDIR}/${CLEANUPSCRIPT}
+echo "git push mahara ${BRANCH}:refs/heads/${BRANCH}" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
+echo "git push mahara ${RELEASETAG}:refs/tags/${RELEASETAG}" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
+if [ "$OPTION" != "--public" ]; then
+    echo "git push mahara-security S_${BRANCH}:refs/heads/${BRANCH}" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
+    echo "git push mahara-security ${RELEASETAG}:refs/tags/${RELEASETAG}" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
+fi
+echo "rm -rf ${BUILDDIR}" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
+chmod 700 ${CURRENTDIR}/${CLEANUPSCRIPT}
+
+
+
+# Clean up
+
+rm ${VERSIONFILE}.temp
+rm ${CURRENTDIR}/ChangeLog.temp
+rm ${CURRENTDIR}/changes.temp
+rm ${CURRENTDIR}/changes.eduforge.temp
+rm ${TMP_M4_FILE}
+
+
+
+
+echo -e "\n\nTarballs, release notes & changelog for Eduforge:\n"
+cd ${CURRENTDIR}
+ls -l mahara-${RELEASE}.tar.gz mahara-${RELEASE}.tar.bz2 mahara-${RELEASE}.zip releasenotes-${RELEASE}.txt ${RELEASETAG}.cl
+
+echo -e "\nCheck that everything is in order in the ${BUILDDIR}/mahara repository."
+echo "Then run the commands in ${CLEANUPSCRIPT} to push the changes back to the remote repository."
