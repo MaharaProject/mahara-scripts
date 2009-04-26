@@ -49,7 +49,7 @@ pushd ${BUILDDIR}/mahara
 
 # Get the public & security branches
 
-PUBLIC="http://git.mahara.org/git/mahara.git"
+PUBLIC="git+ssh://git.mahara.org/git/mahara.git"
 SECURITY="git+ssh://git.catalyst.net.nz/var/gitprivate/mahara-security.git"
 
 echo "Cloning public repository ${PUBLIC} in ${BUILDDIR}/mahara"
