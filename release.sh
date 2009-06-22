@@ -133,7 +133,7 @@ git archive --format=zip -9 ${RELEASETAG} > ${CURRENTDIR}/mahara-${RELEASE}.zip
 
 # Save git changelog
 
-OLDRELEASETAG=`git tag -l '*_RELEASE' | tail -2 | head -1`
+OLDRELEASETAG=`git tag -l '*_RELEASE' | grep "^${MAJOR}\.${MINOR}\." | sort -t. -k 3 -n | tail -2 | head -1`
 if [ -n "${OLDRELEASETAG}" ] ; then
     git log --pretty=oneline ${OLDRELEASETAG}..${RELEASETAG} > ${CURRENTDIR}/${RELEASETAG}.cl
 else
