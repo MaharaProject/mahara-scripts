@@ -53,14 +53,14 @@ PUBLIC="git+ssh://git.mahara.org/git/mahara.git"
 SECURITY="git+ssh://git.catalyst.net.nz/var/gitprivate/mahara-security.git"
 
 echo "Cloning public repository ${PUBLIC} in ${BUILDDIR}/mahara"
-git-init
-git-remote add -t ${BRANCH} mahara ${PUBLIC}
+git init
+git remote add -t ${BRANCH} mahara ${PUBLIC}
 git fetch -q mahara
 git checkout -b ${BRANCH} mahara/${BRANCH}
 
 if [ "$OPTION" != "--public" ]; then
     echo "Checking out security repository ${SECURITY}..."
-    git-remote add -t ${BRANCH} mahara-security ${SECURITY}
+    git remote add -t ${BRANCH} mahara-security ${SECURITY}
     git fetch -q mahara-security
     git checkout -b S_${BRANCH} mahara-security/${BRANCH}
     echo "Merging $BRANCH (public) into $BRANCH (security)"
