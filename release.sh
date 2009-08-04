@@ -135,9 +135,9 @@ git archive --format=zip -9 ${RELEASETAG} > ${CURRENTDIR}/mahara-${RELEASE}.zip
 
 OLDRELEASETAG=`git tag -l '*_RELEASE' | grep "^${MAJOR}\.${MINOR}\." | sort -t. -k 3 -n | tail -2 | head -1`
 if [ -n "${OLDRELEASETAG}" ] ; then
-    git log --pretty=oneline ${OLDRELEASETAG}..${RELEASETAG} > ${CURRENTDIR}/${RELEASETAG}.cl
+    git log --pretty=oneline --no-color ${OLDRELEASETAG}..${RELEASETAG} > ${CURRENTDIR}/${RELEASETAG}.cl
 else
-    git log --pretty=oneline ${RELEASETAG} > ${CURRENTDIR}/${RELEASETAG}.cl
+    git log --pretty=oneline --no-color ${RELEASETAG} > ${CURRENTDIR}/${RELEASETAG}.cl
 fi
 OLDRELEASE=${OLDRELEASETAG%_RELEASE}
 
