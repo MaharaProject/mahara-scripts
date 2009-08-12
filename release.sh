@@ -16,10 +16,10 @@ if [ -z "$1" ] || [ -z "$2" ]; then
     exit 1
 fi
 
+VERSION=$1
 
-
-MAJOR=${1%.*}
-REST=${1##*.}
+MAJOR=${VERSION%.*}
+REST=${VERSION##*.}
 MINOR=${REST%%[a-z]*}
 MICRO=`echo ${REST} | sed 's/^[0-9]*//g'`
 MICROA=`echo ${MICRO} | sed 's/[^a-z]//g'`
@@ -28,7 +28,6 @@ MICROB=`echo ${MICRO} | sed 's/[a-z]//g'`
 BRANCH=$2
 OPTION=$3
 BUILDDIR="/tmp/mahara/tarballs"
-#BUILDDIR="/home/richard/foobar44/mahara/tarballs"
 CURRENTDIR="`pwd`"
 SCRIPTDIR=$( readlink -f -- "${0%/*}" )
 
@@ -123,11 +122,11 @@ git tag -s ${RELEASETAG} -m "$RELEASE release"
 # Create tarballs
 
 echo "Creating mahara-${RELEASE}.tar.gz"
-git archive --format=tar ${RELEASETAG} | gzip > ${CURRENTDIR}/mahara-${RELEASE}.tar.gz
+git archive --format=tar --prefix=mahara-${VERSION}/ ${RELEASETAG} | gzip > ${CURRENTDIR}/mahara-${RELEASE}.tar.gz
 echo "Creating mahara-${RELEASE}.tar.bz2"
-git archive --format=tar ${RELEASETAG} | bzip2 > ${CURRENTDIR}/mahara-${RELEASE}.tar.bz2
+git archive --format=tar --prefix=mahara-${VERSION}/ ${RELEASETAG} | bzip2 > ${CURRENTDIR}/mahara-${RELEASE}.tar.bz2
 echo "Creating mahara-${RELEASE}.zip"
-git archive --format=zip -9 ${RELEASETAG} > ${CURRENTDIR}/mahara-${RELEASE}.zip
+git archive --format=zip --prefix=mahara-${VERSION}/ -9 ${RELEASETAG} > ${CURRENTDIR}/mahara-${RELEASE}.zip
 
 
 
