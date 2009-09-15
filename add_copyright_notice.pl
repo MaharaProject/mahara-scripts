@@ -50,11 +50,13 @@ my @SRC_DIRS = ('htdocs', 'test');
 # strings in:
 #    - COPYING
 #    - debian/copyright
-my $copyright_years = '2006-2008';
+my $copyright_years = '2006-2009';
+my $copyright_last_year = '2009';
 my $copyright_text = <<END_OF_COPYRIGHT_TEXT;
 /**
  * Mahara: Electronic portfolio, weblog, resume builder and social networking
- * Copyright (C) $copyright_years Catalyst IT Ltd (http://www.catalyst.net.nz)
+ * Copyright (C) $copyright_years Catalyst IT Ltd and others; see:
+ *                         http://wiki.mahara.org/Contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -92,7 +94,7 @@ sub process_file
             $product = 'Mahara';
         }
         elsif (2 == $in_copyright and 
-               m|^ \* \@copyright.*\([cC]\) (\d+,\d+) Catalyst IT Ltd|) {
+               m|^ \* \@copyright.*\([cC]\) (\d+([-,]\d+)?) Catalyst IT|) {
             $copyright_holder = 'Catalyst IT';
             push @after_license_lines, $_;
         }
@@ -105,8 +107,13 @@ sub process_file
             push @lines, $copyright_text;
             # Correct any catalyst IT copyright lines
             for my $line (@after_license_lines) {
-                if ($line =~ m|^ \* \@copyright.*\([cC]\) (\d+[,-]\d+) Catalyst IT Ltd|) {
-                    $line =~ s/$1/$copyright_years/;
+                if ($line =~ m|^ \* \@copyright.*\([cC]\) ((\d{4})(?:[,-](\d{4}))?) Catalyst IT|) {
+                    my $years = $1;
+                    my $firstyear = $2;
+                    my $lastyear = $3 ? $3 : $2;
+                    if ($lastyear lt $copyright_last_year) {
+                        $line =~ s/$years/$firstyear-$copyright_last_year/;
+                    }
                 }
             }
             push @lines, @after_license_lines;
