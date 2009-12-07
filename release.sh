@@ -16,6 +16,8 @@ if [ -z "$1" ] || [ -z "$2" ]; then
     exit 1
 fi
 
+# Check for git gpg lp-project-upload
+
 VERSION=$1
 
 MAJOR=${VERSION%.*}
@@ -48,7 +50,7 @@ pushd ${BUILDDIR}/mahara
 
 # Get the public & security branches
 
-PUBLIC="git+ssh://git.mahara.org/git/mahara.git"
+PUBLIC="git@gitorious.org:mahara/mahara.git"
 SECURITY="git+ssh://git.catalyst.net.nz/var/gitprivate/mahara-security.git"
 
 echo "Cloning public repository ${PUBLIC} in ${BUILDDIR}/mahara"
@@ -112,7 +114,7 @@ git commit -m "Version bump for $RELEASE"
 
 
 # Tag the version bump commit
-
+LASTTAG=`git describe --abbrev=0`
 RELEASETAG="`echo $RELEASE | tr '[:lower:]' '[:upper:]'`_RELEASE"
 echo -e "\nTag new version bump commit as '$RELEASETAG'"
 git tag -s ${RELEASETAG} -m "$RELEASE release"
@@ -122,23 +124,22 @@ git tag -s ${RELEASETAG} -m "$RELEASE release"
 # Create tarballs
 
 echo "Creating mahara-${RELEASE}.tar.gz"
-git archive --format=tar --prefix=mahara-${VERSION}/ ${RELEASETAG} | gzip > ${CURRENTDIR}/mahara-${RELEASE}.tar.gz
+git archive --format=tar --prefix=mahara-${VERSION}/ ${RELEASETAG} | gzip -9 > ${CURRENTDIR}/mahara-${RELEASE}.tar.gz
 echo "Creating mahara-${RELEASE}.tar.bz2"
-git archive --format=tar --prefix=mahara-${VERSION}/ ${RELEASETAG} | bzip2 > ${CURRENTDIR}/mahara-${RELEASE}.tar.bz2
+git archive --format=tar --prefix=mahara-${VERSION}/ ${RELEASETAG} | bzip2 -9 > ${CURRENTDIR}/mahara-${RELEASE}.tar.bz2
 echo "Creating mahara-${RELEASE}.zip"
 git archive --format=zip --prefix=mahara-${VERSION}/ -9 ${RELEASETAG} > ${CURRENTDIR}/mahara-${RELEASE}.zip
 
 
 
 # Save git changelog
-
-OLDRELEASETAG=`git tag -l '*_RELEASE' | grep "^${MAJOR}\.${MINOR}\." | sort -t. -k 3 -n | tail -2 | head -1`
-if [ -n "${OLDRELEASETAG}" ] ; then
-    git log --pretty=oneline --no-color ${OLDRELEASETAG}..${RELEASETAG} > ${CURRENTDIR}/${RELEASETAG}.cl
+if [ -n "${LASTTAG}" ] ; then
+    echo "Getting changelog from previous tag ${LASTTAG}"
+    git log --pretty=oneline --no-color ${LASTTAG}..${RELEASETAG} > ${CURRENTDIR}/${RELEASETAG}.cl
 else
     git log --pretty=oneline --no-color ${RELEASETAG} > ${CURRENTDIR}/${RELEASETAG}.cl
 fi
-OLDRELEASE=${OLDRELEASETAG%_RELEASE}
+OLDRELEASE=${LASTTAG%_RELEASE}
 
 
 
@@ -191,14 +192,27 @@ fi
 # Output commands to push to the remote repository and clean up
 
 CLEANUPSCRIPT=release-${RELEASE}-cleanup.sh
-echo "cd ${BUILDDIR}/mahara" > ${CURRENTDIR}/${CLEANUPSCRIPT}
+echo > ${CURRENTDIR}/${CLEANUPSCRIPT}
+
+
+echo "cd ${BUILDDIR}/mahara" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
 echo "git push mahara ${BRANCH}:refs/heads/${BRANCH}" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
 echo "git push mahara ${RELEASETAG}:refs/tags/${RELEASETAG}" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
 if [ "$OPTION" != "--public" ]; then
     echo "git push mahara-security S_${BRANCH}:refs/heads/${BRANCH}" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
     echo "git push mahara-security ${RELEASETAG}:refs/tags/${RELEASETAG}" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
 fi
+
+echo "gpg --armor --sign --detach-sig ${CURRENTDIR}/mahara-${RELEASE}.tar.gz" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
+echo "gpg --armor --sign --detach-sig ${CURRENTDIR}/mahara-${RELEASE}.tar.bz2" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
+echo "gpg --armor --sign --detach-sig ${CURRENTDIR}/mahara-${RELEASE}.zip" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
+
+echo "# lp-project-upload mahara ${RELEASE} ${CURRENTDIR}/mahara-${RELEASE}.tar.gz" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
+echo "# lp-project-upload mahara ${RELEASE} ${CURRENTDIR}/mahara-${RELEASE}.tar.bz2" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
+echo "# lp-project-upload mahara ${RELEASE} ${CURRENTDIR}/mahara-${RELEASE}.tar.zip" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
+
 echo "rm -rf ${BUILDDIR}" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
+
 chmod 700 ${CURRENTDIR}/${CLEANUPSCRIPT}
 
 
@@ -214,9 +228,10 @@ rm ${TMP_M4_FILE}
 
 
 
-echo -e "\n\nTarballs, release notes & changelog for Eduforge:\n"
+echo -e "\n\nTarballs, release notes & changelog for Launchpad:\n"
 cd ${CURRENTDIR}
 ls -l mahara-${RELEASE}.tar.gz mahara-${RELEASE}.tar.bz2 mahara-${RELEASE}.zip releasenotes-${RELEASE}.txt ${RELEASETAG}.cl
 
-echo -e "\nCheck that everything is in order in the ${BUILDDIR}/mahara repository."
-echo "Then run the commands in ${CLEANUPSCRIPT} to push the changes back to the remote repository."
+echo -e "\n1. Check that everything is in order in the ${BUILDDIR}/mahara repository."
+echo -e "\n2. Create the release on launchpad at https://launchpad.net/mahara/+milestone/${RELEASE}"
+echo -e "\n3. Run the commands in ${CLEANUPSCRIPT} to push the changes back to the remote repository and upload the tarballs."

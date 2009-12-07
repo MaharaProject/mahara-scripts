@@ -3,14 +3,12 @@ Mahara __RELEASE__ Release Notes
 This is a stable release of Mahara __MAJOR__. Stable releases are fit for
 general use. If you find a bug, please report it to the tracker:
 
-https://eduforge.org/tracker/?func=add&group_id=176&atid=739
-
-Please choose '__MAJOR__ stable branch' as the version of your bug.
+https://bugs.launchpad.net/mahara/+filebug
 
 This release includes an upgrade path from 1.0. If you wish to
 upgrade, we encourage you to make a copy of your website and test the
-upgrade on it first, to minimise the effect of any potential unforseen
-problems.
+upgrade on it first, to minimise the effect of any potential
+unforeseen problems.
 
 Changes from __OLDRELEASE__:
 
