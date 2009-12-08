@@ -6,12 +6,12 @@ set -e
 
 
 print_usage() {
-    echo "Usage is $0 [version] [branch]"
-    echo "e.g. $0 0.6.2 0.6_STABLE"
-    echo "e.g. $0 1.0.0alpha1 master"
+    echo "Usage is $0 [version] [branch] public|private"
+    echo "e.g. $0 0.6.2 0.6_STABLE private"
+    echo "e.g. $0 1.0.0alpha1 master public"
 }
 
-if [ -z "$1" ] || [ -z "$2" ]; then
+if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
     print_usage
     exit 1
 fi
@@ -38,6 +38,11 @@ if [ -z "${MAJOR}" ] || [ -z "${MINOR}" ]; then
     exit 1
 fi
 
+if [ "$OPTION" != "public" ] && [ "${OPTION}" != 'private' ]; then
+    print_usage
+    exit 1
+fi
+
 if [ -d ${BUILDDIR} ]; then
     rm -rf ${BUILDDIR}
 fi
@@ -59,7 +64,7 @@ git remote add -t ${BRANCH} mahara ${PUBLIC}
 git fetch -q mahara
 git checkout -b ${BRANCH} mahara/${BRANCH}
 
-if [ "$OPTION" != "--public" ]; then
+if [ "$OPTION" != "public" ]; then
     echo "Checking out security repository ${SECURITY}..."
     git remote add -t ${BRANCH} mahara-security ${SECURITY}
     git fetch -q mahara-security
@@ -182,7 +187,7 @@ git commit -m "Version bump for $NEWRELEASE"
 
 # Merge security back into public
 
-if [ "$OPTION" != "--public" ]; then
+if [ "$OPTION" != "public" ]; then
     git checkout ${BRANCH}
     git merge S_${BRANCH}
 fi
@@ -198,7 +203,7 @@ echo > ${CURRENTDIR}/${CLEANUPSCRIPT}
 echo "cd ${BUILDDIR}/mahara" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
 echo "git push mahara ${BRANCH}:refs/heads/${BRANCH}" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
 echo "git push mahara ${RELEASETAG}:refs/tags/${RELEASETAG}" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
-if [ "$OPTION" != "--public" ]; then
+if [ "$OPTION" != "public" ]; then
     echo "git push mahara-security S_${BRANCH}:refs/heads/${BRANCH}" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
     echo "git push mahara-security ${RELEASETAG}:refs/tags/${RELEASETAG}" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
 fi
