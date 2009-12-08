@@ -140,9 +140,9 @@ git archive --format=zip --prefix=mahara-${VERSION}/ -9 ${RELEASETAG} > ${CURREN
 # Save git changelog
 if [ -n "${LASTTAG}" ] ; then
     echo "Getting changelog from previous tag ${LASTTAG}"
-    git log --pretty=oneline --no-color ${LASTTAG}..${RELEASETAG} > ${CURRENTDIR}/${RELEASETAG}.cl
+    git log --pretty=format:"%s" --no-color ${LASTTAG}..${RELEASETAG} > ${CURRENTDIR}/${RELEASETAG}.cl
 else
-    git log --pretty=oneline --no-color ${RELEASETAG} > ${CURRENTDIR}/${RELEASETAG}.cl
+    git log --pretty=format:"%s" --no-color ${RELEASETAG} > ${CURRENTDIR}/${RELEASETAG}.cl
 fi
 OLDRELEASE=${LASTTAG%_RELEASE}
 
