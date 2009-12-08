@@ -77,6 +77,10 @@ fi
 
 
 # Edit ChangeLog
+if [ -z "${MICRO}" ] && [ ! -f "ChangeLog" ]; then
+    echo "The ChangeLog file is missing and this is a stable release. Create an empty file called ChangeLog and commit it."
+    exit 1
+fi
 
 RELEASE="${MAJOR}.${MINOR}${MICRO}"
 
