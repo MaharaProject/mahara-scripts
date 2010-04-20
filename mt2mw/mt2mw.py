@@ -36,6 +36,7 @@ mwwiki = MWWiki(
 )
 
 mwwiki.create_from_mindtouch(homepage)
+
 # point MediaWiki:MainPage at the new homepage
 mwwiki.update_mainpage(homepage)
 mwwiki.done()

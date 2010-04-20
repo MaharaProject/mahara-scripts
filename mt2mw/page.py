@@ -19,6 +19,13 @@
 import os
 import subprocess as sp
 
+
+class File:
+    def __init__(self, title, url):
+        self.title = title
+        self.url = url
+
+
 class HTMLPage:
     def __init__(self, id, title, wiki, path):
         self.id = id
@@ -26,21 +33,22 @@ class HTMLPage:
         self.wiki = wiki
         self.path = path
         self.subpages = list()
+        self.files = list()
 
     def add_subpage(self, page):
         self.subpages.append(page)
 
+    def add_file(self, file):
+        self.files.append(file)
+
     def get_content(self):
         return self.wiki.get_page_content(self)
 
+    def get_files(self):
+        return self.wiki.get_page_files(self)
 
-class WikiPage:
-    def __init__(self, title):
-        self.title = title
-        self.path = title
-
-    def get_content(self):
-        return self.content
+    def towiki(self):
+        return html2wiki(self.get_content())
 
 
 def html2wiki(html):

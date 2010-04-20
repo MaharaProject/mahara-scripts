@@ -21,7 +21,7 @@ import xml.etree.ElementTree as etree
 from xml.sax.saxutils import unescape
 
 # our library
-from page import HTMLPage
+from page import HTMLPage, File
 
 class MTWiki:
     def __init__(self, baseurl):
@@ -42,6 +42,7 @@ class MTWiki:
         title = root.find('title').text
         path = root.find('path').text
         page = HTMLPage(id, title, wiki, path)
+        wiki.set_page_files(page)
         for subpage in root.find('subpages').findall('page'):
             page.add_subpage(MTWiki.generate_sitemap(subpage, wiki))
         return page
@@ -57,4 +58,15 @@ class MTWiki:
             self.request('pages/%s/contents' % page.id)
         )
         return unescape(response.find('body').text.strip())
+
+    def set_page_files(self, page):
+        response = etree.fromstring(
+            self.request('pages/%s/files' % page.id)
+        )
+        files = response.findall('file');
+        for file in files:
+            page.add_file(File(
+                file.find('filename').text,
+                file.find('contents').get('href')
+            ))
 

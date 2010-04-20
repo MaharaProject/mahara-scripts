@@ -18,9 +18,6 @@
 # system library
 import wikitools as wt
 
-# our library
-from page import WikiPage, html2wiki
-
 class MWWiki:
     def __init__(self, baseurl, username, password):
         try:
@@ -29,27 +26,51 @@ class MWWiki:
         except Exception, e:
             print e
 
-    def html_write(self, page):
-        p = wt.page.Page(self.site, title=page.path)
-        try:
-            p.edit(text=html2wiki(page.get_content()))
-        except Exception, e:
-            print e
+    @staticmethod
+    def subpage_menu(page):
+        if page.subpages:
+            result = '\n\n===Subpages===\n\n%s' % '\n'.join(list('* [[%s|%s]]' % (s.path, s.title) for s in page.subpages))
+            return result.encode('utf-8')
+        return ''
+
+    @staticmethod
+    def files_list(page):
+        if page.files:
+            result = '\n\n===Files===\n\n%s' % '\n'.join(list('*[[File:%s]]' % (f.title) for f in page.files))
+            return result.encode('utf-8')
+        return ''
 
     def write(self, page):
+        # upload the files for this page
+        for file in page.files:
+            f = wt.wikifile.File(self.site, file.title)
+            try:
+                f.upload(url=file.url)
+            except Exception, e:
+                print e
+        # write the page itself
         p = wt.page.Page(self.site, title=page.path)
         try:
-            p.edit(text=page.get_content())
+            p.edit(
+                text='%s%s%s' % (
+                    page.towiki(),
+                    MWWiki.files_list(page),
+                    MWWiki.subpage_menu(page)
+                ),
+                skipmd5=True
+            )
+        except Exception, e:
+            print  e
+
+    def update_mainpage(self, root):
+        p = wt.page.Page(self.site, title='MediaWiki:Mainpage')
+        try:
+            p.edit(text=root.title.replace(' ', '_'))
         except Exception, e:
             print e
 
-    def update_mainpage(self, root):
-        mainpage = WikiPage('MediaWiki:Mainpage')
-        mainpage.content = root.title.replace(' ', '_')
-        self.write(mainpage)
-
     def create_from_mindtouch(self, root):
-        self.html_write(root)
+        self.write(root)
         for subpage in root.subpages:
             self.create_from_mindtouch(subpage)
 
