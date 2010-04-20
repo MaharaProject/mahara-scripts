@@ -1,0 +1,18 @@
+mt2mw -- package for migrating a Mindtouch wiki to MediaWiki
+------------------------------------------------------------ 
+
+Requirements:
+
+    * Python 2.6 or newer (not tested on older versions)
+    * Perl5
+    * Alex Z's wikitools package - available on pypi
+      <http://python-wikitools.googlecode.com>
+    * HTML::WikiConverter perl module
+    * Config::Simple perl module
+    * A target wiki running MediaWiki 1.13 or newer that has the full API
+      enabled (including write functions)
+
+Usage:
+
+    * Edit config.ini
+    * python mt2mw.py
