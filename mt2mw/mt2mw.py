@@ -29,10 +29,22 @@ cfg.read('config.ini')
 mtwiki = MTWiki(cfg.get('config', 'mindtouch_url'))
 homepage = mtwiki.get_sitemap()
 
+directdb = cfg.get('config', 'direct_db')
+dbconfig = None
+if directdb:
+    dbconfig = {
+        'host': cfg.get('config', 'mediawiki_db_host'),
+        'database': cfg.get('config', 'mediawiki_db'),
+        'user': cfg.get('config', 'mediawiki_db_user'),
+        'password': cfg.get('config', 'mediawiki_db_password'),
+    }
+
 mwwiki = MWWiki(
     cfg.get('config', 'mediawiki_url'),
     cfg.get('config', 'mediawiki_user'),
-    cfg.get('config', 'mediawiki_password')
+    cfg.get('config', 'mediawiki_password'),
+    dbconfig,
+    cfg.get('config', 'dataroot'),
 )
 
 mwwiki.create_from_mindtouch(homepage)

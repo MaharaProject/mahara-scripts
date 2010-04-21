@@ -17,14 +17,29 @@
 
 # system library
 import wikitools as wt
+import psycopg2 as pg
+import hashlib
+import os
 
 class MWWiki:
-    def __init__(self, baseurl, username, password):
+    def __init__(self, baseurl, username, password, dbconfig=None, dataroot=None):
         try:
             self.site = wt.wiki.Wiki('%s/api.php' % baseurl)
+            self.username = username
             self.site.login(username, password=password, remember=True)
+            self.dbconfig = dbconfig
+            self.dataroot = dataroot
+            if self.dbconfig:
+                print 'Database details given: files will be added directly'
+                self.connect_db()
         except Exception, e:
             print e
+
+    def connect_db(self):
+        try:
+            self.db = pg.connect(**self.dbconfig)
+        except Exception, e:
+            raise e
 
     @staticmethod
     def subpage_menu(page):
@@ -40,14 +55,77 @@ class MWWiki:
             return result.encode('utf-8')
         return ''
 
-    def write(self, page):
-        # upload the files for this page
+    def commit_file_db(self, cursor, file):
+        filehash = hashlib.md5(file.title).hexdigest()
+        path = os.path.join(self.dataroot, filehash[:1], filehash[:2], file.title)
+        file.download_to(path)
+        filedata = file.get_info()
+        filedata['user'] = None
+        filedata['user_text'] = self.username
+        cursor.execute('''
+            INSERT INTO mediawiki.image (
+                img_name,
+                img_size,
+                img_width,
+                img_height,
+                img_metadata,
+                img_bits,
+                img_media_type,
+                img_major_mime,
+                img_minor_mime,
+                img_description,
+                img_user,
+                img_user_text,
+                img_timestamp,
+                img_sha1
+            ) VALUES (
+                %(name)s,
+                %(size)s,
+                %(width)s,
+                %(height)s,
+                %(metadata)s,
+                %(bits)s,
+                %(media_type)s,
+                %(major_mime)s,
+                %(minor_mime)s,
+                %(description)s,
+                %(user)s,
+                %(user_text)s,
+                %(timestamp)s,
+                %(sha1)s
+            );''', filedata
+        )
+        self.db.commit()
+
+
+    def write_files_api(self, page):
         for file in page.files:
             f = wt.wikifile.File(self.site, file.title)
             try:
                 f.upload(url=file.url)
+                print 'Uploaded file: %s' % f.title
             except Exception, e:
                 print e
+
+    def write_files_db(self, page):
+        cursor = self.db.cursor()
+        for file in page.files:
+            cursor.execute('''
+                SELECT img_name FROM mediawiki.image WHERE img_name = %s''',
+                (file.title,)
+            )
+            if not cursor.fetchall():
+                self.commit_file_db(cursor, file)
+        cursor.close()
+
+
+    def write(self, page):
+        # upload the files for this page
+        if page.files:
+            if self.dbconfig:
+                self.write_files_db(page)
+            else:
+                self.write_files_api(page)
         # write the page itself
         p = wt.page.Page(self.site, title=page.path)
         try:
@@ -59,6 +137,7 @@ class MWWiki:
                 ),
                 skipmd5=True
             )
+            print 'Wrote page: %s' % p.title
         except Exception, e:
             print  e
 
@@ -76,4 +155,6 @@ class MWWiki:
 
     def done(self):
         self.site.logout()
+        self.db.commit()
+        self.db.close()
 

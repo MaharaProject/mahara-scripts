@@ -18,12 +18,51 @@
 # system library
 import os
 import subprocess as sp
-
+import urllib2
+import mimetypes
+from datetime import datetime, tzinfo
+import psycopg2 as pg
 
 class File:
     def __init__(self, title, url):
-        self.title = title
+        self.title = title.capitalize()
         self.url = url
+
+    def download_to(self, path):
+        self.path = path
+        dir = os.path.dirname(path)
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+        dl = urllib2.urlopen(self.url)
+        f = open(path, 'wb')
+        f.write(dl.read())
+        f.close()
+
+    def get_info(self):
+        data = dict()
+        data['name'] = self.title
+        data['metadata'] = ''
+        data['description'] = ''
+        data['size'] = os.path.getsize(self.path)
+        data['sha1'] = ''
+        data['timestamp'] = datetime.now(pg.tz.LocalTimezone()) 
+        data['width'] = 0
+        data['height'] = 0
+        data['bits'] = 0
+        mime = mimetypes.guess_type(self.path)[0]
+        if mime:
+            bits = mime.split('/')
+            data['major_mime'] = bits[0]
+            data['minor_mime'] = bits[1]
+        else:
+            data['major_mime'] = 'unknown'
+            data['minor_mime'] = 'unknown'
+        if data['major_mime'] == 'image':
+            data['media_type'] = 'BITMAP'
+        else:
+            data['media_type'] = 'UNKNOWN'
+        return data
+
 
 
 class HTMLPage:
