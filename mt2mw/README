@@ -7,10 +7,11 @@ Requirements:
     * Perl5
     * Alex Z's wikitools package - available on pypi
       <http://python-wikitools.googlecode.com>
+    * psycopg2
     * HTML::WikiConverter perl module
     * Config::Simple perl module
     * A target wiki running MediaWiki 1.13 or newer that has the full API
-      enabled (including write functions)
+      enabled (including write functions), and uses a postgres database
 
 Usage:
 
