@@ -116,6 +116,7 @@ class MWWiki:
             )
             if not cursor.fetchall():
                 self.commit_file_db(cursor, file)
+                print 'Uploaded file: %s' % file.title
         cursor.close()
 
 
