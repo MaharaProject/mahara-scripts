@@ -120,7 +120,8 @@ for lang in ${langs} ; do
             done
 
             if [ $errors = 0 ]; then
-                tar zcf ${tarball} *
+                strip=`echo ${cleanbranchdir} | sed 's,^/,,'`
+                tar --transform "s,${strip},${lang}," -zcf ${tarball} ${cleanbranchdir}
             fi
 
             cd ${gitlangdir}
@@ -189,7 +190,7 @@ for file in `find ${TARBALLS} -name "*.last" | sort`; do
     index+="<td style=\"color: #888; border-left: 1px dotted #ccc;\">${last#* }</td>"
     diffsize=`stat -c "%s" ${DOCROOT}/${base}-diff.txt 2>/dev/null`
     index+="<td style=\"text-align:center;\">"
-    if [ ${diffsize} != '0' ] ; then
+    if [ "${diffsize}" != '0' ] ; then
         index+="<a href=\"${WWWROOT}/${base}-diff.txt\">diff</a>"
     fi
     index+="</td>"
