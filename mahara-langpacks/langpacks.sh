@@ -140,8 +140,7 @@ for file in `find ${TARBALLS} -name "*.tar.gz"`; do
     # Remove the old log file
     base=${file##*/}
     base=${base%.tar.gz}
-    log=${base}.log
-    [ -f ${DOCROOT}/${log} ] && rm ${DOCROOT}/${log}
+    [ -f ${DOCROOT}/${base}-errors.txt ] && rm ${DOCROOT}/${base}-errors.txt
 
 done
 
