@@ -144,9 +144,9 @@ git archive --format=zip --prefix=mahara-${VERSION}/ -9 ${RELEASETAG} > ${CURREN
 # Save git changelog
 if [ -n "${LASTTAG}" ] ; then
     echo "Getting changelog from previous tag ${LASTTAG}"
-    git log --pretty=format:"%s" --no-color ${LASTTAG}..${RELEASETAG} > ${CURRENTDIR}/${RELEASETAG}.cl
+    git log --pretty=format:"%s" --no-color --no-merges ${LASTTAG}..${RELEASETAG} > ${CURRENTDIR}/${RELEASETAG}.cl
 else
-    git log --pretty=format:"%s" --no-color ${RELEASETAG} > ${CURRENTDIR}/${RELEASETAG}.cl
+    git log --pretty=format:"%s" --no-color --no-merges ${RELEASETAG} > ${CURRENTDIR}/${RELEASETAG}.cl
 fi
 OLDRELEASE=${LASTTAG%_RELEASE}
 
@@ -216,11 +216,12 @@ echo "gpg --armor --sign --detach-sig ${CURRENTDIR}/mahara-${RELEASE}.tar.gz" >>
 echo "gpg --armor --sign --detach-sig ${CURRENTDIR}/mahara-${RELEASE}.tar.bz2" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
 echo "gpg --armor --sign --detach-sig ${CURRENTDIR}/mahara-${RELEASE}.zip" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
 
-echo "# lp-project-upload mahara ${RELEASE} ${CURRENTDIR}/mahara-${RELEASE}.tar.gz" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
-echo "# lp-project-upload mahara ${RELEASE} ${CURRENTDIR}/mahara-${RELEASE}.tar.bz2" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
-echo "# lp-project-upload mahara ${RELEASE} ${CURRENTDIR}/mahara-${RELEASE}.tar.zip" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
+echo "cd ${CURRENTDIR}" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
+echo "lp-project-upload mahara ${RELEASE} mahara-${RELEASE}.tar.gz" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
+echo "lp-project-upload mahara ${RELEASE} mahara-${RELEASE}.tar.bz2" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
+echo "lp-project-upload mahara ${RELEASE} mahara-${RELEASE}.zip" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
 
-echo "rm -rf ${BUILDDIR}" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
+echo "echo rm -rf ${BUILDDIR}" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
 
 chmod 700 ${CURRENTDIR}/${CLEANUPSCRIPT}
 
