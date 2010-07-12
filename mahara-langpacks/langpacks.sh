@@ -66,6 +66,7 @@ for lang in ${langs} ; do
         [ -f ${diff} ] && rm ${diff}
 
         last=${TARBALLS}/${filenamebase}.last
+        lastruncommit=z
         if [ -f ${last} ]; then
             lastruncommit=`cat ${last}`
         fi
