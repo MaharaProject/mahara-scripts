@@ -18,6 +18,31 @@ fi
 
 # Check for git gpg lp-project-upload
 
+if [ ! -x /usr/bin/gpg ] ; then
+  echo "You need to install gpg: apt-get install gnupg"
+  exit 1
+fi
+
+if [ ! -x /usr/bin/git ] ; then
+  echo "You need to install git: apt-get install git-core"
+  exit 1
+fi
+
+if [ ! -x /usr/bin/lp-project-upload ] ; then
+  echo "You need to install lp-project-upload: apt-get install ubuntu-dev-tools"
+  exit 1
+fi
+
+GIT_MAJOR=`git --version | cut -d' ' -f 3 | cut -d'.' -f 1`
+GIT_MINOR=`git --version | cut -d' ' -f 3 | cut -d'.' -f 2`
+
+if [ $GIT_MAJOR -lt 1 ] || [ $GIT_MAJOR == 1 -a $GIT_MINOR -lt 6 ] ; then
+  echo "Your version of git is too old. Install git 1.6."
+  exit 1
+fi
+
+# Check all parameters
+
 VERSION=$1
 
 MAJOR=${VERSION%.*}
