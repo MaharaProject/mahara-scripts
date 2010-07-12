@@ -30,7 +30,7 @@ echo "Checking langpacks for updates: `date \"+%Y-%m-%d %H:%M:%S\"`"
 [ ! -d ${CLEAN} ] && mkdir ${CLEAN}
 [ ! -d ${TARBALLS} ] && mkdir ${TARBALLS}
 
-langs="ca cs de es eu fr it ja ko nl no_nb sl zh_tw"
+langs="ca cs de es eu fr he it ja ko nl no_nb sl zh_tw"
 
 for lang in ${langs} ; do
 
@@ -121,7 +121,7 @@ for lang in ${langs} ; do
 
             if [ $errors = 0 ]; then
                 strip=`echo ${cleanbranchdir} | sed 's,^/,,'`
-                tar --transform "s,${strip},${lang}," -zcf ${tarball} ${cleanbranchdir}
+                tar --transform "s,${strip},${lang}.utf8," -zcf ${tarball} ${cleanbranchdir}
             fi
 
             cd ${gitlangdir}
