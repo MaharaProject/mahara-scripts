@@ -1,0 +1,12 @@
+Template: custom-site-mahara-langpacks/projdir
+Type: string
+Default: git://gitorious.org/mahara-lang
+Description: Project location
+ The git repository to get the langpacks from
+
+Template: custom-site-mahara-langpacks/wwwroot
+Type: string
+Default:
+Description: WWW root
+ The URL for the site, eg langpacks.dev.mahara.org
+
