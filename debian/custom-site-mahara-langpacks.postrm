@@ -21,7 +21,7 @@ case "$1" in
         rm -f /etc/mahara-langpacks.conf
         rm -rf /var/lib/mahara-langpacks
         rm -rf /var/www/mahara-langpacks
-        rm -rf /var/log/mahara-langpacks
+        rm -rf /var/log/apache2/mahara-langpacks
         rm -f /etc/apache2/sites-available/mahara-langpacks.conf
     ;;
 

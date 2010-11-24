@@ -1,3 +1,10 @@
+mahara-scripts (0.3) unstable; urgency=low
+
+  * fix bug (postinst created the wrong log dir, postrm deleted it)
+  * add dependency on apache2 
+
+ -- Richard Hector <richard@catalyst.net.nz>  Wed, 24 Nov 2010 16:29:17 +1300
+
 mahara-scripts (0.2) unstable; urgency=low
 
   * Initial release.

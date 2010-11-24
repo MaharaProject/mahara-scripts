@@ -7,7 +7,7 @@ Standards-Version: 3.9.1
 
 Package: custom-site-mahara-langpacks
 Architecture: all
-Depends: php5-cli, perl, bash, debconf, git-core
+Depends: apache2, php5-cli, perl, bash, debconf, git-core
 Description: Mahara langpack repository scripts
  Scripts to download mahara langpacks from gitorious, clean them up, and
  make them available for HTTP download.

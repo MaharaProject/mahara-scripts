@@ -25,8 +25,8 @@ case "$1" in
         if [ ! -d /var/lib/mahara-langpacks ]; then
             mkdir /var/lib/mahara-langpacks
         fi
-        if [ ! -d /var/log/mahara-langpacks ]; then
-            mkdir /var/log/mahara-langpacks
+        if [ ! -d /var/log/apache2/mahara-langpacks ]; then
+            mkdir /var/log/apache2/mahara-langpacks
         fi
 
         echo "DATA=/var/lib/mahara-langpacks" > /etc/mahara-langpacks.conf
