@@ -95,7 +95,7 @@ for lang in ${langs} ; do
                 git checkout --quiet -b ${localbranch} ${remotebranch}
             else
                 git checkout --quiet ${localbranch}
-                git pull --quiet
+                git reset --hard -q ${remotebranch}
             fi
 
             dirtybranchdir=${dirtylangdir}/${localbranch}
