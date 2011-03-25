@@ -1,3 +1,10 @@
+mahara-scripts (0.4) unstable; urgency=low
+
+  * use config file
+  * merge changes for languages, checkouts
+
+ -- Richard Hector <richard@catalyst.net.nz>  Fri, 25 Mar 2011 14:16:49 +1300
+
 mahara-scripts (0.3) unstable; urgency=low
 
   * fix bug (postinst created the wrong log dir, postrm deleted it)
