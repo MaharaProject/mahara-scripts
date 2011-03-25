@@ -15,15 +15,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-DATA=/var/local/mahara-langpacks
-SCRIPTS=/usr/local/lib/mahara-langpacks
-PROJDIR='git://gitorious.org/mahara-lang'
+# this is expected to defind DATA, SCRIPTS, DOCROOT, PROJDIR and WWWROOT
+. /etc/mahara-langpacks.conf
+
 GITDIR=${DATA}/git
 DIRTY=${DATA}/old
 CLEAN=${DATA}/new
 TARBALLS=${DATA}/tarballs
-DOCROOT=/var/www/mahara-langpacks
-WWWROOT=http://langpacks.dev.mahara.org
 
 CLEANCMD="/usr/bin/php ${SCRIPTS}/langpack.php"
 SYNTAXCMD="/usr/bin/php -l"
