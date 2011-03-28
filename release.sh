@@ -2,13 +2,18 @@
 #
 # Builds release tarballs of Mahara at the given version, ready for
 # distribution
+#
+# Use "mergesecurity" if you're doing a release which has security
+# fixes so that the script will merge the security repo into the
+# public repo too. Otherwise use "justpublic".
+#
 set -e
 
 
 print_usage() {
-    echo "Usage is $0 [version] [branch] public|private"
-    echo "e.g. $0 0.6.2 0.6_STABLE private"
-    echo "e.g. $0 1.0.0alpha1 master public"
+    echo "Usage is $0 [version] [branch] justpublic|mergesecurity"
+    echo "e.g. $0 1.3.5 1.3_STABLE mergesecurity"
+    echo "e.g. $0 1.2.8 1.2_STABLE justpublic"
 }
 
 if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
@@ -63,7 +68,7 @@ if [ -z "${MAJOR}" ] || [ -z "${MINOR}" ]; then
     exit 1
 fi
 
-if [ "$OPTION" != "public" ] && [ "${OPTION}" != 'private' ]; then
+if [ "$OPTION" != "justpublic" ] && [ "${OPTION}" != 'mergesecurity' ]; then
     print_usage
     exit 1
 fi
@@ -89,7 +94,7 @@ git remote add -t ${BRANCH} mahara ${PUBLIC}
 git fetch -q mahara
 git checkout -b ${BRANCH} mahara/${BRANCH}
 
-if [ "$OPTION" != "public" ]; then
+if [ "$OPTION" != "justpublic" ]; then
     echo "Checking out security repository ${SECURITY}..."
     git remote add -t ${BRANCH} mahara-security ${SECURITY}
     git fetch -q mahara-security
@@ -216,7 +221,7 @@ git commit -m "Version bump for $NEWRELEASE"
 
 # Merge security back into public
 
-if [ "$OPTION" != "public" ]; then
+if [ "$OPTION" != "justpublic" ]; then
     git checkout ${BRANCH}
     git merge S_${BRANCH}
 fi
@@ -232,7 +237,7 @@ echo > ${CURRENTDIR}/${CLEANUPSCRIPT}
 echo "cd ${BUILDDIR}/mahara" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
 echo "git push mahara ${BRANCH}:refs/heads/${BRANCH}" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
 echo "git push mahara ${RELEASETAG}:refs/tags/${RELEASETAG}" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
-if [ "$OPTION" != "public" ]; then
+if [ "$OPTION" != "justpublic" ]; then
     echo "git push mahara-security S_${BRANCH}:refs/heads/${BRANCH}" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
     echo "git push mahara-security ${RELEASETAG}:refs/tags/${RELEASETAG}" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
 fi
