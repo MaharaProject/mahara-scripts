@@ -148,7 +148,7 @@ sed "s/\$config->release = .*/\$config->release = '$RELEASE';/" ${VERSIONFILE}.t
 
 echo
 git add ${VERSIONFILE}
-git commit -m "Version bump for $RELEASE"
+git commit -s -m "Version bump for $RELEASE"
 
 
 
@@ -215,7 +215,7 @@ sed "s/\$config->version = [0-9]\{10\};/\$config->version = $NEWVERSION;/" ${VER
 sed "s/\$config->release = .*/\$config->release = '$NEWRELEASE';/" ${VERSIONFILE}.temp > ${VERSIONFILE}
 
 git add ${VERSIONFILE}
-git commit -m "Version bump for $NEWRELEASE"
+git commit -s -m "Version bump for $NEWRELEASE"
 
 
 
