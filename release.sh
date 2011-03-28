@@ -114,7 +114,7 @@ fi
 
 RELEASE="${MAJOR}.${MINOR}${MICRO}"
 
-echo -e "#\n# Please add a description of the major changes in this release, one per line:\n#\n" > ${CURRENTDIR}/ChangeLog.temp
+echo -e "#\n# Please add a description of the major changes in this release, one per line.\n# Don't put a dash or asterisk at the front of each line, they'll get added automatically.\n# Also, don't leave any blank lines at the bottom of this file.\n#\n" > ${CURRENTDIR}/ChangeLog.temp
 sensible-editor ${CURRENTDIR}/ChangeLog.temp
 grep -v "^#" ${CURRENTDIR}/ChangeLog.temp > ${CURRENTDIR}/changes.temp
 
