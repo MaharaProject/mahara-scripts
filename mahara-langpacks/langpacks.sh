@@ -43,7 +43,7 @@ echo "Checking langpacks for updates: `date \"+%Y-%m-%d %H:%M:%S\"`"
 [ ! -d ${CLEAN} ] && mkdir ${CLEAN}
 [ ! -d ${TARBALLS} ] && mkdir ${TARBALLS}
 
-langs="ca cs da de en_us es eu fi fr he it ja ko nl no_nb ru_ru sl zh_tw"
+langs="ca cs da de en_us es eu fi fr he it ja ko nl no_nb sl zh_tw"
 
 for lang in ${langs} ; do
 
@@ -63,7 +63,7 @@ for lang in ${langs} ; do
 
     git fetch --quiet
 
-    for remotebranch in `git branch -r | grep -v "HEAD\|1.0_STABLE"`; do
+    for remotebranch in `git branch -r | grep -v "HEAD\|1.0_STABLE\|1.1_STABLE"`; do
 
         remotecommit=`git log --pretty=format:"%H %ai %an" ${remotebranch} | head -1`
 
