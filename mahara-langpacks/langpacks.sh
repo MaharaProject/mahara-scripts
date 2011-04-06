@@ -170,54 +170,10 @@ for file in `find ${TARBALLS} -name "*.diff"`; do
     mv ${file} ${DOCROOT}/${base}-diff.txt
 done
 
-index="<html><head><title>Mahara Language Packs</title><style>td,th {padding:0 .5em;} tr.next td {border-top: 1px dotted #ccc;}</style></head>"
-index+="<body><h3>Mahara Language Packs</h3>"
-index+="<table>"
-index+="<thead>"
-index+="<tr><th><th colspan=\"2\">Last good version</th><th>Last commit</th><th>Changes</th><th>Status</th></tr>"
-index+="</thead>"
-for file in `find ${TARBALLS} -name "*.last" | sort`; do
-    base=${file##*/}
-    base=${base%.last}
+# Generate index.html
+/usr/bin/perl ${SCRIPTS}/generate-index.pl ${DOCROOT}
 
-    lang=${base%%-*}
-    
-    index+="<tr"
-    if [ "${lang}" != "${lastlang}" ]; then
-        index+=" class=\"next\""
-    fi
-    index+=">"
-    index+="<td style=\"font-weight:bold;\">"
-    if [ "${lang}" != "${lastlang}" ]; then
-        index+="${lang}"
-    fi
-    index+="</td>"
-    index+="<td style=\"font-weight:bold; border-left: 1px dotted #ccc;\">"
-    if [ -f ${DOCROOT}/${base}.tar.gz ]; then
-        index+="<a href=\"${WWWROOT}/${base}.tar.gz\">${base}.tar.gz</a>"
-    fi
-    date=`stat -c "%y" ${DOCROOT}/${base}.tar.gz 2>/dev/null`
-    date=${date%% *}
-    index+="</td><td>${date}</td>"
-    last=`cat ${file}`
-    index+="<td style=\"color: #888; border-left: 1px dotted #ccc;\">${last#* }</td>"
-    diffsize=`stat -c "%s" ${DOCROOT}/${base}-diff.txt 2>/dev/null`
-    index+="<td style=\"text-align:center;\">"
-    if [ "${diffsize}" != '0' ] ; then
-        index+="<a href=\"${WWWROOT}/${base}-diff.txt\">diff</a>"
-    fi
-    index+="</td>"
-    if [ -f ${DOCROOT}/${base}-errors.txt ]; then
-        index+="<td style=\"text-align:center;\"><a style=\"color:#a00;\" href=\"${WWWROOT}/${base}-errors.txt\">errors</a></td>"
-    else
-        index+="<td style=\"text-align:center;color:#080;\">ok</td>"
-    fi
-    index+="</tr>"
-
-    lastlang=${lang}
-done
-index+="</table></body></html>"
-
-echo -e "${index}" > ${DOCROOT}/index.html
+# Generate status.html
+/usr/bin/perl ${SCRIPTS}/generate-status.pl ${TARBALLS} ${DOCROOT}
 
 echo "Done."
