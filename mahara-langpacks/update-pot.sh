@@ -2,7 +2,7 @@
 
 # Update .pot files
 
-# this is expected to define DATA, and SCRIPTS
+# this is expected to define DATA, SCRIPTS, DOCROOT
 . /etc/mahara-langpacks.conf
 
 if [ ! -w ${DATA} ]; then
@@ -10,14 +10,20 @@ if [ ! -w ${DATA} ]; then
     exit 1
 fi
 
+if [ ! -w ${DOCROOT} ]; then
+    echo "${DOCROOT} not writable"
+    exit 1
+fi
+
 WORK=${DATA}/templates
 GITDIR=${WORK}/git
 TEMP=${WORK}/temp
-OUT=${DATA}/pot
+OUT=${DATA}/po
 
 [ ! -d ${WORK} ] && mkdir ${WORK}
 [ ! -d ${TEMP} ] && mkdir ${TEMP}
 [ ! -d ${OUT} ] && mkdir ${OUT}
+[ ! -d ${DOCROOT}/po ] && mkdir ${DOCROOT}/po
 
 remote='git://gitorious.org/mahara/mahara.git'
 
@@ -83,6 +89,11 @@ for branch in ${branches} ; do
 
         [ -f ${outputfile} ] && rm ${outputfile}
         /usr/bin/php ${SCRIPTS}/php-po.php ${langpack} ${langpack} ${outputfile}
+
+        if [ -f ${outputfile} ]; then
+            chmod 755 ${outputfile}
+            cp ${outputfile} ${DOCROOT}/po
+        fi
 
         echo "${remotecommit}" > ${last}
     fi
