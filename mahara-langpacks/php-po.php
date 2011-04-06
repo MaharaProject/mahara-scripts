@@ -203,3 +203,5 @@ if (!empty($sourcefiles)) {
         }
     }
 }
+
+file_put_contents($destfile, "\n", FILE_APPEND);

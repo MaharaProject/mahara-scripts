@@ -63,7 +63,7 @@ for lang in ${langs} ; do
 
     git fetch --quiet
 
-    for remotebranch in `git branch -r | grep -v "HEAD\|1.0_STABLE\|1.1_STABLE"`; do
+    for remotebranch in `git branch -r | grep -v "HEAD" | grep "origin\/\(master\|1.2_STABLE\|1.3_STABLE\)$"`; do
 
         remotecommit=`git log --pretty=format:"%H %ai %an" ${remotebranch} | head -1`
 
@@ -96,42 +96,71 @@ for lang in ${langs} ; do
                 git reset --hard -q ${remotebranch}
             fi
 
-            dirtybranchdir=${dirtylangdir}/${localbranch}
+            errors=0
+
             cleanbranchdir=${cleanlangdir}/${localbranch}
-            [ ! -d ${dirtybranchdir} ] && mkdir ${dirtybranchdir}
             [ -d ${cleanbranchdir}/lang ] && rm -fr ${cleanbranchdir}
             [ ! -d ${cleanbranchdir} ] && mkdir ${cleanbranchdir}
 
-            cp -r ${gitlangdir}/[^\\.]* ${dirtybranchdir}
+            pofile="${gitlangdir}/${lang}-${localbranch}.po"
 
-            # Clean out stray php from the langpacks
-            ${CLEANCMD} ${dirtybranchdir} ${cleanbranchdir}
+            if [ -f $pofile ] ; then
+                echo "$lang $localbranch: using .po file"
 
-            errors=0
-
-            cd ${DATA}
-            diff -Bwr ${dirtybranchdir} ${cleanbranchdir} > ${diff}
-
-            # Check syntax of php files
-            cd ${cleanbranchdir}
-            for file in `find . -name "*.php"`; do
-                output=`${SYNTAXCMD} $file`
+                # Check utf8ness of .po file?
+                output=`${UTF8CMD} ${pofile}`
                 if [ $? -ne 0 ]; then
-                    echo ${file} >> ${log}
+                    echo ${pofile} >> ${log}
                     echo -e "${output}" >> ${log}
                     errors=1
                 fi
-            done
 
-            # Check utf8ness of all files
-            for file in `find .`; do
-                output=`${UTF8CMD} ${file}`
+                # Create langpack from .po file
+                output=`/usr/bin/perl ${SCRIPTS}/po-php.pl $pofile $cleanbranchdir "${lang}.utf8"`
+
                 if [ $? -ne 0 ]; then
-                    echo ${file} >> ${log}
+                    echo "Failed to create langpack from .po file ${pofile}" >> ${log}
+                    echo ${pofile} >> ${log}
                     echo -e "${output}" >> ${log}
                     errors=1
                 fi
-            done
+
+            else
+                echo "$lang $localbranch: sanitising"
+
+                # sanitise langpack
+                dirtybranchdir=${dirtylangdir}/${localbranch}
+                [ ! -d ${dirtybranchdir} ] && mkdir ${dirtybranchdir}
+
+                cp -r ${gitlangdir}/[^\\.]* ${dirtybranchdir}
+
+                # Clean out stray php from the langpacks
+                ${CLEANCMD} ${dirtybranchdir} ${cleanbranchdir}
+
+                cd ${DATA}
+                diff -Bwr ${dirtybranchdir} ${cleanbranchdir} > ${diff}
+
+                # Check syntax of php files
+                cd ${cleanbranchdir}
+                for file in `find . -name "*.php"`; do
+                    output=`${SYNTAXCMD} $file`
+                    if [ $? -ne 0 ]; then
+                        echo ${file} >> ${log}
+                        echo -e "${output}" >> ${log}
+                        errors=1
+                    fi
+                done
+
+                # Check utf8ness of all files
+                for file in `find .`; do
+                    output=`${UTF8CMD} ${file}`
+                    if [ $? -ne 0 ]; then
+                        echo ${file} >> ${log}
+                        echo -e "${output}" >> ${log}
+                        errors=1
+                    fi
+                done
+            fi
 
             if [ $errors = 0 ]; then
                 strip=`echo ${cleanbranchdir} | sed 's,^/,,'`
