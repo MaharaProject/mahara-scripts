@@ -26,6 +26,7 @@ TARBALLS=${DATA}/tarballs
 CLEANCMD="/usr/bin/php ${SCRIPTS}/langpack.php"
 SYNTAXCMD="/usr/bin/php -l"
 UTF8CMD="/usr/bin/perl ${SCRIPTS}/check-utf8.pl"
+POCMD="/usr/bin/perl ${SCRIPTS}/po-php.pl"
 
 if [ ! -w ${DATA} ]; then
     echo "${DATA} not writable"
@@ -116,7 +117,7 @@ for lang in ${langs} ; do
                 fi
 
                 # Create langpack from .po file
-                output=`/usr/bin/perl ${SCRIPTS}/po-php.pl $pofile $cleanbranchdir "${lang}.utf8"`
+                output=`${POCMD} $pofile $cleanbranchdir "${lang}.utf8"`
 
                 if [ $? -ne 0 ]; then
                     echo "Failed to create langpack from .po file ${pofile}" >> ${log}

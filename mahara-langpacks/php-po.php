@@ -98,7 +98,7 @@ function phptopo($en_strings, $fileid, $in, $pot) {
         elseif ($state == L_SEMI && $t == ';') {
             foreach ($keys as $key) {
                 eval('$k = ' . $key . ';');
-                if (isset($en_strings[$k])) {
+                if (isset($en_strings[$k]) && strlen($en_strings[$k]) > 0) {
                     $po .= "\n\n#: $fileid $k";
                     $po .= "\nmsgctxt \"$fileid $k\"";
                     $po .= "\nmsgid \"" . addcslashes($en_strings[$k], "\\\"\r\n") . '"';
@@ -115,6 +115,7 @@ function phptopo($en_strings, $fileid, $in, $pot) {
                         }
                     }
                     $po .= '"';
+                    unset($en_strings[$k]); // Avoid duplicates
                 }
                 if (isset($heredoc)) {
                     unset($heredoc);
@@ -170,7 +171,31 @@ if (file_exists($destfile)) {
 $sourcefiles = array();
 get_langfile_list($sourcefiles, $source);
 
-$pot = preg_match('/.pot$/', $destfile); // Create .pot template
+if ($pot = preg_match('/.pot$/', $destfile)) {
+    // Create .pot template
+    $version = 'mahara';
+    if (preg_match('/master\.pot$/', $destfile)) {
+        $version .= '-trunk';
+    }
+    else if (preg_match('/(\d[0-9\.]+)_STABLE\.pot$/', $destfile, $matches)) {
+        $version .= '-' . $matches[1];
+    }
+    $header = '
+msgid ""
+msgstr ""
+"Project-Id-Version: ' . $version . '\n"
+"Report-Msgid-Bugs-To: https://bugs.launchpad.net/mahara\n"
+"POT-Creation-Date: ' . date('Y-m-d H:iO') . '\n"
+"PO-Revision-Date: YYYY-MM-DD HH:MM+ZZZZ\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+';
+    file_put_contents($destfile, $header, FILE_APPEND);
+}
 
 if (!empty($sourcefiles)) {
     foreach ($sourcefiles as $sourcefile) {
