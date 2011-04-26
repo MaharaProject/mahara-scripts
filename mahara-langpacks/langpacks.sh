@@ -44,7 +44,7 @@ echo "Checking langpacks for updates: `date \"+%Y-%m-%d %H:%M:%S\"`"
 [ ! -d ${CLEAN} ] && mkdir ${CLEAN}
 [ ! -d ${TARBALLS} ] && mkdir ${TARBALLS}
 
-langs="ca cs da de en_us es eu fi fr he it ja ko nl no_nb sl zh_tw"
+langs="ar ca cs da de en_us es eu fi fr he it ja ko nl no_nb sl zh_tw"
 
 for lang in ${langs} ; do
 
