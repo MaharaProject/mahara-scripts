@@ -23,7 +23,7 @@ OUT=${DATA}/po
 [ ! -d ${WORK} ] && mkdir ${WORK}
 [ ! -d ${TEMP} ] && mkdir ${TEMP}
 [ ! -d ${OUT} ] && mkdir ${OUT}
-[ ! -d ${DOCROOT}/po ] && mkdir ${DOCROOT}/po
+[ ! -d ${DOCROOT}/pot ] && mkdir ${DOCROOT}/pot
 
 remote='git://gitorious.org/mahara/mahara.git'
 
@@ -59,8 +59,6 @@ for branch in ${branches} ; do
     else
         echo "New commits on ${branch}"
 
-        outputfile=${OUT}/${branch}.pot
-
         if [ ! -d ${GITDIR}/htdocs ] ; then
             echo "No htdocs directory in branch ${branch}; skipping."
             continue
@@ -85,14 +83,20 @@ for branch in ${branches} ; do
             continue
         fi
 
+        [ ! -d ${OUT}/${branch} ] && mkdir ${OUT}/${branch}
+        outputdir=${OUT}/${branch}/mahara
+        [ ! -d ${outputdir} ] && mkdir ${outputdir}
+        outputfile=${outputdir}/mahara.pot
+
         echo "Updating ${outputfile}"
 
         [ -f ${outputfile} ] && rm ${outputfile}
         /usr/bin/php ${SCRIPTS}/php-po.php ${langpack} ${langpack} ${outputfile}
 
         if [ -f ${outputfile} ]; then
-            chmod 755 ${outputfile}
-            cp ${outputfile} ${DOCROOT}/po
+            cd ${OUT}/${branch}
+            tar zcf ${DOCROOT}/pot/${branch}.tar.gz mahara/mahara.pot
+            cd ${GITDIR}
         fi
 
         echo "${remotecommit}" > ${last}
