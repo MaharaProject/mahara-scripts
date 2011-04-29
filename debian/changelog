@@ -1,3 +1,9 @@
+mahara-scripts (0.8) unstable; urgency=low
+
+  * Create english langpack
+
+ -- Richard Mansfield <richardm@catalyst.net.nz>  Fri, 29 Apr 2011 16:30:57 +1200
+
 mahara-scripts (0.7) unstable; urgency=low
 
   * Change names & locaion of .po, .pot files
