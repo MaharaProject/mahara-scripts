@@ -71,6 +71,9 @@ for branch in ${branches} ; do
             continue
         fi
 
+        # While we have an up-to-date en tarball handy, dump a copy of it in the main tarball directory
+        cp ${TEMP}/${branch}.tar.gz ${DOCROOT}/en-${branch}.tar.gz
+
         langpack=${TEMP}/${branch}
         [ ! -d ${langpack} ] && mkdir ${langpack}
 
