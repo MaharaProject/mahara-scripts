@@ -1,0 +1,89 @@
+#!/usr/bin/python
+#
+# Gerrit-Launchpad Hook, inspired by https://github.com/hobbs/jirret
+#
+# Copyright (C) 2011 Catalyst IT (http://www.catalyst.net.nz)
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+from email.mime.text import MIMEText
+from getopt import getopt
+import re
+import smtplib
+import subprocess
+import sys
+
+FROM_ADDRESS = 'gerrit@reviews.mahara.org'
+TO_ADDRESS = 'francois@catalyst.net.nz'
+BASE_DIR = '/home/gerrit/mahara_reviews'
+
+def email_tracker(change_url, project, branch, submitter, commit):
+    # Extract git log of all merged commits
+    git_log = subprocess.Popen(['git', '--git-dir=' + BASE_DIR + '/git/' + project + '.git', 'log', '--no-merges', commit + '^1..' + commit], stdout=subprocess.PIPE).communicate()[0]
+
+    # Find bug numbers referenced in the git log
+    bug_regexp = '[Bb]ug:? +#?([0-9]+)'
+    tokens = re.split(bug_regexp, git_log)
+
+    # Extract unique bug numbers
+    bugs = []
+    for token in tokens:
+        if re.match('^\d+$', token) and (token not in bugs):
+            bugs.append(token)
+
+    gitorious_url = 'http://gitorious.org/mahara/%s/commit/%s' % (project, commit)
+    body = '''Reviewed:  %s
+Committed: %s
+Submitter: %s
+Branch:    %s
+Bug(s):    %s\n''' % (change_url, gitorious_url, submitter, branch, ', '.join(bugs))
+
+    msg = MIMEText(body + '\n' + git_log)
+    msg['Subject'] = 'A change has been merged'
+    msg['From'] = FROM_ADDRESS
+    msg['To'] = TO_ADDRESS
+
+    s = smtplib.SMTP()
+    s.connect()
+    s.sendmail(FROM_ADDRESS, [TO_ADDRESS], msg.as_string())
+    s.quit()
+
+def main():
+    # https://gerrit.googlecode.com/svn/documentation/2.1.6/config-hooks.html#change-merged
+    gerrit_args = ['change=', 'change-url=', 'project=', 'branch=', 'submitter=', 'commit=']
+    args, unused = getopt(sys.argv[1:], '', gerrit_args)
+
+    change_url = project = branch = submitter = commit = None
+    for argname, argv in args:
+        if argname == '--change-url':
+            change_url = argv
+        elif argname == '--project':
+            project = argv
+        elif argname == '--branch':
+            branch = argv
+        elif argname == '--submitter':
+            submitter = argv
+        elif argname == '--commit':
+            commit = argv
+
+    if change_url and project and branch and submitter and commit:
+        email_tracker(change_url, project, branch, submitter, commit)
+    else:
+        print 'Missing arguments'
+	return 1
+
+    return 0;
+
+if __name__ == '__main__':
+    sys.exit(main())
