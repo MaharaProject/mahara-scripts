@@ -103,7 +103,7 @@ for lang in ${langs} ; do
             [ -d ${cleanbranchdir}/lang ] && rm -fr ${cleanbranchdir}
             [ ! -d ${cleanbranchdir} ] && mkdir ${cleanbranchdir}
 
-            pofile="${gitlangdir}/${lang}-${localbranch}.po"
+            pofile="${gitlangdir}/mahara/${lang}.po"
 
             if [ -f $pofile ] ; then
                 echo "$lang $localbranch: using .po file"
