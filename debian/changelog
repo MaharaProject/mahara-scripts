@@ -1,3 +1,9 @@
+mahara-scripts (0.7) unstable; urgency=low
+
+  * Change names & locaion of .po, .pot files
+
+ -- Richard Mansfield <richardm@catalyst.net.nz>  Fri, 29 Apr 2011 16:09:32 +1200
+
 mahara-scripts (0.6) unstable; urgency=low
 
   * Add .po scripts, change language list
