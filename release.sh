@@ -3,20 +3,22 @@
 # Builds release tarballs of Mahara at the given version, ready for
 # distribution
 #
-# Use "mergesecurity" if you're doing a release which has security
-# fixes so that the script will merge the security repo into the
-# public repo too. Otherwise use "justpublic".
+# If you're doing a release which has security fixes, add the names
+# of the patches to the end of the command line, and the script will
+# apply the patches before committing the version bumps and editing
+# the changelog.
 #
 set -e
 
 
 print_usage() {
-    echo "Usage is $0 [version] [branch] justpublic|mergesecurity"
-    echo "e.g. $0 1.3.5 1.3_STABLE mergesecurity"
-    echo "e.g. $0 1.2.8 1.2_STABLE justpublic"
+    echo "Usage is $0 [version] [branch] [<patchfile>...]"
+    echo "e.g. $0 1.3.5 1.3_STABLE ~/patches/0001-Add-foo-to-bar.patch ~/patches/0002-Fix-big-security-hole.patch"
+    echo "e.g. $0 1.2.8 1.2_STABLE"
+    echo "Patches should be created with git format-patch"
 }
 
-if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
+if [ $# -lt 2 ]; then
     print_usage
     exit 1
 fi
@@ -35,6 +37,11 @@ fi
 
 if [ ! -x /usr/bin/lp-project-upload ] ; then
   echo "You need to install lp-project-upload: apt-get install ubuntu-dev-tools"
+  exit 1
+fi
+
+if [ ! -x /usr/bin/m4 ] ; then
+  echo "You need to install m4: apt-get install m4"
   exit 1
 fi
 
@@ -58,17 +65,12 @@ MICROA=`echo ${MICRO} | sed 's/[^a-z]//g'`
 MICROB=`echo ${MICRO} | sed 's/[a-z]//g'`
 
 BRANCH=$2
-OPTION=$3
+
 BUILDDIR="/tmp/mahara/tarballs"
 CURRENTDIR="`pwd`"
 SCRIPTDIR=$( readlink -f -- "${0%/*}" )
 
 if [ -z "${MAJOR}" ] || [ -z "${MINOR}" ]; then
-    print_usage
-    exit 1
-fi
-
-if [ "$OPTION" != "justpublic" ] && [ "${OPTION}" != 'mergesecurity' ]; then
     print_usage
     exit 1
 fi
@@ -86,25 +88,19 @@ pushd ${BUILDDIR}/mahara
 # Get the public & security branches
 
 PUBLIC="git@gitorious.org:mahara/mahara.git"
-SECURITY="git+ssh://git.catalyst.net.nz/var/gitprivate/mahara-security.git"
 
 echo "Cloning public repository ${PUBLIC} in ${BUILDDIR}/mahara"
 git init
 git remote add -t ${BRANCH} mahara ${PUBLIC}
-git fetch -q mahara
+git fetch mahara
 git checkout -b ${BRANCH} mahara/${BRANCH}
 
-if [ "$OPTION" != "justpublic" ]; then
-    echo "Checking out security repository ${SECURITY}..."
-    git remote add -t ${BRANCH} mahara-security ${SECURITY}
-    git fetch -q mahara-security
-    git checkout -b S_${BRANCH} mahara-security/${BRANCH}
-    echo "Merging $BRANCH (public) into $BRANCH (security)"
-    git merge ${BRANCH}
-    # Check for merge conflicts
-fi
-
-
+# Apply patch files named on command line
+patch=3
+while [ $patch -le $# ]; do
+    git am ${!patch}
+    patch=$((patch+1))
+done
 
 # Edit ChangeLog
 if [ -z "${MICRO}" ] && [ ! -f "ChangeLog" ]; then
@@ -216,15 +212,6 @@ sed "s/\$config->release = .*/\$config->release = '$NEWRELEASE';/" ${VERSIONFILE
 
 git add ${VERSIONFILE}
 git commit -s -m "Version bump for $NEWRELEASE"
-
-
-
-# Merge security back into public
-
-if [ "$OPTION" != "justpublic" ]; then
-    git checkout ${BRANCH}
-    git merge S_${BRANCH}
-fi
 
 
 
