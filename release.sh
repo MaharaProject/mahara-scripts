@@ -84,9 +84,7 @@ pushd ${BUILDDIR}/mahara
 
 
 
-
-# Get the public & security branches
-
+# Main Mahara repo to pull from
 PUBLIC="git@gitorious.org:mahara/mahara.git"
 
 echo "Cloning public repository ${PUBLIC} in ${BUILDDIR}/mahara"
@@ -215,6 +213,11 @@ git commit -s -m "Version bump for $NEWRELEASE"
 
 
 
+# Add gerrit repo, for pushing the new security patches, version bump & changelog commits
+GERRIT="ssh://reviews.mahara.org:29418/mahara"
+git remote add gerrit ${GERRIT}
+
+
 # Output commands to push to the remote repository and clean up
 
 CLEANUPSCRIPT=release-${RELEASE}-cleanup.sh
@@ -222,12 +225,8 @@ echo > ${CURRENTDIR}/${CLEANUPSCRIPT}
 
 
 echo "cd ${BUILDDIR}/mahara" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
-echo "git push mahara ${BRANCH}:refs/heads/${BRANCH}" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
-echo "git push mahara ${RELEASETAG}:refs/tags/${RELEASETAG}" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
-if [ "$OPTION" != "justpublic" ]; then
-    echo "git push mahara-security S_${BRANCH}:refs/heads/${BRANCH}" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
-    echo "git push mahara-security ${RELEASETAG}:refs/tags/${RELEASETAG}" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
-fi
+echo "git push gerrit ${BRANCH}:refs/heads/${BRANCH}" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
+echo "git push gerrit ${RELEASETAG}:refs/tags/${RELEASETAG}" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
 
 echo "gpg --armor --sign --detach-sig ${CURRENTDIR}/mahara-${RELEASE}.tar.gz" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
 echo "gpg --armor --sign --detach-sig ${CURRENTDIR}/mahara-${RELEASE}.tar.bz2" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
