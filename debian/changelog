@@ -1,3 +1,9 @@
+mahara-scripts (0.9) unstable; urgency=low
+
+  * Stop spammage from cron
+
+ -- Richard Mansfield <richardm@catalyst.net.nz>  Mon, 09 May 2011 15:46:25 +1200
+
 mahara-scripts (0.8) unstable; urgency=low
 
   * Create english langpack
