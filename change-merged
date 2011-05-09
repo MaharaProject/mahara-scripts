@@ -33,7 +33,7 @@ def email_tracker(change_url, project, branch, submitter, commit):
     git_log = subprocess.Popen(['git', '--git-dir=' + BASE_DIR + '/git/' + project + '.git', 'log', '--no-merges', commit + '^1..' + commit], stdout=subprocess.PIPE).communicate()[0]
 
     # Find bug numbers referenced in the git log
-    bug_regexp = '[Bb]ug:? +#?([0-9]+)'
+    bug_regexp = '[Bb]ug:? *#?([0-9]+)'
     tokens = re.split(bug_regexp, git_log)
 
     # Extract unique bug numbers
