@@ -1,20 +1,3 @@
-# mt2mw -- package for migrating a Mindtouch wiki to MediaWiki
-# Copyright (C) 2010 Catalyst IT Ltd 
-
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-
 # system library
 import ConfigParser as cp
 
@@ -37,6 +20,7 @@ dbconfig = None
 if directdb:
     dbconfig = {
         'host': cfg.get('config', 'mediawiki_db_host'),
+        'port': cfg.get('config', 'mediawiki_db_port'),
         'database': cfg.get('config', 'mediawiki_db'),
         'user': cfg.get('config', 'mediawiki_db_user'),
         'password': cfg.get('config', 'mediawiki_db_password'),
