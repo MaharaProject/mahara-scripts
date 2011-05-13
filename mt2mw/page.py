@@ -101,14 +101,5 @@ def html2wiki(html):
     out, err = converter.communicate(input=html)
     if err:
         raise Exception(err)
-    # the HTML::WikiConverter module does something funny with urlencoded characters
-    # in the link portion of a wiki link. The title portion appears to be fine
-    # we need to replace sets of two consecutive url-encoded characters (4 bytes)
-    # with the outer two bytes, when those sets are found between 
-    out = urllib2.quote(out)
-    links = re.findall('%5B%5B(.*?)%7C.*?%5B%5B', out)
-    for link in links:
-        fixedlink = re.sub('((%[0-9A-F]{2}){4})', reducechars, link)
-        out = out.replace(link, fixedlink)
-    return urllib2.unquote(out)
+    return out
 
