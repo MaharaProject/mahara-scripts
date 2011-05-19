@@ -238,8 +238,8 @@ echo "lp-project-upload mahara ${RELEASE} mahara-${RELEASE}.tar.bz2" >> ${CURREN
 echo "lp-project-upload mahara ${RELEASE} mahara-${RELEASE}.zip" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
 
 echo "echo" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
-echo "echo All done. Once you've checked that the files were uploaded successfully, run this:" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
-echo "echo   rm -rf ${BUILDDIR}" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
+echo "echo \"All done. Once you've checked that the files were uploaded successfully, run this:\"" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
+echo "echo \"  rm -rf ${BUILDDIR}\"" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
 
 chmod 700 ${CURRENTDIR}/${CLEANUPSCRIPT}
 
