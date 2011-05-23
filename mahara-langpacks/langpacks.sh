@@ -64,7 +64,7 @@ for lang in ${langs} ; do
 
     git fetch --quiet
 
-    for remotebranch in `git branch -r | grep -v "HEAD" | grep "origin\/\(master\|1.2_STABLE\|1.3_STABLE\)$"`; do
+    for remotebranch in `git branch -r | grep -v "HEAD" | grep "origin\/\(master\|1.2_STABLE\|1.3_STABLE\|1.4_STABLE\)$"`; do
 
         remotecommit=`git log --pretty=format:"%H %ai %an" ${remotebranch} | head -1`
 

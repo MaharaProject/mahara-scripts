@@ -45,7 +45,7 @@ for lang in ${langs} ; do
     git fetch --quiet
 done
 
-branches="1.2_STABLE 1.3_STABLE master"
+branches="1.2_STABLE 1.3_STABLE 1.4_STABLE master"
 
 for branch in ${branches} ; do
     echo "${branch}:"
