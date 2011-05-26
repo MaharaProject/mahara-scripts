@@ -76,8 +76,8 @@ for branch in ${branches} ; do
 
         # If there's already a po file on the branch, assume it's the master version of the
         # langpack, and don't generate one.
-        if [ -f ${gitlangdir}/${lang}-${branch}.po ] ; then
-            echo "${lang}-${branch}.po already exists in the ${lang} git repository; skipping"
+        if [ -f ${gitlangdir}/mahara/${lang}.po ] ; then
+            echo "mahara/${lang}.po already exists for the {$branch} branch in the ${lang} git repository; skipping"
             continue
         fi
 
