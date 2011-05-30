@@ -25,11 +25,12 @@ foreach my $po (@$strings) {
     my $content = $po->msgstr();
     $content =~ s{\\n}{\n}g;
     my $reference = $po->reference();
-    if ($reference =~ m{^(\S*lang/)\S+\.utf8(/\S+)\.html$}) {
+    next if ( ! defined $reference );
+    if ($reference =~ m{^htdocs/(\S*lang/)\S+\.utf8(/\S+)\.html$}) {
         my $filename = $1 . $lang . $2 . '.html';
         $htmlfiles{$filename} = $po->dequote($content);
     }
-    elsif ($reference =~ m{^(\S*lang/)\S+\.utf8(/\S+)\.php (\S+)$}) {
+    elsif ($reference =~ m{^htdocs/(\S*lang/)\S+\.utf8(/\S+)\.php (\S+)$}) {
         my $key = $3;
         my $filename = $1 . $lang . $2 . '.php';
         $phpfiles{$filename}->{$key} = $content;
