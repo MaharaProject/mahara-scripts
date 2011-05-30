@@ -17,7 +17,7 @@
 
 use Data::Dumper;
 use FindBin;
-use File::Path qw(make_path remove_tree);
+use File::Path qw(mkpath rmtree);
 
 foreach my $c qw(DATA DOCROOT) {
     exists $ENV{$c} or die ("\$ENV{$c} undefined");
@@ -36,10 +36,10 @@ my $DIRTY     = "${DATA}/old";
 my $CLEAN     = "${DATA}/new";
 my $TARBALLS  = "${DATA}/tarballs";
 
-make_path $GITDIR;
-make_path $DIRTY;
-make_path $CLEAN;
-make_path $TARBALLS;
+mkpath $GITDIR;
+mkpath $DIRTY;
+mkpath $CLEAN;
+mkpath $TARBALLS;
 
 print STDERR "Checking langpacks for updates: " . `date \"+%Y-%m-%d %H:%M:%S\"`;
 
@@ -69,8 +69,8 @@ foreach my $lang (@langs) {
         system "git clone --quiet $remote $gitlangdir";
     }
 
-    make_path $dirtylangdir;
-    make_path $cleanlangdir;
+    mkpath $dirtylangdir;
+    mkpath $cleanlangdir;
 
     chdir $gitlangdir;
     system "git fetch --quiet";
@@ -122,8 +122,8 @@ foreach my $lang (@langs) {
             $last->{$lang}->{branches}->{$localbranch}->{errors} = '';
 
             my $cleanbranchdir = "$cleanlangdir/$localbranch";
-            -d "$cleanbranchdir/lang" && remove_tree $cleanbranchdir;
-            ! -d $cleanbranchdir && make_path $cleanbranchdir;
+            -d "$cleanbranchdir/lang" && rmtree $cleanbranchdir;
+            ! -d $cleanbranchdir && mkpath $cleanbranchdir;
 
             my $pofile = "$gitlangdir/mahara/$lang.po";
 
@@ -158,7 +158,7 @@ foreach my $lang (@langs) {
 
                 # sanitise langpack
                 my $dirtybranchdir = "$dirtylangdir/$localbranch";
-                ! -d $dirtybranchdir && make_path $dirtybranchdir;
+                ! -d $dirtybranchdir && mkpath $dirtybranchdir;
 
                 system("cp -r $gitlangdir/" . '[a-z]* ' . $dirtybranchdir);
 

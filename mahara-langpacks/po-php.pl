@@ -10,7 +10,7 @@
 
 # po-php.pl /path/to/po/files/fr-1.3_STABLE.po /path/to/langpacks/fr.utf8 fr.utf8
 
-use File::Path qw(make_path);
+use File::Path qw(mkpath);
 use File::Basename qw(fileparse);
 use Locale::PO;
 
@@ -40,7 +40,7 @@ foreach my $po (@$strings) {
 foreach my $htmlfile (keys %htmlfiles) {
     my ($filename, $subdir, $suffix) = fileparse($htmlfile);
     my $dir = $outputdir . '/' . $subdir;
-    make_path($dir);
+    mkpath($dir);
     open(my $fh, '>', "$dir/$filename");
     print $fh $htmlfiles{$htmlfile};
     close $fh;
@@ -49,7 +49,7 @@ foreach my $htmlfile (keys %htmlfiles) {
 foreach my $phpfile (keys %phpfiles) {
     my ($filename, $subdir, $suffix) = fileparse($phpfile);
     my $dir = $outputdir . '/' . $subdir;
-    make_path($dir);
+    mkpath($dir);
     open(my $fh, '>', "$dir/$filename");
     print $fh "<?php\n\ndefined('INTERNAL') || die();\n\n";
     foreach my $key (sort keys %{$phpfiles{$phpfile}}) {
