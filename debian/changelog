@@ -1,3 +1,9 @@
+mahara-scripts (1.2) unstable; urgency=low
+
+  * Change to older invocation of File::Path functions
+
+ -- Richard Mansfield <richardm@catalyst.net.nz>  Mon, 30 May 2011 16:45:42 +1200
+
 mahara-scripts (1.1) unstable; urgency=low
 
   * Rewrite langpacks.sh as perl script
