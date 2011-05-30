@@ -6,32 +6,34 @@ use POSIX qw(strftime ceil);
 my $tarballs = $ARGV[0];
 my $docroot  = $ARGV[1];
 
-my $lastlang = '0';
-my @last = `find $tarballs -name "*.last"`;
 my @table = ();
 
-foreach my $last (sort @last) {
-    chomp $last;
-    if ($last =~ m{$tarballs/([a-z_]+)-([0-9A-Za-z\._]+)\.last}) {
-        my $lang = $1;
-        my $branch = $2;
-        my $commitinfo = `cat $last`;
-        my $l = '';
-        my $c = {};
-        if ( $lang ne $lastlang ) {
-            $l = $lang;
-            $c = { class => 'next' };
+my $last;
+my $savefile = "$tarballs/mahara-langpacks.last";
+if ( -f $savefile ) {
+    eval(`cat $savefile`);
+}
+
+foreach my $lang (sort keys %{$last}) {
+    my $l = $lang;
+    my $c = { class => 'next' };
+    foreach my $branch (sort keys %{$last->{$lang}->{branches}}) {
+        my $status = [ \'span', { style => "color: #080" }, 'ok' ];
+        if ( $last->{$lang}->{branches}->{$branch}->{status} == -1 ) {
+            open $errorfh, '>', "$docroot/$lang-$branch-errors.txt";
+            print $errorfh $last->{$lang}->{branches}->{$branch}->{errors};
+            $status = [ \'a', { href => "$lang-$branch-errors.txt", style => "color: #a00;" }, 'errors' ];
         }
-        my $errors = -f "$docroot/$lang-$branch-errors.txt";
         push @table,
           [ \'tr', $c,
             [ \'td',
               { style => 'font-weight: bold;' }, $l, $branch,
-              { style => 'font-weight: normal; color: #888;' }, [ \'tt', $commitinfo ],
-              $errors ? [ \'a', { href => "$lang-$branch-errors.txt", style => "color: #a00;" }, 'errors' ] : [ \'span', { style => "color: #080" }, 'ok' ]
+              { style => 'font-weight: normal; color: #888;' }, [ \'tt', $last->{$lang}->{branches}->{$branch}->{commit} ],
+              $status
             ]
           ];
-        $lastlang = $lang;
+        $l = '';
+        $c = {};
     }
 }
 
