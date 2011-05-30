@@ -43,7 +43,7 @@ make_path $TARBALLS;
 
 print STDERR "Checking langpacks for updates: " . `date \"+%Y-%m-%d %H:%M:%S\"`;
 
-my @langs = qw(ar ca cs da de en_us es eu fi fr he it ja ko nl no_nb sl zh_tw);
+my @langs = qw(ar ca cs da de en_us es eu fi fr he it ja ko mi nl no_nb sl zh_tw);
 
 my $last;
 my $savefile = "$TARBALLS/mahara-langpacks.last";
@@ -129,6 +129,8 @@ foreach my $lang (@langs) {
 
             if ( -f $pofile ) {
 
+                $last->{$lang}->{branches}->{$localbranch}->{type} = 'po';
+
                 print STDERR "$lang $localbranch: using .po file\n";
 
                 # Check utf8ness of .po file?
@@ -149,6 +151,8 @@ foreach my $lang (@langs) {
                 }
 
             } else {
+
+                $last->{$lang}->{branches}->{$localbranch}->{type} = 'mahara';
 
                 print STDERR "$lang $localbranch: sanitising\n";
 
@@ -193,7 +197,7 @@ foreach my $lang (@langs) {
 
             if ( $last->{$lang}->{branches}->{$localbranch}->{status} == 0 ) {
                 my $strip = $cleanbranchdir;
-                $strip =~ s{$/}{};
+                $strip =~ s{^/}{^};
                 system "tar --transform \"s,$strip,$lang.utf8,\" -zcf $tarball $cleanbranchdir";
             }
 
