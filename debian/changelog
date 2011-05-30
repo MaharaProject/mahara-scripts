@@ -1,3 +1,9 @@
+mahara-scripts (1.3) unstable; urgency=low
+
+  * Fix for cr in .po reference
+
+ -- Richard Mansfield <richardm@catalyst.net.nz>  Mon, 30 May 2011 18:06:48 +1200
+
 mahara-scripts (1.2) unstable; urgency=low
 
   * Change to older invocation of File::Path functions
