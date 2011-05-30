@@ -1,3 +1,10 @@
+mahara-scripts (1.1) unstable; urgency=low
+
+  * Rewrite langpacks.sh as perl script
+  * Add mi repository
+
+ -- Richard Mansfield <richardm@catalyst.net.nz>  Mon, 30 May 2011 14:42:14 +1200
+
 mahara-scripts (1.0) unstable; urgency=low
 
   * Add 1.4_STABLE branch
