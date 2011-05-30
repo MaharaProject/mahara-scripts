@@ -30,7 +30,7 @@ foreach my $po (@$strings) {
         my $filename = $1 . $lang . $2 . '.html';
         $htmlfiles{$filename} = $po->dequote($content);
     }
-    elsif ($reference =~ m{^htdocs/(\S*lang/)\S+\.utf8(/\S+)\.php (\S+)$}) {
+    elsif ($reference =~ m{^htdocs/(\S*lang/)\S+\.utf8(/\S+)\.php\s+(\S+)$}) {
         my $key = $3;
         my $filename = $1 . $lang . $2 . '.php';
         $phpfiles{$filename}->{$key} = $content;
