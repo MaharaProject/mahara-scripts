@@ -18,6 +18,7 @@
 use Data::Dumper;
 use FindBin;
 use File::Path qw(mkpath rmtree);
+use LWP::UserAgent;
 
 foreach my $c qw(DATA DOCROOT) {
     exists $ENV{$c} or die ("\$ENV{$c} undefined");
@@ -43,7 +44,42 @@ mkpath $TARBALLS;
 
 print STDERR "Checking langpacks for updates: " . `date \"+%Y-%m-%d %H:%M:%S\"`;
 
-my @langs = qw(ar ca cs da de en_us es eu fi fr he it ja ko mi nl no_nb sl zh_tw);
+# A language repo list can be put in the $DATA dir for testing.  If there's not one
+# there, try to get an up-to-date one out of the gitorious mahara-scripts repo
+# (allows updates to the repo list without having to redeploy the package).
+my $repolist;
+if ( -f "$DATA/language-repos.txt" ) {
+    print STDERR "Using repository list in $DATA/language-repos.txt\n";
+    open $repofh, '<', "$DATA/language-repos.txt" or die $!;
+    local $/ = undef;
+    $repolist = <$repofh>;
+}
+else {
+    my $repolisturl = 'https://gitorious.org/mahara/mahara-scripts/blobs/raw/master/mahara-langpacks/language-repos.txt';
+    print STDERR "Retrieving repository list from $repolisturl\n";
+
+    my $ua = LWP::UserAgent->new;
+    $ua->timeout(10);
+    $ua->env_proxy;
+    my $response = $ua->get($repolisturl);
+    $repolist = $response->is_success ? $response->content : undef;
+}
+
+my %langs = ();
+if ( defined $repolist ) {
+    foreach ( split "\n", $repolist ) {
+        if ( m/^([a-zA-Z_]{2,5})\s+(\S+)$/ ) {
+            $langs{$1} = { repo => $2 };
+        }
+    }
+}
+
+my @langkeys = sort keys %langs;
+if ( scalar @langkeys < 1 ) {
+    @langkeys = qw(ar ca cs da de en_us es eu fi fr he it ja ko mi nl no_nb sl zh_tw);
+}
+
+print STDERR "Languages: " . join(' ', @langkeys) . "\n";
 
 my $last;
 my $savefile = "$TARBALLS/mahara-langpacks.last";
@@ -54,10 +90,14 @@ else {
     $last = {};
 }
 
-foreach my $lang (@langs) {
+foreach my $lang (@langkeys) {
 
     if ( ! defined $last->{$lang} ) {
         $last->{$lang} = { repo => "git://gitorious.org/mahara-lang/$lang.git" };
+    }
+
+    if ( defined $langs{$lang}->{repo} ) {
+        $last->{$lang}->{repo} = $langs{$lang}->{repo};
     }
 
     my $remote       = $last->{$lang}->{repo};
