@@ -180,6 +180,14 @@ if ($pot = preg_match('/.pot$/', $destfile)) {
     else if (preg_match('/(\d[0-9\.]+)_STABLE\.pot$/', $destfile, $matches)) {
         $version .= '-' . $matches[1];
     }
+    if ($version == 'mahara') {
+        if (preg_match('/\/master$/', $source)) {
+            $version .= '-trunk';
+        }
+        else if (preg_match('/\/(\d[0-9\.]+)_STABLE$/', $source, $matches)) {
+            $version .= '-' . $matches[1];
+        }
+    }
     $header = '
 msgid ""
 msgstr ""
@@ -198,6 +206,7 @@ msgstr ""
 }
 
 if (!empty($sourcefiles)) {
+    sort($sourcefiles);
     foreach ($sourcefiles as $sourcefile) {
 
         $langfile = substr($sourcefile, strlen($source) + 1);
