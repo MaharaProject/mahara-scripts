@@ -18,19 +18,21 @@ fi
 WORK=${DATA}/templates
 GITDIR=${WORK}/git
 TEMP=${WORK}/temp
-OUT=${DATA}/po
 
 [ ! -d ${WORK} ] && mkdir ${WORK}
 [ ! -d ${TEMP} ] && mkdir ${TEMP}
-[ ! -d ${OUT} ] && mkdir ${OUT}
 [ ! -d ${DOCROOT}/pot ] && mkdir ${DOCROOT}/pot
 
-remote='git://gitorious.org/mahara/mahara.git'
+mahararemote='git://gitorious.org/mahara/mahara.git'
 
 if [ ! -d ${GITDIR} ]; then
-    echo "git clone ${remote} ${GITDIR}"
-    git clone --quiet ${remote} ${GITDIR}
+    echo "git clone ${mahararemote} ${GITDIR}"
+    git clone --quiet ${mahararemote} ${GITDIR}
 fi
+
+[ ! -d "${WORK}/mahara-lang-bzr" ] && bzr init-repo ${WORK}/mahara-lang-bzr
+
+BZR=${WORK}/mahara-lang-bzr
 
 cd ${GITDIR}
 git fetch --quiet origin
@@ -86,8 +88,9 @@ for branch in ${branches} ; do
             continue
         fi
 
-        [ ! -d ${OUT}/${branch} ] && mkdir ${OUT}/${branch}
-        outputdir=${OUT}/${branch}/mahara
+        # Output into a copy of the launchpad mahara-lang repo
+        [ ! -d ${BZR}/${branch} ] && bzr branch lp:~mahara-core/mahara-lang/${branch} ${BZR}/${branch}
+        outputdir=${BZR}/${branch}/mahara
         [ ! -d ${outputdir} ] && mkdir ${outputdir}
         outputfile=${outputdir}/mahara.pot
 
@@ -97,8 +100,22 @@ for branch in ${branches} ; do
         /usr/bin/php ${SCRIPTS}/php-po.php ${langpack} ${langpack} ${outputfile}
 
         if [ -f ${outputfile} ]; then
-            cd ${OUT}/${branch}
-            tar zcf ${DOCROOT}/pot/${branch}.tar.gz mahara/mahara.pot
+            cd ${BZR}/${branch}
+
+            diffs=`bzr diff mahara/mahara.pot`
+
+            if [ ! -z "${diffs}" ]; then
+
+                # Update copy of template in webroot
+                tar zcf ${DOCROOT}/pot/${branch}.tar.gz mahara/mahara.pot
+
+                # Push template to lp:mahara-lang
+                bzr add mahara/mahara.pot
+                bzr commit -m "Update template to ${remotecommit}"
+                bzr push lp:~mahara-core/mahara-lang/${branch}
+
+            fi
+
             cd ${GITDIR}
         fi
 
