@@ -19,14 +19,37 @@ set -e
 
 case "$1" in
     configure)
+        adduser --system --quiet maharabot
+
+        if [ ! -d /home/maharabot/.ssh ] ; then
+            mkdir /home/maharabot/.ssh
+            ssh-keygen -q -t rsa -N '' -f /home/maharabot/.ssh/id_rsa
+            chown -R maharabot /home/maharabot/.ssh
+        fi
+
         if [ ! -d /var/www/mahara-langpacks ]; then
             mkdir /var/www/mahara-langpacks
         fi
+
+        if [ `stat -c %U /var/www/mahara-langpacks` != 'maharabot' ]; then
+            chown -R maharabot /var/www/mahara-langpacks
+        fi
+
         if [ ! -d /var/lib/mahara-langpacks ]; then
             mkdir /var/lib/mahara-langpacks
         fi
+
+        if [ `stat -c %U /var/lib/mahara-langpacks` != 'maharabot' ]; then
+            chown -R maharabot /var/lib/mahara-langpacks
+        fi
+
         if [ ! -d /var/log/apache2/mahara-langpacks ]; then
             mkdir /var/log/apache2/mahara-langpacks
+        fi
+
+        if [ ! -d /var/log/mahara-langpacks ]; then
+            mkdir /var/log/mahara-langpacks
+            chown maharabot /var/log/mahara-langpacks
         fi
 
         echo "DATA=/var/lib/mahara-langpacks" > /etc/mahara-langpacks.conf
