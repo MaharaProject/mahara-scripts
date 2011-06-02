@@ -89,7 +89,7 @@ for branch in ${branches} ; do
         fi
 
         # Output into a copy of the launchpad mahara-lang repo
-        [ ! -d ${BZR}/${branch} ] && bzr branch lp:~mahara-core/mahara-lang/${branch} ${BZR}/${branch}
+        [ ! -d ${BZR}/${branch} ] && bzr branch lp:~mahara-lang/mahara-lang/${branch} ${BZR}/${branch}
         outputdir=${BZR}/${branch}/mahara
         [ ! -d ${outputdir} ] && mkdir ${outputdir}
         outputfile=${outputdir}/mahara.pot
@@ -112,7 +112,7 @@ for branch in ${branches} ; do
                 # Push template to lp:mahara-lang
                 bzr add mahara/mahara.pot
                 bzr commit -m "Update template to ${remotecommit}"
-                bzr push lp:~mahara-core/mahara-lang/${branch}
+                bzr push lp:~mahara-lang/mahara-lang/${branch}
 
             fi
 
