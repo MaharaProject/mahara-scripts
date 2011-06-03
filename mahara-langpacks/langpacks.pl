@@ -33,6 +33,7 @@ my $UTF8CMD   = "/usr/bin/perl $FindBin::Bin/check-utf8.pl";
 my $POCMD     = "/usr/bin/perl $FindBin::Bin/po-php.pl";
 
 my $GITDIR    = "${DATA}/git";
+my $BZRDIR    = "${DATA}/bzr";
 my $DIRTY     = "${DATA}/old";
 my $CLEAN     = "${DATA}/new";
 my $TARBALLS  = "${DATA}/tarballs";
@@ -90,6 +91,20 @@ else {
     $last = {};
 }
 
+
+# For launchpad, all languages are in a single branch, so update the lot
+! -d $BZRDIR && system "bzr init-repo $BZRDIR";
+my @branches = qw(1.2_STABLE 1.3_STABLE 1.4_STABLE master);
+
+foreach my $branch (@branches) {
+    if ( ! -d "$BZRDIR/$branch" ) {
+        system "bzr branch lp:~mahara-lang/mahara-lang/$branch $BZRDIR/$branch";
+    }
+    else {
+        system "bzr update $BZRDIR/$branch";
+    }
+}
+
 foreach my $lang (@langkeys) {
 
     if ( ! defined $last->{$lang} ) {
@@ -100,39 +115,62 @@ foreach my $lang (@langkeys) {
         $last->{$lang}->{repo} = $langs{$lang}->{repo};
     }
 
+    my $repotype;
     my $remote       = $last->{$lang}->{repo};
     my $gitlangdir   = "$GITDIR/$lang";
     my $dirtylangdir = "$DIRTY/$lang";
     my $cleanlangdir = "$CLEAN/$lang";
 
-    if ( ! -d $gitlangdir ) {
-        system "git clone --quiet $remote $gitlangdir";
-    }
-
     mkpath $dirtylangdir;
     mkpath $cleanlangdir;
 
-    chdir $gitlangdir;
-    system "git fetch --quiet";
 
-    my $remotebranchcmd = 'git branch -r | grep -v "HEAD" | grep "origin\/\(master\|1.2_STABLE\|1.3_STABLE\|1.4_STABLE\)$"';
-    my $remotebranches = `$remotebranchcmd`;
-    $remotebranches =~ s/\s+/ /;
+    if ( $remote =~ m/^lp:mahara-lang/ ) {
+        $repotype = 'launchpad';
+    }
+    elsif ( $remote =~ m{^git://gitorious\.org} ) {
+        $repotype = 'gitorious';
+        ! -d "$gitlangdir" && system "git clone --quiet $remote $gitlangdir";
+        chdir $gitlangdir;
+        system "git fetch --quiet";
+        my $remotebranchcmd = 'git branch -r | grep -v "HEAD" | grep "origin\/\(master\|1.2_STABLE\|1.3_STABLE\|1.4_STABLE\)$"';
+        my $remotebranches = `$remotebranchcmd`;
+        $remotebranches =~ s/\s+/ /;
+        @branches = ();
+        foreach my $b (split(" ", $remotebranches)) {
+            $b =~ s{^origin/}{};
+            push @branches, $b;
+        }
+    }
+    else {
+        print STDERR "Don't know what to do with $remote; skipping $lang\n";
+        next;
+    }
 
-    foreach my $remotebranch (split(" ", $remotebranches)) {
+    foreach my $branch (@branches) {
 
-        my $remotecommitcmd = 'git log --pretty=format:"%H %ai %an" ' . $remotebranch . ' | head -1';
-        my $remotecommit = `$remotecommitcmd`;
+        my $remotecommit;
+        my $currentdir;
+        if ( $repotype eq 'launchpad' ) {
+            $currentdir = "$BZRDIR/$branch";
+            chdir $currentdir;
+            next if ! -d "$currentdir/mahara/$lang.po";
+            my $remotecommitcmd = "bzr log --line mahara/$lang.po | head -1";
+            $remotecommit = `$remotecommitcmd`;
+        }
+        else {
+            my $remotecommitcmd = 'git log --pretty=format:"%H %ai %an" origin/' . $branch . ' | head -1';
+            $remotecommit = `$remotecommitcmd`;
+            $currentdir = $gitlangdir;
+            chdir $currentdir;
+        }
         chomp $remotecommit;
 
-        my $localbranch = $remotebranch;
-        $localbranch =~ s/^origin\///;
-
-        if ( ! defined $last->{$lang}->{branches}->{$localbranch} ) {
-            $last->{$lang}->{branches}->{$localbranch} = {};
+        if ( ! defined $last->{$lang}->{branches}->{$branch} ) {
+            $last->{$lang}->{branches}->{$branch} = {};
         }
 
-        my $filenamebase = "$lang-$localbranch";
+        my $filenamebase = "$lang-$branch";
         my $tarball = "$TARBALLS/$filenamebase.tar.gz";
         my $diff    = "$TARBALLS/$filenamebase.diff";
 
@@ -141,43 +179,46 @@ foreach my $lang (@langkeys) {
 
         my $lastruncommit = '';
 
-        if ( defined $last->{$lang}->{branches}->{$localbranch}->{commit} ) {
-            $lastruncommit = $last->{$lang}->{branches}->{$localbranch}->{commit};
+        if ( defined $last->{$lang}->{branches}->{$branch}->{commit} ) {
+            $lastruncommit = $last->{$lang}->{branches}->{$branch}->{commit};
         }
 
         if ( "$remotecommit" ne "$lastruncommit" ) {
-            print STDERR "Updating $lang $localbranch\n";
+            print STDERR "Updating $lang $branch\n";
 
-            my $branchcmd = 'git branch | grep "' . $localbranch . '$"';
-            my $branchexists = `$branchcmd`;
+            if ( $repotype eq 'gitorious' ) {
+                my $branchcmd = 'git branch | grep "' . $branch . '$"';
+                my $branchexists = `$branchcmd`;
 
-            if ( length $branchexists ) {
-                system "git checkout --quiet $localbranch";
-                system "git reset --hard -q $remotebranch";
-            } else {
-                system "git checkout --quiet -b $localbranch $remotebranch";
+                if ( length $branchexists ) {
+                    system "git checkout --quiet $branch";
+                    system "git reset --hard -q origin/$branch";
+                }
+                else {
+                    system "git checkout --quiet -b $branch origin/$branch";
+                }
             }
 
-            $last->{$lang}->{branches}->{$localbranch}->{status} = 0;
-            $last->{$lang}->{branches}->{$localbranch}->{errors} = '';
+            $last->{$lang}->{branches}->{$branch}->{status} = 0;
+            $last->{$lang}->{branches}->{$branch}->{errors} = '';
 
-            my $cleanbranchdir = "$cleanlangdir/$localbranch";
+            my $cleanbranchdir = "$cleanlangdir/$branch";
             -d "$cleanbranchdir/lang" && rmtree $cleanbranchdir;
             ! -d $cleanbranchdir && mkpath $cleanbranchdir;
 
-            my $pofile = "$gitlangdir/mahara/$lang.po";
+            my $pofile = "$currentdir/mahara/$lang.po";
 
             if ( -f $pofile ) {
 
-                $last->{$lang}->{branches}->{$localbranch}->{type} = 'po';
+                $last->{$lang}->{branches}->{$branch}->{type} = 'po';
 
-                print STDERR "$lang $localbranch: using .po file\n";
+                print STDERR "$lang $branch: using .po file\n";
 
                 # Check utf8ness of .po file?
                 my $output = `$UTF8CMD $pofile`;
                 if ( length $output ) {
-                    $last->{$lang}->{branches}->{$localbranch}->{errors} = "$pofile\n$output";
-                    $last->{$lang}->{branches}->{$localbranch}->{status} = -1;
+                    $last->{$lang}->{branches}->{$branch}->{errors} = "$pofile\n$output";
+                    $last->{$lang}->{branches}->{$branch}->{status} = -1;
                 }
 
                 # Create langpack from .po file
@@ -185,22 +226,23 @@ foreach my $lang (@langkeys) {
                 $output = `$pocmd`;
 
                 if ( length $output ) {
-                    $last->{$lang}->{branches}->{$localbranch}->{errors} .= "Failed to create langpack from .po file $pofile\n";
-                    $last->{$lang}->{branches}->{$localbranch}->{errors} .= "$output";
-                    $last->{$lang}->{branches}->{$localbranch}->{status} = -1;
+                    $last->{$lang}->{branches}->{$branch}->{errors} .= "Failed to create langpack from .po file $pofile\n";
+                    $last->{$lang}->{branches}->{$branch}->{errors} .= "$output";
+                    $last->{$lang}->{branches}->{$branch}->{status} = -1;
                 }
 
-            } else {
+            }
+            elsif ( $repotype eq 'gitorious' && -f "$currentdir/lang/$lang.utf8/langconfig.php" ) {
 
-                $last->{$lang}->{branches}->{$localbranch}->{type} = 'mahara';
+                $last->{$lang}->{branches}->{$branch}->{type} = 'mahara';
 
-                print STDERR "$lang $localbranch: sanitising\n";
+                print STDERR "$lang $branch: sanitising\n";
 
                 # sanitise langpack
-                my $dirtybranchdir = "$dirtylangdir/$localbranch";
+                my $dirtybranchdir = "$dirtylangdir/$branch";
                 ! -d $dirtybranchdir && mkpath $dirtybranchdir;
 
-                system("cp -r $gitlangdir/" . '[a-z]* ' . $dirtybranchdir);
+                system("cp -r $currentdir/" . '[a-z]* ' . $dirtybranchdir);
 
                 # Clean out stray php from the langpacks
                 system "$CLEANCMD $dirtybranchdir $cleanbranchdir";
@@ -216,8 +258,8 @@ foreach my $lang (@langkeys) {
                     if ( $phpfile =~ m/php$/ ) {
                         my $output = `$SYNTAXCMD $phpfile >/dev/null`;
                         if ( length $output ) {
-                            $last->{$lang}->{branches}->{$localbranch}->{errors} = "$phpfile\n$output";
-                            $last->{$lang}->{branches}->{$localbranch}->{status} = -1;
+                            $last->{$lang}->{branches}->{$branch}->{errors} = "$phpfile\n$output";
+                            $last->{$lang}->{branches}->{$branch}->{status} = -1;
                         }
                     }
                 }
@@ -229,23 +271,33 @@ foreach my $lang (@langkeys) {
                     $file =~ s/^\s*(\S.*\S)\s*$/$1/;
                     $output = `$UTF8CMD $file`;
                     if ( length $output ) {
-                        $last->{$lang}->{branches}->{$localbranch}->{errors} .= "$file\n$output";
-                        $last->{$lang}->{branches}->{$localbranch}->{status} = -1;
+                        $last->{$lang}->{branches}->{$branch}->{errors} .= "$file\n$output";
+                        $last->{$lang}->{branches}->{$branch}->{status} = -1;
                     }
                 }
             }
+            else {
+                print STDERR "$lang $branch: Couldn't find mahara/$lang.po or lang/$lang.utf8/langconfig.php in $currentdir; skipping";
+                next;
+            }
 
-            if ( $last->{$lang}->{branches}->{$localbranch}->{status} == 0 ) {
+            if ( $last->{$lang}->{branches}->{$branch}->{status} == 0 ) {
                 my $strip = $cleanbranchdir;
                 $strip =~ s{^/}{^};
                 system "tar --transform \"s,$strip,$lang.utf8,\" -zcf $tarball $cleanbranchdir";
             }
 
-            chdir $gitlangdir;
+            chdir $currentdir;
 
-            my $localcommit = `git log --pretty=format:\"%H %ai %an\" $localbranch | head -1`;
+            my $localcommit;
+            if ( $repotype eq 'gitorious' ) {
+                $localcommit = `git log --pretty=format:\"%H %ai %an\" $branch | head -1`;
+            }
+            else {
+                $localcommit = `bzr log --line mahara/$lang.po | head -1`;
+            }
             chomp $localcommit;
-            $last->{$lang}->{branches}->{$localbranch}->{commit} = $localcommit;
+            $last->{$lang}->{branches}->{$branch}->{commit} = $localcommit;
         }
     }
 }

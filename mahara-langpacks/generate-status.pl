@@ -19,6 +19,7 @@ foreach my $lang (sort keys %{$last}) {
     my $c = { class => 'next' };
     foreach my $branch (sort keys %{$last->{$lang}->{branches}}) {
         my $status = [ \'span', { style => "color: #080" }, 'ok' ];
+        next if ! defined $last->{$lang}->{branches}->{$branch}->{status};
         if ( $last->{$lang}->{branches}->{$branch}->{status} == -1 ) {
             open $errorfh, '>', "$docroot/$lang-$branch-errors.txt";
             print $errorfh $last->{$lang}->{branches}->{$branch}->{errors};
