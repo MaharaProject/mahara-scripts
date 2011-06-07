@@ -1,0 +1,18 @@
+/var/log/mahara-langpacks/langpacks.log {
+    weekly
+    missingok
+    rotate 52
+    compress
+    delaycompress
+    notifempty
+    create 640 maharabot maharabot
+}
+/var/log/mahara-langpacks/update-pot.log {
+    weekly
+    missingok
+    rotate 52
+    compress
+    delaycompress
+    notifempty
+    create 640 maharabot maharabot
+}

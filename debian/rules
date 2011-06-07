@@ -21,6 +21,7 @@ binary:
 	dh_install
 	dh_installdirs
 	dh_installcron
+	dh_installlogrotate
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb
