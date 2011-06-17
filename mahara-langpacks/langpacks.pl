@@ -232,7 +232,24 @@ foreach my $lang (@langkeys) {
                 }
 
             }
-            elsif ( $repotype eq 'gitorious' && -f "$currentdir/lang/$lang.utf8/langconfig.php" ) {
+            elsif ( $repotype eq 'gitorious' ) {
+
+                # .po is not available, so this is a php langpack
+
+                my $langconfig = 0;
+
+                if ( $lang =~ m/^([a-z]{2})_([a-z]{2})$/ ) {
+                    $langconfig = -f "$currentdir/lang/$1_" . lc($2) . '.utf8/langconfig.php'
+                      || -f "$currentdir/lang/$1_" . uc($2) . '.utf8/langconfig.php';
+                }
+                else {
+                    $langconfig = -f "$currentdir/lang/$lang.utf8/langconfig.php";
+                }
+
+                if ( ! $langconfig ) {
+                    print STDERR "$lang $branch: Couldn't find lang/$lang.utf8/langconfig.php in $currentdir; skipping\n";
+                    next;
+                }
 
                 $last->{$lang}->{branches}->{$branch}->{type} = 'mahara';
 
@@ -277,7 +294,7 @@ foreach my $lang (@langkeys) {
                 }
             }
             else {
-                print STDERR "$lang $branch: Couldn't find mahara/$lang.po or lang/$lang.utf8/langconfig.php in $currentdir; skipping";
+                print STDERR "$lang $branch: Couldn't find mahara/$lang.po or lang/$lang.utf8/langconfig.php in $currentdir; skipping\n";
                 next;
             }
 
