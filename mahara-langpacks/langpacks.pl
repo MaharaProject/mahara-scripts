@@ -128,6 +128,7 @@ foreach my $lang (@langkeys) {
 
     if ( $remote =~ m/^lp:mahara-lang/ ) {
         $repotype = 'launchpad';
+        @branches = qw(1.2_STABLE 1.3_STABLE 1.4_STABLE master);
     }
     elsif ( $remote =~ m{^git://gitorious\.org} ) {
         $repotype = 'gitorious';
