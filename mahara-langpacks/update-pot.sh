@@ -89,7 +89,14 @@ for branch in ${branches} ; do
         fi
 
         # Output into a copy of the launchpad mahara-lang repo
-        [ ! -d ${BZR}/${branch} ] && bzr branch lp:~mahara-lang/mahara-lang/${branch} ${BZR}/${branch}
+        if [ ! -d ${BZR}/${branch} ]; then
+            bzr branch lp:~mahara-lang/mahara-lang/${branch} ${BZR}/${branch}
+        else
+            cd ${BZR}/${branch}
+            bzr pull
+            cd ${GITDIR}
+        fi
+
         outputdir=${BZR}/${branch}/mahara
         [ ! -d ${outputdir} ] && mkdir ${outputdir}
         outputfile=${outputdir}/mahara.pot
