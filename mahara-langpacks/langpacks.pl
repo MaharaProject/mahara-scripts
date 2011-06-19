@@ -101,7 +101,8 @@ foreach my $branch (@branches) {
         system "bzr branch lp:~mahara-lang/mahara-lang/$branch $BZRDIR/$branch";
     }
     else {
-        system "bzr update $BZRDIR/$branch";
+        chdir "$BZRDIR/$branch";
+        system "bzr pull";
     }
 }
 
@@ -154,7 +155,7 @@ foreach my $lang (@langkeys) {
         if ( $repotype eq 'launchpad' ) {
             $currentdir = "$BZRDIR/$branch";
             chdir $currentdir;
-            next if ! -d "$currentdir/mahara/$lang.po";
+            next if ! -f "$currentdir/mahara/$lang.po";
             my $remotecommitcmd = "bzr log --line mahara/$lang.po | head -1";
             $remotecommit = `$remotecommitcmd`;
         }
