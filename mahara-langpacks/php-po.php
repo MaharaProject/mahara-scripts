@@ -171,39 +171,48 @@ if (file_exists($destfile)) {
 $sourcefiles = array();
 get_langfile_list($sourcefiles, $source);
 
-if ($pot = preg_match('/.pot$/', $destfile)) {
-    // Create .pot template
-    $version = 'mahara';
-    if (preg_match('/master\.pot$/', $destfile)) {
+$version = 'mahara';
+if (preg_match('/master\.pot$/', $destfile)) {
+    $version .= '-trunk';
+}
+else if (preg_match('/(\d[0-9\.]+)_STABLE\.pot$/', $destfile, $matches)) {
+    $version .= '-' . $matches[1];
+}
+if ($version == 'mahara') {
+    if (preg_match('/\/master$/', $source)) {
         $version .= '-trunk';
     }
-    else if (preg_match('/(\d[0-9\.]+)_STABLE\.pot$/', $destfile, $matches)) {
+    else if (preg_match('/\/(\d[0-9\.]+)_STABLE$/', $source, $matches)) {
         $version .= '-' . $matches[1];
     }
-    if ($version == 'mahara') {
-        if (preg_match('/\/master$/', $source)) {
-            $version .= '-trunk';
-        }
-        else if (preg_match('/\/(\d[0-9\.]+)_STABLE$/', $source, $matches)) {
-            $version .= '-' . $matches[1];
-        }
-    }
+}
+
     $header = '
 msgid ""
 msgstr ""
 "Project-Id-Version: ' . $version . '\n"
-"Report-Msgid-Bugs-To: https://bugs.launchpad.net/mahara\n"
+"Report-Msgid-Bugs-To: https://bugs.launchpad.net/mahara\n"';
+
+if ($pot = preg_match('/.pot$/', $destfile)) {
+    $header .= '
 "POT-Creation-Date: ' . date('Y-m-d H:iO') . '\n"
 "PO-Revision-Date: YYYY-MM-DD HH:MM+ZZZZ\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"';
+}
+else {
+    $header .= '
+"PO-Revision-Date: ' . date('Y-m-d H:iO') . '\n"';
+}
+
+    $header .= '
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
 ';
-    file_put_contents($destfile, $header, FILE_APPEND);
-}
+
+file_put_contents($destfile, $header, FILE_APPEND);
 
 if (!empty($sourcefiles)) {
     sort($sourcefiles);
@@ -211,25 +220,30 @@ if (!empty($sourcefiles)) {
 
         $langfile = substr($sourcefile, strlen($source) + 1);
         $en_file = preg_replace('/lang\/[a-zA-Z_]+\.utf8\//', 'lang/en.utf8/', $langfile);
-        $en_file = $en_dir .  '/' . $en_file;
 
-        if (!file_exists($en_file)) {
+        if (!file_exists($en_dir . '/' . $en_file)) {
             continue;
         }
 
         $po = null;
 
         if (preg_match('/lang\/.*\.utf8\/.*\.html$/', $langfile)) {
-            $po .= "\n\n#: $langfile";
-            $po .= "\nmsgctxt \"$langfile\"";
-            $po .= "\nmsgid \"" . addcslashes(file_get_contents($en_file), "\\\"\r\n") . '"';
-            $po .= "\nmsgstr \""  . ($pot ? '' : addcslashes(file_get_contents($sourcefile), "\\\"\r\n")) . '"';
+            $po .= "\n\n#: $en_file";
+            $po .= "\nmsgctxt \"$en_file\"";
+            $content = mb_ereg_replace("\r\n", "\n", file_get_contents($en_dir . '/' . $en_file));
+            $po .= "\nmsgid \"" . addcslashes($content, "\\\"\r\n") . '"';
+            $po .= "\nmsgstr \"";
+            if (!$pot) {
+                $content = mb_ereg_replace("\r\n", "\n", file_get_contents($sourcefile));
+                $po .= addcslashes($content, "\\\"\r\n");
+            }
+            $po .= '"';
         }
 
         if (preg_match('/lang\/.*\.utf8\/.*\.php$/', $langfile)) {
             $string = array();
-            include ($en_file); // Fills $string
-            $po = phptopo($string, $langfile, $sourcefile, $pot);
+            include ($en_dir . '/' . $en_file); // Fills $string
+            $po = phptopo($string, $en_file, $sourcefile, $pot);
         }
 
         if ($po) {
