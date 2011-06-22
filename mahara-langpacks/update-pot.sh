@@ -104,7 +104,7 @@ for branch in ${branches} ; do
         echo "Updating ${outputfile}"
 
         [ -f ${outputfile} ] && rm ${outputfile}
-        /usr/bin/php ${SCRIPTS}/php-po.php ${langpack} ${langpack} ${outputfile}
+        /usr/bin/php ${SCRIPTS}/php-po.php ${langpack}/htdocs ${langpack}/htdocs ${outputfile}
 
         if [ -f ${outputfile} ]; then
             cd ${BZR}/${branch}
