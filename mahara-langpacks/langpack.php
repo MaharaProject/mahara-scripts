@@ -157,14 +157,31 @@ function get_langfile_list(&$list, $dir) {
     }
 }
 
-$source = $argv[1];
-$dest = $argv[2];
+if (is_dir($argv[1])) {
+    $en_dir = $argv[1];
+}
+$source = $argv[2];
+$dest   = $argv[3];
 
 $sourcefiles = array();
 get_langfile_list($sourcefiles, $source);
 
 if (!empty($sourcefiles)) {
     foreach ($sourcefiles as $sourcefile) {
+
+        if (isset($en_dir)) {
+            // Skip files that don't exist in the en.utf8 langpack.
+
+            $langfile = substr($sourcefile, strlen($source) + 1);
+
+            $en_file = preg_replace('/lang\/[a-zA-Z_]+\.utf8\//', 'lang/en.utf8/', $langfile);
+            $en_file = $en_dir .  '/' . $en_file;
+
+            if (!file_exists($en_file)) {
+                continue;
+            }
+        }
+
         $destfile = str_replace($source, $dest, $sourcefile);
         $destdir = dirname($destfile);
         if (!is_dir($destdir)) {

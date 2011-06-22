@@ -37,6 +37,9 @@ my $BZRDIR    = "${DATA}/bzr";
 my $DIRTY     = "${DATA}/old";
 my $CLEAN     = "${DATA}/new";
 my $TARBALLS  = "${DATA}/tarballs";
+my $MAHARA    = "${DATA}/mahara";
+
+my $MAHARAREMOTE = 'git://gitorious.org/mahara/mahara.git';
 
 mkpath $GITDIR;
 mkpath $DIRTY;
@@ -92,13 +95,20 @@ else {
 }
 
 
+# Mahara checkout, used for reading the en.utf8 langpack
+# during php langpack sanitisation.
+! -d "$MAHARA" && system "git clone --quiet $MAHARAREMOTE $MAHARA";
+chdir $MAHARA;
+system "git fetch --quiet origin";
+
+
 # For launchpad, all languages are in a single branch, so update the lot
 ! -d $BZRDIR && system "bzr init-repo $BZRDIR";
 my @branches = qw(1.2_STABLE 1.3_STABLE 1.4_STABLE master);
 
 foreach my $branch (@branches) {
     if ( ! -d "$BZRDIR/$branch" ) {
-        system "bzr branch lp:~mahara-lang/mahara-lang/$branch $BZRDIR/$branch";
+        system "bzr branch lp:~mahara-lang/mahara-lang/$branch-export $BZRDIR/$branch";
     }
     else {
         chdir "$BZRDIR/$branch";
@@ -263,8 +273,12 @@ foreach my $lang (@langkeys) {
 
                 system("cp -r $currentdir/" . '[a-z]* ' . $dirtybranchdir);
 
+                # Make en.utf8 available
+                chdir $MAHARA;
+                system "git reset --hard -q origin/$branch";
+
                 # Clean out stray php from the langpacks
-                system "$CLEANCMD $dirtybranchdir $cleanbranchdir";
+                system "$CLEANCMD $MAHARA/htdocs $dirtybranchdir $cleanbranchdir";
 
                 chdir $DATA;
                 system "diff -Bwr $dirtybranchdir $cleanbranchdir > $diff";
