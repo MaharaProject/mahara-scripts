@@ -174,6 +174,10 @@ if (!empty($sourcefiles)) {
 
             $langfile = substr($sourcefile, strlen($source) + 1);
 
+            if (!preg_match('/lang\/[a-z]{2}[a-zA-Z_]*\.utf8\//', $langfile)) {
+                continue;
+            }
+
             $en_file = preg_replace('/lang\/[a-zA-Z_]+\.utf8\//', 'lang/en.utf8/', $langfile);
             $en_file = $en_dir .  '/' . $en_file;
 
