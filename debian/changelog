@@ -1,3 +1,10 @@
+mahara-scripts (1.5) unstable; urgency=low
+
+  * Bug fixes for launchpad & .po conversion
+  * In php langpack sanitisation, remove files not in core mahara
+
+ -- Richard Mansfield <richardm@catalyst.net.nz>  Wed, 29 Jun 2011 13:25:07 +1200
+
 mahara-scripts (1.4) unstable; urgency=low
 
   * Add support for launchpad langpacks and templates
