@@ -5,7 +5,7 @@
     compress
     delaycompress
     notifempty
-    create 640 maharabot maharabot
+    create 640 maharabot adm
 }
 /var/log/mahara-langpacks/update-pot.log {
     weekly
@@ -14,5 +14,5 @@
     compress
     delaycompress
     notifempty
-    create 640 maharabot maharabot
+    create 640 maharabot adm
 }
