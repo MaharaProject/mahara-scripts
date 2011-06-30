@@ -16,6 +16,10 @@ use Locale::PO;
 
 my ($inputfile, $outputdir, $lang) = @ARGV;
 
+# The version of Locale::PO on chatter (0.17) spews warnings for all
+# the msgctxt lines in the file.  Should remove this later.
+BEGIN { $SIG{'__WARN__'} = sub { warn $_[0] if substr($_[0], 0, 15) ne "Strange line in" } }
+
 my $strings = Locale::PO->load_file_asarray($inputfile);
 
 my %htmlfiles = ();
@@ -23,6 +27,7 @@ my %phpfiles = ();
 
 foreach my $po (@$strings) {
     my $content = $po->msgstr();
+    next if ( ! defined $content );
     $content =~ s{\\n}{\n}g;
     my $reference = $po->reference();
     next if ( ! defined $reference );

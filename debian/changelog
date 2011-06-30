@@ -1,3 +1,9 @@
+mahara-scripts (1.7) unstable; urgency=low
+
+  * Suppress some pointless warnings
+
+ -- Richard Mansfield <richardm@catalyst.net.nz>  Fri, 01 Jul 2011 11:09:50 +1200
+
 mahara-scripts (1.6) unstable; urgency=low
 
   * Bug fix for po->php language pack creation
