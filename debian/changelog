@@ -1,3 +1,10 @@
+mahara-scripts (1.6) unstable; urgency=low
+
+  * Bug fix for po->php language pack creation
+  * Fix group in logrotate script
+
+ -- Richard Mansfield <richardm@catalyst.net.nz>  Fri, 01 Jul 2011 10:05:52 +1200
+
 mahara-scripts (1.5) unstable; urgency=low
 
   * Bug fixes for launchpad & .po conversion
