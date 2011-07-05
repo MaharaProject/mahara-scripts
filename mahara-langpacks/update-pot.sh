@@ -5,6 +5,9 @@
 # this is expected to define DATA, SCRIPTS, DOCROOT
 . /etc/mahara-langpacks.conf
 
+echo -n "Checking for changes to strings "
+date "+%Y-%m-%d %H:%M:%S"
+
 if [ ! -w ${DATA} ]; then
     echo "${DATA} not writable"
     exit 1
