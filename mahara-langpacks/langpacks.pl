@@ -72,7 +72,7 @@ else {
 my %langs = ();
 if ( defined $repolist ) {
     foreach ( split "\n", $repolist ) {
-        if ( m/^([a-zA-Z_]{2,5})\s+(\S+)$/ ) {
+        if ( m/^([a-zA-Z_]{2,5})\s+(\S+)\s*$/ ) {
             $langs{$1} = { repo => $2 };
         }
     }
