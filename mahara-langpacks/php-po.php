@@ -202,7 +202,10 @@ if ($pot = preg_match('/.pot$/', $destfile)) {
 }
 else {
     $header .= '
-"PO-Revision-Date: ' . date('Y-m-d H:iO') . '\n"';
+"PO-Revision-Date: ' . date('Y-m-d H:iO') . '\n"
+"Last-Translator: \n"
+"Language: \n"
+"Language-Team: \n"';
 }
 
     $header .= '
