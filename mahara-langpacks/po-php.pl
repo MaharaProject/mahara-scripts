@@ -29,6 +29,7 @@ foreach my $po (@$strings) {
     my $content = $po->msgstr();
     next if ( ! defined $content );
     $content =~ s{\\n}{\n}g;
+    next if ( $content eq '' || $content eq '""' );
     my $reference = $po->reference();
     next if ( ! defined $reference );
     if ($reference =~ m{^(\S*lang/)\S+\.utf8(/\S+)\.html$}) {
