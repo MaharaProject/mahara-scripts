@@ -11,7 +11,7 @@ my @table = ();
 
 foreach my $tarball (sort @tarballs) {
     chomp $tarball;
-    if ($tarball =~ m{$docroot/([a-z_]+)-([0-9A-Za-z\._]+)\.tar\.gz}) {
+    if ($tarball =~ m{$docroot/([a-zA-Z_]+)-([0-9A-Za-z\._]+)\.tar\.gz}) {
         my $lang = $1;
         my $branch = $2;
         my @fileinfo = stat $tarball;
