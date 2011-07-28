@@ -8,6 +8,8 @@ define('PUBLIC', 1);
 define('MENUITEM', '');
 define('HOME', 1);
 require('init.php');
+raise_memory_limit('512M');
+set_time_limit(300);
 
 if (get_config('samplefiles')) {
     exit;
@@ -30,48 +32,56 @@ oAAAAAAAAAD4DR1+AAGgmQaxAAAAAElFTkSuQmCC'),
     'application/octet-stream' => '??',
 );
 
-$files = array();
-
-$records = get_records_sql_array('
+$profileicons = get_records_sql_array("
     SELECT f.*, a.artefacttype
-    FROM {artefact_file_files} f JOIN {artefact} a ON f.artefact = a.id',
+    FROM {artefact_file_files} f JOIN {artefact} a ON f.artefact = a.id
+    WHERE a.artefacttype = 'profileicon'",
     null
 );
 
 db_begin();
 
-foreach ($records as $r) {
+foreach ($profileicons as $r) {
     $filetype = isset($samples[$r->filetype]) ? $r->filetype : 'application/octet-stream';
-
-    if ($r->artefacttype == 'profileicon') {
-        $dir = get_config('dataroot') . 'artefact/file/profileicons/originals/' . ($r->artefact % 256);
-        check_dir_exists($dir);
+    $dir = get_config('dataroot') . 'artefact/file/profileicons/originals/' . ($r->artefact % 256);
+    check_dir_exists($dir);
+    $file = $dir . '/' . $r->artefact;
+    if (!file_exists($file)) {
         file_put_contents($dir . '/' . $r->artefact, $samples[$filetype]);
         execute_sql(
             "UPDATE {artefact_file_files} SET size = ?, fileid = ?, filetype = ? WHERE artefact = ?",
             array(filesize($dir . '/' . $r->artefact), $r->artefact, $filetype, $r->artefact)
         );
-        continue;
     }
+}
 
-    if (isset($files[$filetype])) {
-        execute_sql(
-            "UPDATE {artefact_file_files} SET size = ?, fileid = ?, filetype = ? WHERE artefact = ?",
-            array($files[$filetype]->size, $files[$filetype]->fileid, $filetype, $r->artefact)
-        );
-    }
-    else {
-        $dir = get_config('dataroot') . 'artefact/file/originals/' . ($r->fileid % 256);
-        check_dir_exists($dir);
-        file_put_contents($dir . '/' . $r->fileid, $samples[$filetype]);
-        $r->filetype = $filetype;
-        $r->size = filesize($dir . '/' . $r->fileid);
-        execute_sql(
-            "UPDATE {artefact_file_files} SET size = ?, filetype = ? WHERE artefact = ?",
-            array($r->size, $filetype, $r->artefact)
-        );
-        $files[$filetype] = $r;
-    }
+safe_require('artefact', 'file');
+
+$files = array();
+$ids = array();
+
+foreach ($samples as $k => $v) {
+    $n = 'a.' . get_random_key();
+    $fn = "/tmp/$n";
+    file_put_contents($fn, $v);
+    $d = (object) array('title' => $n, 'owner' => $USER->get('id'), 'filetype' => $k);
+    $id = ArtefactTypeFile::save_file($fn, $d, $USER, true);
+    $ids[$id] = $id;
+    $files[$k] = artefact_instance_from_id($id);
+}
+
+$records = get_records_sql_array("
+    SELECT f.*, a.artefacttype
+    FROM {artefact_file_files} f JOIN {artefact} a ON f.artefact = a.id
+    WHERE a.artefacttype != 'profileicon' AND NOT a.id IN (" . join(',', $ids) . ')',
+    null
+);
+
+foreach ($samples as $k => $v) {
+    execute_sql("
+        UPDATE {artefact_file_files} SET size = ?, fileid = ? WHERE filetype = ?",
+        array($files[$k]->get('size'), $files[$k]->get('fileid'), $k)
+    );
 }
 
 db_commit();
