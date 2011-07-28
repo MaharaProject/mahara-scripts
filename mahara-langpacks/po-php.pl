@@ -34,11 +34,21 @@ foreach my $po (@$strings) {
     next if ( ! defined $reference );
     if ($reference =~ m{^(\S*lang/)\S+\.utf8(/\S+)\.html$}) {
         my $filename = $1 . $lang . $2 . '.html';
-        $htmlfiles{$filename} = $po->dequote($content);
+        # $content =~ $po->dequote($content);
+        # dequote won't do multiline strings
+        $content =~ s{^"(.*)"$}{$1}s;
+        $content =~ s{\\"}{"}gs;
+        $htmlfiles{$filename} = $content;
     }
     elsif ($reference =~ m{^(\S*lang/)\S+\.utf8(/\S+)\.php\s+(\S+)$}) {
         my $key = $3;
         my $filename = $1 . $lang . $2 . '.php';
+        # Output with single quotes or variables get interpolated
+        if ( $content =~ m{^".*"$}s ) {
+            $content =~ s{'}{\\'}gs;
+            $content =~ s{^"(.*)"$}{'$1'}s;
+            $content =~ s{\\"}{"}gs;
+        }
         $phpfiles{$filename}->{$key} = $content;
     }
 }
