@@ -1,3 +1,9 @@
+mahara-scripts (1.8) unstable; urgency=low
+
+  * Fix quoting issues in helpfiles
+
+ -- Richard Mansfield <richardm@catalyst.net.nz>  Thu, 28 Jul 2011 18:44:50 +1200
+
 mahara-scripts (1.7) unstable; urgency=low
 
   * Suppress some pointless warnings
