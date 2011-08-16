@@ -65,8 +65,8 @@ case "$1" in
 <VirtualHost ${NVH}>
   ServerName ${WWWROOT}
   DocumentRoot /var/www/mahara-langpacks
-  CustomLog /var/log/apache2/mahara-langpacks/access.log combined
-  ErrorLog  /var/log/apache2/mahara-langpacks/error.log
+  CustomLog /var/log/apache2/custom-site-mahara-langpacks-access.log combined
+  ErrorLog  /var/log/apache2/custom-site-mahara-langpacks-error.log
 </VirtualHost>
 EOF
         a2ensite mahara-langpacks.conf
