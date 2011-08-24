@@ -17,5 +17,6 @@ ko lp:mahara-lang
 mi lp:mahara-lang
 nb lp:mahara-lang
 nl lp:mahara-lang
+ro lp:mahara-lang
 sl lp:mahara-lang
 zh_tw git://gitorious.org/mahara-lang/zh_tw.git
