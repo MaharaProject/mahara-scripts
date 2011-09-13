@@ -40,6 +40,7 @@ my $TARBALLS  = "${DATA}/tarballs";
 my $MAHARA    = "${DATA}/mahara";
 
 my $MAHARAREMOTE = 'git://gitorious.org/mahara/mahara.git';
+my $REPOLIST     = 'http://gitorious.org/mahara/mahara-scripts/blobs/raw/master/mahara-langpacks/language-repos.txt';
 
 mkpath $GITDIR;
 mkpath $DIRTY;
@@ -59,13 +60,12 @@ if ( -f "$DATA/language-repos.txt" ) {
     $repolist = <$repofh>;
 }
 else {
-    my $repolisturl = 'https://gitorious.org/mahara/mahara-scripts/blobs/raw/master/mahara-langpacks/language-repos.txt';
-    print STDERR "Retrieving repository list from $repolisturl\n";
+    print STDERR "Retrieving repository list from $REPOLIST\n";
 
     my $ua = LWP::UserAgent->new;
     $ua->timeout(10);
     $ua->env_proxy;
-    my $response = $ua->get($repolisturl);
+    my $response = $ua->get($REPOLIST);
     $repolist = $response->is_success ? $response->content : undef;
 }
 
