@@ -1,5 +1,5 @@
 ar git://gitorious.org/mahara-lang/ar.git
-ca git://gitorious.org/mahara-lang/ca.git
+ca lp:mahara-lang
 cs lp:mahara-lang
 da git://gitorious.org/mahara-lang/da.git
 de git://gitorious.org/mahara-lang/de.git
