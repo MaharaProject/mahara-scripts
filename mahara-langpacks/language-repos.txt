@@ -7,7 +7,7 @@ el lp:mahara-lang
 en_GB lp:mahara-lang
 en_us git://gitorious.org/mahara-lang/en_us.git
 es lp:mahara-lang
-eu git://gitorious.org/mahara-lang/eu.git
+eu lp:mahara-lang
 fi git://gitorious.org/mahara-lang/fi.git
 fr lp:mahara-lang
 he lp:mahara-lang
