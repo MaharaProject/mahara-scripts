@@ -17,6 +17,7 @@ ko lp:mahara-lang
 mi lp:mahara-lang
 nb lp:mahara-lang
 nl lp:mahara-lang
+pt_BR lp:mahara-lang
 ro lp:mahara-lang
 ru lp:mahara-lang
 sl lp:mahara-lang
