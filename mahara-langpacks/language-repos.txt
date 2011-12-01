@@ -1,7 +1,7 @@
 ar git://gitorious.org/mahara-lang/ar.git
 ca lp:mahara-lang
 cs git://gitorious.org/mahara-lang/cs.git
-da git://gitorious.org/mahara-lang/da.git
+da lp:mahara-lang
 de git://gitorious.org/mahara-lang/de.git
 el lp:mahara-lang
 en_GB lp:mahara-lang
