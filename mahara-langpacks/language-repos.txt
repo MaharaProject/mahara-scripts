@@ -21,4 +21,5 @@ pt_BR lp:mahara-lang
 ro lp:mahara-lang
 ru lp:mahara-lang
 sl lp:mahara-lang
+sv lp:mahara-lang
 zh_TW lp:mahara-lang
