@@ -39,6 +39,10 @@ define('L_STRINGVALUE', 6);
 define('L_HEREDOCSTRING', 7);
 define('L_HEREDOCEND', 8);
 define('L_SEMI', 9);
+define('L_STARTPLURAL', 10);
+define('L_NEXTPLURAL', 11);
+define('L_PLURALKEY', 12);
+define('L_PLURALDOUBLEARROW', 13);
 
 // Reading default en.utf8 langpack files fails unless INTERNAL is defined
 define('INTERNAL', 1);
@@ -59,6 +63,7 @@ function phptopo($en_strings, $fileid, $in, $pot) {
         elseif (($state == L_STRING || $state == L_START) && $t[0] == T_VARIABLE && $t[1] == '$string') {
             $keys = array();
             $values = array();
+            $plurals = array();
             $state = L_LBRACKET;
         }
         elseif ($state == L_LBRACKET && $t == '[') {
@@ -85,6 +90,36 @@ function phptopo($en_strings, $fileid, $in, $pot) {
             unset($heredoc);
             $state = L_HEREDOCSTRING;
         }
+        elseif ($state == L_STRINGVALUE && $t[0] == T_ARRAY) {
+            $state = L_STARTPLURAL;
+        }
+        elseif ($state == L_STARTPLURAL && $t[0] == '(') {
+            $pluralindex = null;
+            $state = L_PLURALKEY;
+        }
+        elseif ($state == L_PLURALKEY && $t[0] == T_LNUMBER) {
+            $pluralindex = $t[1];
+            $state = L_PLURALDOUBLEARROW;
+        }
+        elseif ($state == L_PLURALKEY && $t[0] == T_CONSTANT_ENCAPSED_STRING) {
+            if (!is_null($pluralindex)) {
+                $plurals[$pluralindex] = $t[1];
+            }
+            else {
+                $plurals[] = $t[1];
+            }
+            $state = L_NEXTPLURAL;
+        }
+        elseif ($state == L_PLURALDOUBLEARROW && $t[0] == T_DOUBLE_ARROW) {
+            $state = L_PLURALKEY;
+        }
+        elseif ($state == L_NEXTPLURAL && $t[0] == ',') {
+            $pluralindex = null;
+            $state = L_PLURALKEY;
+        }
+        elseif ($state == L_NEXTPLURAL && $t[0] == ')' || $state == L_PLURALKEY && $t[0] == ')') {
+            $state = L_SEMI;
+        }
         elseif ($state == L_HEREDOCSTRING && $t[0] == T_ENCAPSED_AND_WHITESPACE) {
             $heredoc = $t[1];
             $state = L_HEREDOCEND;
@@ -96,16 +131,69 @@ function phptopo($en_strings, $fileid, $in, $pot) {
             $state = L_STRINGVALUE;
         }
         elseif ($state == L_SEMI && $t == ';') {
+            if (isset($heredoc)) {
+                $hdstring = $heredoc;
+                unset($heredoc);
+            }
+            else {
+                $hdstring = null;
+            }
+
             foreach ($keys as $key) {
                 eval('$k = ' . $key . ';');
-                if (isset($en_strings[$k]) && strlen($en_strings[$k]) > 0) {
-                    $po .= "\n\n#: $fileid $k";
-                    $po .= "\nmsgctxt \"$fileid $k\"";
+
+                if (!isset($en_strings[$k])) {
+                    // The file is translating a string we don't care about
+                    continue;
+                }
+
+                if (is_string($en_strings[$k]) && strlen($en_strings[$k]) < 1) {
+                    // An empty string doesn't need translation
+                    continue;
+                }
+
+                if (is_array($en_strings[$k])) {
+                    // Plural forms: English should always have two
+                    if (count($en_strings[$k]) != 2) {
+                        continue;
+                    }
+                    if (!isset($en_strings[$k][0]) || !isset($en_strings[$k][1])) {
+                        continue;
+                    }
+                    // Plurals must be translated as plurals
+                    if (empty($plurals)) {
+                        continue;
+                    }
+                }
+
+                $po .= "\n\n#: $fileid $k";
+                $po .= "\nmsgctxt \"$fileid $k\"";
+
+                if (is_array($en_strings[$k])) {
+                    $po .= "\nmsgid \"" . addcslashes($en_strings[$k][0], "\\\"\r\n") . '"';
+                    $po .= "\nmsgid_plural \"" . addcslashes($en_strings[$k][1], "\\\"\r\n") . '"';
+                    if ($pot) {
+                        $po .= "\nmsgstr[0] \"\"";
+                        $po .= "\nmsgstr[1] \"\"";
+                    }
+                    else {
+                        foreach ($plurals as $pindex => $qstring) {
+                            $po .= "\nmsgstr[$pindex] \"";
+                            eval('$s = ' . $qstring . ';');
+                            $po .= addcslashes($s, "\\\"\r\n");
+                            $po .= '"';
+                        }
+                    }
+                }
+                else {
                     $po .= "\nmsgid \"" . addcslashes($en_strings[$k], "\\\"\r\n") . '"';
-                    $po .= "\nmsgstr \"";
-                    if (!$pot) {
-                        if (isset($heredoc)) {
-                            $po .= addcslashes($heredoc, "\\\"\r\n");
+                    if ($pot) {
+                        $po .= "\nmsgstr \"\"";
+                    }
+                    else {
+                        $po .= "\nmsgstr \"";
+                        if (!is_null($hdstring)) {
+                            $po .= addcslashes($hdstring, "\\\"\r\n");
                         }
                         else {
                             foreach ($values as $qstring) {
@@ -113,13 +201,10 @@ function phptopo($en_strings, $fileid, $in, $pot) {
                                 $po .= addcslashes($s, "\\\"\r\n");
                             }
                         }
+                        $po .= '"';
                     }
-                    $po .= '"';
-                    unset($en_strings[$k]); // Avoid duplicates
                 }
-                if (isset($heredoc)) {
-                    unset($heredoc);
-                }
+                unset($en_strings[$k]); // Avoid duplicates
             }
             $state = L_STRING;
         }

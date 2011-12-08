@@ -13,6 +13,7 @@
 use File::Path qw(mkpath);
 use File::Basename qw(fileparse);
 use Locale::PO;
+use FindBin;
 
 my ($inputfile, $outputdir, $lang) = @ARGV;
 
@@ -25,13 +26,42 @@ my $strings = Locale::PO->load_file_asarray($inputfile);
 my %htmlfiles = ();
 my %phpfiles = ();
 
+my $plural = undef;
+
 foreach my $po (@$strings) {
     my $content = $po->msgstr();
-    next if ( ! defined $content );
-    $content =~ s{\\n}{\n}g;
-    next if ( $content eq '' || $content eq '""' );
+    my $content_n = $po->msgstr_n();
+    next if ( ! defined $content  && ! defined $content_n );
+
+    if ( defined $content ) {
+        # A normal, non-pluralised translation
+        $content =~ s{\\n}{\n}g;
+        next if ( $content eq '' || $content eq '""' );
+    }
+    if ( defined $content_n ) {
+        # A translation with multiple plural forms
+        my $anything = 0;
+        foreach my $k ( keys %$content_n ) {
+            $content_n->{$k} =~ s{\\n}{\n}g;
+            $anything ||= ($content_n->{$k} ne '' && $content_n->{$k} ne '""');
+        }
+        next if ! $anything;
+    }
+
     my $reference = $po->reference();
-    next if ( ! defined $reference );
+
+    if ( ! defined $reference ) {
+        # Look for "Plural-Forms:" po header
+        if ( ! defined $plural ) {
+            my $msgid = $po->msgid();
+            next if ( defined $msgid && $msgid ne '""' && $msgid ne '' );
+            if ( $content =~ m{\nPlural-Forms:\s*nplurals\s*=\s*\d+\s*;\s*plural\s*=\s*(.+?)[\s;]*\n} ) {
+                $plural = $1;
+            }
+        }
+        next;
+    }
+
     if ($reference =~ m{^(\S*lang/)\S+\.utf8(/\S+)\.html$}) {
         my $filename = $1 . $lang . $2 . '.html';
         # $content =~ $po->dequote($content);
@@ -43,13 +73,26 @@ foreach my $po (@$strings) {
     elsif ($reference =~ m{^(\S*lang/)\S+\.utf8(/\S+)\.php\s+(\S+)$}) {
         my $key = $3;
         my $filename = $1 . $lang . $2 . '.php';
-        # Output with single quotes or variables get interpolated
-        if ( $content =~ m{^".*"$}s ) {
-            $content =~ s{'}{\\'}gs;
-            $content =~ s{^"(.*)"$}{'$1'}s;
-            $content =~ s{\\"}{"}gs;
+
+        # Some things in langconfig.php are fairly meta, and probably
+        # shouldn't form part of the translation.  For now, just
+        # remove pluralrule & pluralfunction - we'll overwrite them
+        # based on the Plural-Forms: header, or the hardcoded list.
+        if ($2 eq 'langconfig' && ($key eq 'pluralrule' || $key eq 'pluralfunction')) {
+            next;
         }
-        $phpfiles{$filename}->{$key} = $content;
+
+        # Normal non-plural string.
+        if ( defined $content ) {
+            $phpfiles{$filename}->{$key}->{msgstr} = fixquotes($content);
+            next;
+        }
+
+        # Plural forms (in $content_n)
+        $phpfiles{$filename}->{$key}->{msgstr_n} = {};
+        foreach my $k ( keys %$content_n ) {
+            $phpfiles{$filename}->{$key}->{msgstr_n}->{$k} = fixquotes($content_n->{$k});
+        }
     }
 }
 
@@ -69,9 +112,56 @@ foreach my $phpfile (keys %phpfiles) {
     open(my $fh, '>', "$dir/$filename");
     print $fh "<?php\n\ndefined('INTERNAL') || die();\n\n";
     foreach my $key (sort keys %{$phpfiles{$phpfile}}) {
-        print $fh "\$string['$key'] = " . $phpfiles{$phpfile}->{$key} . ";\n";
+        if ( $phpfiles{$phpfile}->{$key}->{msgstr} ) {
+            print $fh "\$string['$key'] = " . $phpfiles{$phpfile}->{$key}->{msgstr} . ";\n";
+        }
+        elsif ( $phpfiles{$phpfile}->{$key}->{msgstr_n} ) {
+            print $fh "\$string['$key'] = array(\n";
+            foreach my $k ( sort keys %{$phpfiles{$phpfile}->{$key}->{msgstr_n}} ) {
+                print $fh "    $k => $phpfiles{$phpfile}->{$key}->{msgstr_n}->{$k},\n";
+            }
+            print $fh ");\n";
+        }
     }
     close $fh;
 }
 
+# Write plural forms into langconfig.php
+my $langshort = $lang;
+$langshort =~ s/^([a-zA-Z_]+)\.utf8/$1/;
 
+if ( ! defined $plural ) {
+    # If there was no "Plural-Forms:" po header, read plural forms
+    # rule from hardcoded list in pluralforms.pl
+    open (my $fh, '<', "perl $FindBin::Bin/pluralforms.pl $langshort");
+    $plural = <$fh>;
+    close $fh;
+}
+
+if ( defined $plural && $plural =~ m/\S+/ ) {
+    open(my $fh, '>>', "$outputdir/lang/$lang/langconfig.php");
+    $plural =~ s{[']+}{}g;
+    my $pluralphp = $plural;
+    $pluralphp =~ s{n}{\$n}g;
+    print $fh <<EOF;
+
+// Plural forms, added by language pack generator
+\$string['pluralrule'] = '$plural';
+\$string['pluralfunction'] = 'plural_${langshort}_utf8';
+function plural_${langshort}_utf8(\$n) {
+    return $pluralphp;
+}
+EOF
+    close $fh;
+}
+
+sub fixquotes {
+    my $content = shift;
+    # Output with single quotes or variables get interpolated
+    if ( $content =~ m{^".*"$}s ) {
+        $content =~ s{'}{\\'}gs;
+        $content =~ s{^"(.*)"$}{'$1'}s;
+        $content =~ s{\\"}{"}gs;
+    }
+    return $content;
+}
