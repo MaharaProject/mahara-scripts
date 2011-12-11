@@ -27,7 +27,7 @@ foreach my $c qw(DATA DOCROOT) {
 my $DATA      = $ENV{DATA};
 my $DOCROOT   = $ENV{DOCROOT};
 
-my $CLEANCMD  = "/usr/bin/php $FindBin::Bin/langpack.php";
+my $CLEANCMD  = "/usr/bin/php $FindBin::Bin/clean-php.php";
 my $SYNTAXCMD = "/usr/bin/php -l";
 my $UTF8CMD   = "/usr/bin/perl $FindBin::Bin/check-utf8.pl";
 my $POCMD     = "/usr/bin/perl $FindBin::Bin/po-php.pl";
