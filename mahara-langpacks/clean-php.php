@@ -31,6 +31,10 @@ define('L_STRINGVALUE', 6);
 define('L_HEREDOCSTRING', 7);
 define('L_HEREDOCEND', 8);
 define('L_SEMI', 9);
+define('L_STARTPLURAL', 10);
+define('L_NEXTPLURAL', 11);
+define('L_PLURALKEY', 12);
+define('L_PLURALDOUBLEARROW', 13);
 
 function clean_lang_file($in, $out) {
     $rawtokens = token_get_all(file_get_contents($in));
@@ -55,6 +59,7 @@ function clean_lang_file($in, $out) {
         elseif (($state == L_STRING || $state == L_START) && $t[0] == T_VARIABLE && $t[1] == '$string') {
             $keys = array();
             $values = array();
+            $plurals = array();
             $state = L_LBRACKET;
         }
         elseif ($state == L_STRING && $t[0] == T_COMMENT) {
@@ -88,6 +93,36 @@ function clean_lang_file($in, $out) {
             $heredoc = $t[1];
             $state = L_HEREDOCEND;
         }
+        elseif ($state == L_STRINGVALUE && $t[0] == T_ARRAY) {
+            $state = L_STARTPLURAL;
+        }
+        elseif ($state == L_STARTPLURAL && $t[0] == '(') {
+            $pluralindex = null;
+            $state = L_PLURALKEY;
+        }
+        elseif ($state == L_PLURALKEY && $t[0] == T_LNUMBER) {
+            $pluralindex = $t[1];
+            $state = L_PLURALDOUBLEARROW;
+        }
+        elseif ($state == L_PLURALKEY && $t[0] == T_CONSTANT_ENCAPSED_STRING) {
+            if (!is_null($pluralindex)) {
+                $plurals[$pluralindex] = $t[1];
+            }
+            else {
+                $plurals[] = $t[1];
+            }
+            $state = L_NEXTPLURAL;
+        }
+        elseif ($state == L_PLURALDOUBLEARROW && $t[0] == T_DOUBLE_ARROW) {
+            $state = L_PLURALKEY;
+        }
+        elseif ($state == L_NEXTPLURAL && $t[0] == ',') {
+            $pluralindex = null;
+            $state = L_PLURALKEY;
+        }
+        elseif ($state == L_NEXTPLURAL && $t[0] == ')' || $state == L_PLURALKEY && $t[0] == ')') {
+            $state = L_SEMI;
+        }
         elseif ($state == L_HEREDOCEND && $t[0] == T_END_HEREDOC) {
             $state = L_SEMI;
         }
@@ -101,6 +136,13 @@ function clean_lang_file($in, $out) {
             if (isset($heredoc)) {
                 $new .= "<<<EOF\n" . $heredoc . "\nEOF;";
                 unset($heredoc);
+            }
+            else if (!empty($plurals)) {
+                $new .= "array(";
+                foreach ($plurals as $k => $v) {
+                    $new .= "\n    $k => $v,";
+                }
+                $new .= "\n);";
             }
             else {
                 $new .= join("\n    . ", $values) . ";";
