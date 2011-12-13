@@ -119,11 +119,34 @@ for branch in ${branches} ; do
                 # Update copy of template in webroot
                 tar zcf ${DOCROOT}/pot/${branch}.tar.gz mahara/mahara.pot
 
-                # Push template to lp:mahara-lang
+                # Update template
                 bzr add mahara/mahara.pot
                 bzr commit -m "Update template to ${remotecommit}"
-                bzr push lp:~mahara-lang/mahara-lang/${branch}
 
+                # Update all the .po files from the export repo to avoid unnecessary invalidation
+                # of existing translations
+                exportbranch=${branch}-export
+                if [ ! -d ${BZR}/${exportbranch} ]; then
+                    bzr branch lp:~mahara-lang/mahara-lang/${exportbranch} ${BZR}/${exportbranch}
+                else
+                    cd ${BZR}/${exportbranch}
+                    bzr pull
+                fi
+
+                for po in `ls ${BZR}/${exportbranch}/mahara/*.po`; do
+                    pobase=${po##*/}
+                    /usr/bin/perl ${SCRIPTS}/update-po-from-pot.pl $po mahara/mahara.pot mahara/$pobase
+                done
+
+                podiffs=`bzr diff mahara`
+
+                if [ ! -z "$podiffs" ] ; then
+                    bzr add mahara
+                    bzr commit -m "Update translations to ${remotecommit}"
+                fi
+
+                # Push everything to lp:mahara-lang
+                bzr push lp:~mahara-lang/mahara-lang/${branch}
             fi
 
             cd ${GITDIR}
