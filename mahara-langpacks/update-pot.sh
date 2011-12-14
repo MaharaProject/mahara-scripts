@@ -112,10 +112,12 @@ for branch in ${branches} ; do
         if [ -f ${outputfile} ]; then
             cd ${BZR}/${branch}
 
-            diffs=`bzr diff mahara/mahara.pot`
+            diffs=`bzr diff mahara/mahara.pot | grep "[+-]msg"`
 
-            if [ ! -z "${diffs}" ]; then
+            if [ -z "${diffs}" ]; then
+                bzr revert
 
+            else
                 # Update copy of template in webroot
                 tar zcf ${DOCROOT}/pot/${branch}.tar.gz mahara/mahara.pot
 
@@ -135,17 +137,32 @@ for branch in ${branches} ; do
                         bzr pull
                     fi
 
-                    for po in `ls ${BZR}/${exportbranch}/mahara/*.po`; do
+                    cd ${BZR}/${branch}
+
+                    # for po in `ls ${BZR}/${exportbranch}/mahara/*.po`; do
+                    for po in `ls ${BZR}/${exportbranch}/mahara/fr.po`; do
                         pobase=${po##*/}
                         /usr/bin/perl ${SCRIPTS}/update-po-from-pot.pl $po mahara/mahara.pot mahara/$pobase
+
+                        status=`bzr status -S mahara/$pobase | grep ?`
+                        if [ ! -z "$status" ]; then
+                            # New file
+                            bzr add mahara/$pobase
+                        else
+                            podiffs=`bzr diff mahara/${pobase} | grep "[+-]msg"`
+                            if [ -z "$podiffs" ] ; then
+                                # Nothing worth committing
+                                bzr revert mahara/$pobase
+                            fi
+                        fi
                     done
 
                     podiffs=`bzr diff mahara`
-
                     if [ ! -z "$podiffs" ] ; then
                         bzr add mahara
                         bzr commit -m "Update translations to ${remotecommit}"
                     fi
+
                 fi
 
                 # Push everything to lp:mahara-lang
