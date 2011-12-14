@@ -123,26 +123,29 @@ for branch in ${branches} ; do
                 bzr add mahara/mahara.pot
                 bzr commit -m "Update template to ${remotecommit}"
 
-                # Update all the .po files from the export repo to avoid unnecessary invalidation
-                # of existing translations
-                exportbranch=${branch}-export
-                if [ ! -d ${BZR}/${exportbranch} ]; then
-                    bzr branch lp:~mahara-lang/mahara-lang/${exportbranch} ${BZR}/${exportbranch}
-                else
-                    cd ${BZR}/${exportbranch}
-                    bzr pull
-                fi
+                if [ $branch = 'master' ] ; then
+                    # Update all the .po files from the export repo to avoid unnecessary invalidation
+                    # of existing translations
 
-                for po in `ls ${BZR}/${exportbranch}/mahara/*.po`; do
-                    pobase=${po##*/}
-                    /usr/bin/perl ${SCRIPTS}/update-po-from-pot.pl $po mahara/mahara.pot mahara/$pobase
-                done
+                    exportbranch=${branch}-export
+                    if [ ! -d ${BZR}/${exportbranch} ]; then
+                        bzr branch lp:~mahara-lang/mahara-lang/${exportbranch} ${BZR}/${exportbranch}
+                    else
+                        cd ${BZR}/${exportbranch}
+                        bzr pull
+                    fi
 
-                podiffs=`bzr diff mahara`
+                    for po in `ls ${BZR}/${exportbranch}/mahara/*.po`; do
+                        pobase=${po##*/}
+                        /usr/bin/perl ${SCRIPTS}/update-po-from-pot.pl $po mahara/mahara.pot mahara/$pobase
+                    done
 
-                if [ ! -z "$podiffs" ] ; then
-                    bzr add mahara
-                    bzr commit -m "Update translations to ${remotecommit}"
+                    podiffs=`bzr diff mahara`
+
+                    if [ ! -z "$podiffs" ] ; then
+                        bzr add mahara
+                        bzr commit -m "Update translations to ${remotecommit}"
+                    fi
                 fi
 
                 # Push everything to lp:mahara-lang
