@@ -153,15 +153,32 @@ echo -e "\nTag new version bump commit as '$RELEASETAG'"
 git tag -s ${RELEASETAG} -m "$RELEASE release"
 
 
+# Update the .gitattributes to ignore tests directories
+# First get the location for all phpunit directories
+phpunitdirs=`find ./ -type d -name 'phpunit' | grep 'tests/phpunit' | sed "s_./__"`
+
+for dir in $phpunitdirs
+do
+  parentdir=`dirname "$dir"`
+  # Determine whether the parent directory contains anything other than
+  # phpunit. If not, ignore the whole parent directory.
+  find "$parentdir" -maxdepth 1 -mindepth 1 | grep -v 'tests/phpunit$' > /dev/null
+  if [ $? -eq 1 ]
+  then
+    echo "$parentdir export-ignore" >> .gitattributes
+  else
+    echo "$dir export-ignore" >> .gitattributes
+  fi
+done
 
 # Create tarballs
 
 echo "Creating mahara-${RELEASE}.tar.gz"
-git archive --format=tar --prefix=mahara-${VERSION}/ ${RELEASETAG} | gzip -9 > ${CURRENTDIR}/mahara-${RELEASE}.tar.gz
+git archive --worktree-attributes --format=tar --prefix=mahara-${VERSION}/ ${RELEASETAG} | gzip -9 > ${CURRENTDIR}/mahara-${RELEASE}.tar.gz
 echo "Creating mahara-${RELEASE}.tar.bz2"
-git archive --format=tar --prefix=mahara-${VERSION}/ ${RELEASETAG} | bzip2 -9 > ${CURRENTDIR}/mahara-${RELEASE}.tar.bz2
+git archive --worktree-attributes --format=tar --prefix=mahara-${VERSION}/ ${RELEASETAG} | bzip2 -9 > ${CURRENTDIR}/mahara-${RELEASE}.tar.bz2
 echo "Creating mahara-${RELEASE}.zip"
-git archive --format=zip --prefix=mahara-${VERSION}/ -9 ${RELEASETAG} > ${CURRENTDIR}/mahara-${RELEASE}.zip
+git archive --worktree-attributes --format=zip --prefix=mahara-${VERSION}/ -9 ${RELEASETAG} > ${CURRENTDIR}/mahara-${RELEASE}.zip
 
 
 
