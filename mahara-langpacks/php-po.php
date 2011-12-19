@@ -166,6 +166,11 @@ function phptopo($en_strings, $fileid, $in, $pot) {
                     }
                 }
 
+                // Keys which are automatically created and should not be passed on to translators
+                if ($pot && ($k == 'pluralrule' || $k == 'pluralfunction')) {
+                    continue;
+                }
+
                 $po .= "\n\n#: $fileid $k";
                 $po .= "\nmsgctxt \"$fileid $k\"";
 
