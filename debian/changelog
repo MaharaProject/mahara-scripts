@@ -1,3 +1,12 @@
+mahara-scripts (1.9) unstable; urgency=low
+
+  * Change location of apache logs
+  * Change gitorious url to http
+  * Add plural forms support
+  * Push fr.po file (with updated msgids) to launchpad along with mahara.pot
+
+ -- Richard Mansfield <richardm@catalyst.net.nz>  Fri, 16 Dec 2011 10:44:51 +1300
+
 mahara-scripts (1.8) unstable; urgency=low
 
   * Fix quoting issues in helpfiles
