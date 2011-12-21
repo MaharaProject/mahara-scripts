@@ -1,3 +1,10 @@
+mahara-scripts (1.10) unstable; urgency=low
+
+  * Don't output pluralrule, etc. strings to .pot files
+  * Remove hack to silence old version of Locale::PO which has been upgraded
+
+ -- Richard Mansfield <richardm@catalyst.net.nz>  Thu, 22 Dec 2011 09:47:25 +1300
+
 mahara-scripts (1.9) unstable; urgency=low
 
   * Change location of apache logs
