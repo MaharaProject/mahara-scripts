@@ -11,6 +11,7 @@
 # po-po.pl /path/to/po/file/fr.po /path/to/pot/file/mahara.pot /path/to/output/files/fr.po
 
 use Locale::PO;
+use Data::Dumper;
 
 my ($po, $pot, $outputfile) = @ARGV;
 
@@ -41,23 +42,32 @@ foreach my $entry (@$enstrings) {
 # that important updates to English strings will have changed the
 # reference.
 my $trstrings = Locale::PO->load_file_asarray($po);
-my %trstrings = ();
+my $updated = [];
 
 foreach my $entry (@$trstrings) {
     my $reference = $entry->reference();
 
-    next if ( ! defined $reference );
+    # Somewhere along the line, imports fail when launchpad decides to
+    # insert a line break inside msgstr and it falls between e.g. \
+    # and ' in a commented-out (obsolete) translation, so just skip
+    # all the obsolete translations
+    next if ( $entry->obsolete() );
 
-    $reference = $entry->dequote($reference);
+    if ( defined $reference ) {
 
-    if ( length $reference && defined $enstrings{$reference} ) {
-        $pot_msgid = $entry->dequote($enstrings{$reference}->msgid);
-        $po_msgid = $entry->dequote($entry->msgid);
+        $reference = $entry->dequote($reference);
 
-        if ( $po_msgid && $pot_msgid && $po_msgid ne $pot_msgid ) {
-            $entry->msgid($pot_msgid);
+        if ( length $reference && defined $enstrings{$reference} ) {
+            $pot_msgid = $entry->dequote($enstrings{$reference}->msgid);
+            $po_msgid = $entry->dequote($entry->msgid);
+
+            if ( $po_msgid && $pot_msgid && $po_msgid ne $pot_msgid ) {
+                $entry->msgid($pot_msgid);
+            }
         }
     }
+
+    push @$updated, $entry;
 }
 
-Locale::PO->save_file_fromarray("$outputfile", $trstrings);
+Locale::PO->save_file_fromarray("$outputfile", $updated);
