@@ -1,3 +1,9 @@
+mahara-scripts (1.11) unstable; urgency=low
+
+  * Don't push obsolete translations to launchpad for import
+
+ -- Richard Mansfield <richardm@catalyst.net.nz>  Fri, 23 Dec 2011 13:58:40 +1300
+
 mahara-scripts (1.10) unstable; urgency=low
 
   * Don't output pluralrule, etc. strings to .pot files
