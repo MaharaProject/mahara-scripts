@@ -53,6 +53,29 @@ foreach my $entry (@$trstrings) {
     # all the obsolete translations
     next if ( $entry->obsolete() );
 
+    # Check whether the string is translated.  If not, we can leave it
+    # out of the file.
+    my $content = $entry->msgstr();
+    my $content_n = $entry->msgstr_n();
+
+    next if ( ! defined $content && ! defined $content_n );
+
+    if ( defined $content ) {
+        # Non-plural translation
+        $content =~ s{\\n}{\n}g;
+        next if ( $content eq '' || $content eq '""' );
+    }
+    if ( defined $content_n ) {
+        # Translation with plural forms.  If all forms are
+        # untranslated, we can leave this entry out of the file.
+        my $anything = 0;
+        foreach my $k ( keys %$content_n ) {
+            $content_n->{$k} =~ s{\\n}{\n}g;
+            $anything ||= ($content_n->{$k} ne '' && $content_n->{$k} ne '""');
+        }
+        next if ! $anything;
+    }
+
     if ( defined $reference ) {
 
         $reference = $entry->dequote($reference);
