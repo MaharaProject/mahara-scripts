@@ -139,8 +139,7 @@ for branch in ${branches} ; do
 
                     cd ${BZR}/${branch}
 
-                    # for po in `ls ${BZR}/${exportbranch}/mahara/*.po`; do
-                    for po in `ls ${BZR}/${exportbranch}/mahara/fr.po`; do
+                    for po in `ls ${BZR}/${exportbranch}/mahara/*.po`; do
                         pobase=${po##*/}
                         /usr/bin/perl ${SCRIPTS}/update-po-from-pot.pl $po mahara/mahara.pot mahara/$pobase
 
