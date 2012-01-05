@@ -67,6 +67,11 @@ else {
     $ua->env_proxy;
     my $response = $ua->get($REPOLIST);
     $repolist = $response->is_success ? $response->content : undef;
+
+    if ( ! defined $repolist ) {
+        print STDERR "Failed to get language list, exiting.\n";
+        exit;
+    }
 }
 
 my %langs = ();
@@ -80,7 +85,7 @@ if ( defined $repolist ) {
 
 my @langkeys = sort keys %langs;
 if ( scalar @langkeys < 1 ) {
-    @langkeys = qw(ar ca cs da de en_us es eu fi fr he it ja ko mi nl no_nb sl zh_tw);
+    @langkeys = qw(ar ca cs da de el en_GB en_us es eu fi fr he it ja ko mi nl nb ru sl zh_TW);
 }
 
 print STDERR "Languages: " . join(' ', @langkeys) . "\n";
