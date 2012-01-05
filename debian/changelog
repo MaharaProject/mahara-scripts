@@ -1,3 +1,10 @@
+mahara-scripts (1.12) unstable; urgency=low
+
+  * Ignore untranslated strings in launchpad .po updates
+  * Enable all languages in po updates (not just fr.po)
+
+ -- Richard Mansfield <richardm@catalyst.net.nz>  Thu, 05 Jan 2012 14:53:32 +1300
+
 mahara-scripts (1.11) unstable; urgency=low
 
   * Don't push obsolete translations to launchpad for import
