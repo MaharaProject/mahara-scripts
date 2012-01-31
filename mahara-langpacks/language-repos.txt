@@ -13,6 +13,7 @@ fr lp:mahara-lang
 he lp:mahara-lang
 it lp:mahara-lang
 ja lp:mahara-lang
+kn lp:mahara-lang
 ko lp:mahara-lang
 mi lp:mahara-lang
 nb lp:mahara-lang
