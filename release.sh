@@ -66,17 +66,13 @@ MICROB=`echo ${MICRO} | sed 's/[a-z]//g'`
 
 BRANCH=$2
 
-BUILDDIR="/tmp/mahara/tarballs"
+BUILDDIR=`mktemp -d /tmp/mahara.XXXXX`
 CURRENTDIR="`pwd`"
 SCRIPTDIR=$( readlink -f -- "${0%/*}" )
 
 if [ -z "${MAJOR}" ] || [ -z "${MINOR}" ]; then
     print_usage
     exit 1
-fi
-
-if [ -d ${BUILDDIR} ]; then
-    rm -rf ${BUILDDIR}
 fi
 
 mkdir -p ${BUILDDIR}/mahara
