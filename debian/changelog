@@ -1,3 +1,9 @@
+mahara-scripts (1.14) unstable; urgency=low
+
+  * Add fix for .po files that are failing to have msgids updated
+
+ -- Richard Mansfield <richardm@catalyst.net.nz>  Mon, 20 Feb 2012 16:01:52 +1300
+
 mahara-scripts (1.13) unstable; urgency=low
 
   * Fail if unable to get the language list from gitorious
