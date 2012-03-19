@@ -158,8 +158,8 @@ do
   parentdir=`dirname "$dir"`
   # Determine whether the parent directory contains anything other than
   # phpunit. If not, ignore the whole parent directory.
-  find "$parentdir" -maxdepth 1 -mindepth 1 | grep -v 'tests/phpunit$' > /dev/null
-  if [ $? -eq 1 ]
+  siblings=`find "$parentdir" -maxdepth 1 -mindepth 1 | wc -l`
+  if [ "$siblings" = "1" ]
   then
     echo "$parentdir export-ignore" >> .gitattributes
   else
