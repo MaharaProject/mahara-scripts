@@ -11,6 +11,7 @@ eu lp:mahara-lang
 fi git://gitorious.org/mahara-lang/fi.git
 fr lp:mahara-lang
 he lp:mahara-lang
+hi lp:mahara-lang
 hr lp:mahara-lang
 it lp:mahara-lang
 ja lp:mahara-lang

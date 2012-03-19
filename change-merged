@@ -1,8 +1,11 @@
 #!/usr/bin/python
 #
-# Gerrit-Launchpad Hook, inspired by https://github.com/hobbs/jirret
+# Gerrit Launchpad and CIA Hook, inspired by:
+#   https://github.com/hobbs/jirret
+#   http://cia.vc/clients/git/ciabot.bash
+#   http://cia.vc/clients/bzr/cia_bzr.py
 #
-# Copyright (C) 2011 Catalyst IT (http://www.catalyst.net.nz)
+# Copyright (C) 2011, 2012 Catalyst IT (http://www.catalyst.net.nz)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,12 +26,16 @@ import re
 import smtplib
 import subprocess
 import sys
+from xml.dom.minidom import Document
+import xmlrpclib
 
 FROM_ADDRESS = 'dev@mahara.org'
 TO_ADDRESS_SUFFIX = '@bugs.launchpad.net'
+CIA_PROJECT = 'Mahara'
+CIA_SERVER = 'http://cia.vc'
 BASE_DIR = '/home/gerrit/mahara_reviews'
 
-def email_tracker(change_url, project, branch, submitter, commit):
+def send_notifications(change_url, project, branch, submitter, commit):
     # Extract git log of all merged commits
     git_log = subprocess.Popen(['git', '--git-dir=' + BASE_DIR + '/git/' + project + '.git', 'log', '--no-merges', commit + '^1..' + commit], stdout=subprocess.PIPE).communicate()[0]
 
@@ -42,6 +49,8 @@ def email_tracker(change_url, project, branch, submitter, commit):
         if re.match('^\d+$', token) and (token not in bugs):
             bugs.append(token)
             send_bug_mail(token, change_url, project, commit, submitter, branch, git_log)
+
+    submit_to_cia(project, commit, branch, git_log)
 
 def send_bug_mail(bug_number, change_url, project, commit, submitter, branch, git_log):
 
@@ -63,6 +72,83 @@ Branch:    %s\n''' % (change_url, gitorious_url, submitter, branch)
     s.sendmail(FROM_ADDRESS, [to_address], msg.as_string())
     s.quit()
 
+def append_commit(commits, document, project, full_commit_id, author, log):
+    if not full_commit_id or not author:
+        return
+
+    revision = subprocess.Popen(['git', '--git-dir=' + BASE_DIR + '/git/' + project + '.git', 'rev-parse', '--short', full_commit_id], stdout=subprocess.PIPE).communicate()[0].strip()
+
+    gitorious_url = 'http://gitorious.org/mahara/%s/commit/%s' % (project, full_commit_id)
+    commit = document.createElement('commit')
+
+    commit_author = document.createElement('author')
+    commit_author.appendChild(document.createTextNode(author))
+    commit.appendChild(commit_author)
+
+    commit_revision = document.createElement('revision')
+    commit_revision.appendChild(document.createTextNode(revision))
+    commit.appendChild(commit_revision)
+
+    commit_log = document.createElement('log')
+    commit_log.appendChild(document.createTextNode(log))
+    commit.appendChild(commit_log)
+
+    commit_url = document.createElement('url')
+    commit_url.appendChild(document.createTextNode(gitorious_url))
+    commit.appendChild(commit_url)
+
+    commits.append(commit)
+
+def generate_commits(document, project, git_log):
+    commits = []
+    commit_id = author = log = None
+    for line in git_log.splitlines():
+        if line.startswith('commit'):
+            append_commit(commits, document, project, commit_id, author, log)
+            commit_id = line[7:]
+            author = log = None
+        elif line.startswith('Author:'):
+            full_author = line[8:]
+            author = re.search('^(.+) <[^>]+>$', full_author).group(1)
+        elif line.startswith('    ') and not log:
+            log = line[4:]
+
+    append_commit(commits, document, project, commit_id, author, log)
+    return commits
+
+def submit_to_cia(project, commit, branch, git_log):
+    doc = Document()
+    message = doc.createElement('message')
+    generator = doc.createElement('generator')
+    generator_name = doc.createElement('name')
+    generator_name.appendChild(doc.createTextNode('Mahara custom CIA script'))
+    generator_version = doc.createElement('version')
+    generator_version.appendChild(doc.createTextNode('1.0'))
+    generator_url = doc.createElement('url')
+    generator_url.appendChild(doc.createTextNode('http://gitorious.org/mahara/mahara-scripts/blobs/master/change-merged'))
+    generator.appendChild(generator_name)
+    generator.appendChild(generator_version)
+    generator.appendChild(generator_url)
+    message.appendChild(generator)
+
+    source = doc.createElement('source')
+    source_project = doc.createElement('project')
+    source_project.appendChild(doc.createTextNode(CIA_PROJECT))
+    source_branch = doc.createElement('branch')
+    source_branch.appendChild(doc.createTextNode(branch))
+    source.appendChild(source_project)
+    source.appendChild(source_branch)
+    message.appendChild(source)
+
+    body = doc.createElement('body')
+    message.appendChild(body)
+    doc.appendChild(message)
+
+    for commit in generate_commits(doc, project, git_log):
+        body.appendChild(commit)
+        xmlrpclib.ServerProxy(CIA_SERVER).hub.deliver(doc.toxml())
+        body.removeChild(commit)
+
 def main():
     # https://gerrit.googlecode.com/svn/documentation/2.1.6/config-hooks.html#change-merged
     gerrit_args = ['change=', 'change-url=', 'project=', 'branch=', 'submitter=', 'commit=']
@@ -82,7 +168,7 @@ def main():
             commit = argv
 
     if change_url and project and branch and submitter and commit:
-        email_tracker(change_url, project, branch, submitter, commit)
+        send_notifications(change_url, project, branch, submitter, commit)
     else:
         print 'Missing arguments'
 	return 1
