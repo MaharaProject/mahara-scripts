@@ -1,4 +1,4 @@
-ar git://gitorious.org/mahara-lang/ar.git
+ar lp:mahara-lang
 ca lp:mahara-lang
 cs git://gitorious.org/mahara-lang/cs.git
 da lp:mahara-lang
@@ -20,6 +20,7 @@ ko lp:mahara-lang
 mi lp:mahara-lang
 nb lp:mahara-lang
 nl lp:mahara-lang
+pt lp:mahara-lang
 # pt_BR lp:mahara-lang
 # ro lp:mahara-lang
 ru lp:mahara-lang
