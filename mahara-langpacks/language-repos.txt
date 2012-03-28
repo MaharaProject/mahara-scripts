@@ -8,10 +8,10 @@ en_GB lp:mahara-lang
 en_us git://gitorious.org/mahara-lang/en_us.git
 es lp:mahara-lang
 eu lp:mahara-lang
-fi git://gitorious.org/mahara-lang/fi.git
+fi lp:mahara-lang
 fr lp:mahara-lang
 he lp:mahara-lang
-# hi lp:mahara-lang
+hi lp:mahara-lang
 hr lp:mahara-lang
 it lp:mahara-lang
 ja lp:mahara-lang
@@ -21,7 +21,7 @@ mi lp:mahara-lang
 nb lp:mahara-lang
 nl lp:mahara-lang
 pt lp:mahara-lang
-# pt_BR lp:mahara-lang
+pt_BR lp:mahara-lang
 # ro lp:mahara-lang
 ru lp:mahara-lang
 sl lp:mahara-lang
