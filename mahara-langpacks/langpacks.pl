@@ -109,7 +109,7 @@ system "git fetch --quiet origin";
 
 # For launchpad, all languages are in a single branch, so update the lot
 ! -d $BZRDIR && system "bzr init-repo $BZRDIR";
-my @branches = qw(1.2_STABLE 1.3_STABLE 1.4_STABLE master);
+my @branches = qw(1.3_STABLE 1.4_STABLE 1.5_STABLE master);
 
 foreach my $branch (@branches) {
     if ( ! -d "$BZRDIR/$branch" ) {
@@ -143,14 +143,14 @@ foreach my $lang (@langkeys) {
 
     if ( $remote =~ m/^lp:mahara-lang/ ) {
         $repotype = 'launchpad';
-        @branches = qw(1.2_STABLE 1.3_STABLE 1.4_STABLE master);
+        @branches = qw(1.3_STABLE 1.4_STABLE 1.5_STABLE master);
     }
     elsif ( $remote =~ m{^git://gitorious\.org} ) {
         $repotype = 'gitorious';
         ! -d "$gitlangdir" && system "git clone --quiet $remote $gitlangdir";
         chdir $gitlangdir;
         system "git fetch --quiet";
-        my $remotebranchcmd = 'git branch -r | grep -v "HEAD" | grep "origin\/\(master\|1.2_STABLE\|1.3_STABLE\|1.4_STABLE\)$"';
+        my $remotebranchcmd = 'git branch -r | grep -v "HEAD" | grep "origin\/\(master\|1.3_STABLE\|1.4_STABLE\|1.5_STABLE\)$"';
         my $remotebranches = `$remotebranchcmd`;
         $remotebranches =~ s/\s+/ /;
         @branches = ();
