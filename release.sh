@@ -36,7 +36,7 @@ if [ ! -x /usr/bin/git ] ; then
 fi
 
 if [ ! -x /usr/bin/lp-project-upload ] ; then
-  echo "You need to install lp-project-upload: apt-get install ubuntu-dev-tools"
+  echo "You need to install lp-project-upload: apt-get install ubuntu-dev-tools (maverick or earlier) or lptools"
   exit 1
 fi
 
