@@ -88,6 +88,7 @@ git init
 git remote add -t ${BRANCH} mahara ${PUBLIC}
 git fetch mahara
 git checkout -b ${BRANCH} mahara/${BRANCH}
+git fetch -t
 
 # Apply patch files named on command line
 patch=3
