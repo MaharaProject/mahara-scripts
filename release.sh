@@ -75,6 +75,10 @@ if [ -z "${MAJOR}" ] || [ -z "${MINOR}" ]; then
     exit 1
 fi
 
+if [ ! -z "${MICRO}" ] && [ "${BRANCH}" != 'master' ]; then
+    echo "* Micro version is ${MICRO} and this is a stable branch. Stuff may be wrong. *"
+fi
+
 mkdir -p ${BUILDDIR}/mahara
 pushd ${BUILDDIR}/mahara
 
@@ -126,7 +130,7 @@ VERSIONFILE=htdocs/lib/version.php
 
 # If there's no 'micro' part of the version number, assume it's a stable release, and
 # bump version by 1.  If it's an unstable release, use 
-if [ -z "${MICRO}" ]; then
+if [ -z "${MICRO}" ] || [ "${BRANCH}" != 'master' ]; then
     OLDVERSION=$(perl -n -e 'print if s/^\$config->version = (\d{10}).*/$1/' < ${VERSIONFILE})
     NEWVERSION=$(( ${OLDVERSION} + 1 ))
 else
