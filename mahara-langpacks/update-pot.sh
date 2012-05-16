@@ -166,8 +166,12 @@ for branch in ${branches} ; do
 
                 fi
 
-                # Push everything to lp:mahara-lang
-                bzr push lp:~mahara-lang/mahara-lang/${branch}
+                # Push everything to lp:mahara-lang, if this is the prod instance.
+                if [ "${WWWROOT}" = 'http://langpacks.mahara.org' ]; then
+                    bzr push lp:~mahara-lang/mahara-lang/${branch}
+                else
+                    echo "Not pushing to lp:~mahara-lang/mahara-lang/${branch}"
+                fi
             fi
 
             cd ${GITDIR}
