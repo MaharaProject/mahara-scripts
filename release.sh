@@ -239,8 +239,9 @@ git remote add gerrit ${GERRIT}
 # Output commands to push to the remote repository and clean up
 
 CLEANUPSCRIPT=release-${RELEASE}-cleanup.sh
-echo > ${CURRENTDIR}/${CLEANUPSCRIPT}
+echo "#!/bin/sh" > ${CURRENTDIR}/${CLEANUPSCRIPT}
 
+echo "set -e" > ${CURRENTDIR}/${CLEANUPSCRIPT}
 
 echo "cd ${BUILDDIR}/mahara" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
 echo "git push gerrit ${BRANCH}:refs/heads/${BRANCH}" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
