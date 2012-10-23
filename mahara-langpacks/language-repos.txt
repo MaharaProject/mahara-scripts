@@ -10,6 +10,7 @@ es lp:mahara-lang
 eu lp:mahara-lang
 fi lp:mahara-lang
 fr lp:mahara-lang
+gl lp:mahara-lang
 he lp:mahara-lang
 hi lp:mahara-lang
 hr lp:mahara-lang
