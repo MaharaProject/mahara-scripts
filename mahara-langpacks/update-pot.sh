@@ -150,7 +150,7 @@ for branch in ${branches} ; do
                         else
                             # There are always a few changes in the po header, but we don't care about them, so just
                             # check if anything's changed after the "X-Generator:" or "X-Launchpad-Export-Date:" lines
-                            podiffs=`bzr diff mahara/${pobase} | awk '/^[+- ]"(X-Generator: Launchpad|X-Launchpad-Export-Date:)/ {p+=1;next}; p>1 {print}' | grep "^[+-]"`
+                            podiffs=`bzr diff mahara/${pobase} | awk '/(X-Generator: Launchpad|X-Launchpad-Export-Date:)/ {p+=1;next}; p>1 {print}' | grep "^[+-]"`
                             if [ -z "$podiffs" ] ; then
                                 # Nothing worth committing
                                 bzr revert mahara/$pobase
