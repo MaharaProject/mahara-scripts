@@ -150,7 +150,7 @@ foreach my $lang (@langkeys) {
         ! -d "$gitlangdir" && system "git clone --quiet $remote $gitlangdir";
         chdir $gitlangdir;
         system "git fetch --quiet";
-        my $remotebranchcmd = 'git branch -r | grep -v "HEAD" | grep "origin\/\(master\|1.3_STABLE\|1.4_STABLE\|1.5_STABLE|1.6_STABLE\)$"';
+        my $remotebranchcmd = 'git branch -r | grep -v "HEAD" | grep "origin\/\(master\|1.3_STABLE\|1.4_STABLE\|1.5_STABLE\|1.6_STABLE\)$"';
         my $remotebranches = `$remotebranchcmd`;
         $remotebranches =~ s/\s+/ /;
         @branches = ();
