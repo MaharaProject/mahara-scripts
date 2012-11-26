@@ -14,6 +14,7 @@ use File::Path qw(mkpath);
 use File::Basename qw(fileparse);
 use Locale::PO;
 use FindBin;
+use autodie;
 
 my ($inputfile, $outputdir, $lang) = @ARGV;
 
@@ -129,13 +130,15 @@ $langshort =~ s/^([a-zA-Z_]+)\.utf8/$1/;
 if ( ! defined $plural ) {
     # If there was no "Plural-Forms:" po header, read plural forms
     # rule from hardcoded list in pluralforms.pl
-    open (my $fh, '<', "perl $FindBin::Bin/pluralforms.pl $langshort");
+    open (my $fh, '-|', "perl $FindBin::Bin/pluralforms.pl $langshort");
     $plural = <$fh>;
     close $fh;
 }
 
 if ( defined $plural && $plural =~ m/\S+/ ) {
-    open(my $fh, '>>', "$outputdir/lang/$lang/langconfig.php");
+    my $dir = $outputdir . '/lang/' . $lang;
+    mkpath($dir);
+    open(my $fh, '>>', "$dir/langconfig.php");
     $plural =~ s{[']+}{}g;
     my $pluralphp = $plural;
     $pluralphp =~ s{n}{\$n}g;
