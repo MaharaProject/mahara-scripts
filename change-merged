@@ -54,7 +54,8 @@ def send_notifications(change_url, project, branch, submitter, commit):
             bugs.append(token)
             send_bug_mail(token, change_url, project, commit, submitter, branch, git_log)
 
-    submit_to_cia(project, commit, branch, git_log)
+    # cia.vc no longer exists; restore this when you've decided on an alternative
+    #submit_to_cia(project, commit, branch, git_log)
 
 def send_bug_mail(bug_number, change_url, project, commit, submitter, branch, git_log):
 
