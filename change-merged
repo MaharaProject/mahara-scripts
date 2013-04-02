@@ -38,6 +38,10 @@ BASE_DIR = '/home/gerrit/mahara_reviews'
 def send_notifications(change_url, project, branch, submitter, commit):
     # Extract git log of all merged commits
     git_log = subprocess.Popen(['git', '--git-dir=' + BASE_DIR + '/git/' + project + '.git', 'log', '--no-merges', commit + '^1..' + commit], stdout=subprocess.PIPE).communicate()[0]
+    # In launchpad's email api, leading whitespace followed by a keyword is how you send a command in your email.
+    # So, we need to remove the leading spaces from every line
+    git_log = re.sub('^[ ]+', '', git_log, 0, re.MULTILINE);
+
 
     # Find bug numbers referenced in the git log
     bug_regexp = '[Bb]ug:? *#?([0-9]+)'
