@@ -20,12 +20,13 @@ use FindBin;
 use File::Path qw(mkpath rmtree);
 use LWP::UserAgent;
 
-foreach my $c qw(DATA DOCROOT) {
+foreach my $c qw(DATA DOCROOT SCRIPTS) {
     exists $ENV{$c} or die ("\$ENV{$c} undefined");
 }
 
 my $DATA      = $ENV{DATA};
 my $DOCROOT   = $ENV{DOCROOT};
+my $SCRIPTS   = $ENV{SCRIPTS};
 
 my $CLEANCMD  = "/usr/bin/php $FindBin::Bin/clean-php.php";
 my $SYNTAXCMD = "/usr/bin/php -l";
@@ -53,9 +54,9 @@ print STDERR "Checking langpacks for updates: " . `date \"+%Y-%m-%d %H:%M:%S\"`;
 # there, try to get an up-to-date one out of the gitorious mahara-scripts repo
 # (allows updates to the repo list without having to redeploy the package).
 my $repolist;
-if ( -f "$DATA/language-repos.txt" ) {
-    print STDERR "Using repository list in $DATA/language-repos.txt\n";
-    open $repofh, '<', "$DATA/language-repos.txt" or die $!;
+if ( -f "$SCRIPTS/language-repos.txt" ) {
+    print STDERR "Using repository list in $SCRIPTS/language-repos.txt\n";
+    open $repofh, '<', "$SCRIPTS/language-repos.txt" or die $!;
     local $/ = undef;
     $repolist = <$repofh>;
 }
