@@ -37,5 +37,5 @@ fi
 [ ! -d ${CLEAN} ] && mkdir ${CLEAN}
 [ ! -d ${TARBALLS} ] && mkdir ${TARBALLS}
 
-env DATA=$DATA DOCROOT=$DOCROOT /usr/bin/perl ${SCRIPTS}/langpacks.pl
+env DATA=$DATA DOCROOT=$DOCROOT SCRIPTS=$SCRIPTS /usr/bin/perl ${SCRIPTS}/langpacks.pl
 
