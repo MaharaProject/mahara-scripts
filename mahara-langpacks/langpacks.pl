@@ -20,7 +20,7 @@ use FindBin;
 use File::Path qw(mkpath rmtree);
 use LWP::UserAgent;
 
-foreach my $c qw(DATA DOCROOT SCRIPTS) {
+foreach my $c (qw(DATA DOCROOT SCRIPTS)) {
     exists $ENV{$c} or die ("\$ENV{$c} undefined");
 }
 
