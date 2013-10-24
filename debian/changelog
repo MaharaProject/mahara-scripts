@@ -1,3 +1,9 @@
+mahara-scripts (1.16) precise; urgency=low
+
+  * Added 1.6 branch 
+
+ -- Craig Miskell <craig@catalyst.net.nz>  Tue, 19 Feb 2013 08:56:36 +1300
+
 mahara-scripts (1.15) unstable; urgency=low
 
   * Add 1.5 branch
