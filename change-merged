@@ -21,7 +21,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from email.mime.text import MIMEText
-from getopt import getopt
+import argparse
 import re
 import smtplib
 import subprocess
@@ -157,27 +157,15 @@ def submit_to_cia(project, commit, branch, git_log):
 
 def main():
     # https://gerrit.googlecode.com/svn/documentation/2.1.6/config-hooks.html#change-merged
-    gerrit_args = ['change=', 'change-url=', 'project=', 'branch=', 'submitter=', 'commit=']
-    args, unused = getopt(sys.argv[1:], '', gerrit_args)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--change', required=True)
+    parser.add_argument('--project', required=True)
+    parser.add_argument('--branch', require=True)
+    parser.add_argument('--submitter', required=True)
+    parser.add_argument('--commit', required=True)
+    args = parser.parse_known_args()
 
-    change_url = project = branch = submitter = commit = None
-    for argname, argv in args:
-        if argname == '--change-url':
-            change_url = argv
-        elif argname == '--project':
-            project = argv
-        elif argname == '--branch':
-            branch = argv
-        elif argname == '--submitter':
-            submitter = argv
-        elif argname == '--commit':
-            commit = argv
-
-    if change_url and project and branch and submitter and commit:
-        send_notifications(change_url, project, branch, submitter, commit)
-    else:
-        print 'Missing arguments'
-	return 1
+    send_notifications(args.change_url, args.project, args.branch, args.submitter, args.commit)
 
     return 0;
 

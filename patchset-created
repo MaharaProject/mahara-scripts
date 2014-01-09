@@ -21,7 +21,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from email.mime.text import MIMEText
-from getopt import getopt
+import argparse
 import re
 import smtplib
 import subprocess
@@ -72,47 +72,19 @@ def send_bug_mail(bug_number, change_url, project, commit, uploader, branch, git
 
 def main():
     # See https://git.eclipse.org/r/Documentation/config-hooks.html#_patchset_created
-    gerrit_args = ['change=', 'is-draft=', 'change-url=', 'project=', 'branch=', 'topic=', 'uploader=', 'commit=', 'patchset=']
-    args, unused = getopt(sys.argv[1:], '', gerrit_args)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--change_url', required=True)
+    parser.add_argument('--project', required=True)
+    parser.add_argument('--branch', required=True)
+    parser.add_argument('--uploader', required=True)
+    parser.add_argument('--commit', required=True)
+    parser.add_argument('--is-draft', required=True)
+    parser.add_argument('--patchset', required=True)
+    args = parser.parse_known_args()
 
-    change_url = project = branch = uploader = commit = None
-    for argname, argv in args:
-        if argname == '--change-url':
-            change_url = argv
-        elif argname == '--project':
-            project = argv
-        elif argname == '--branch':
-            branch = argv
-        elif argname == '--uploader':
-            uploader = argv
-        elif argname == '--commit':
-            commit = argv
-        elif argname == '--is-draft':
-            is_draft = argv
-        elif argname == '--patchset':
-            patchset = argv
-
-    if change_url and project and branch and uploader and commit and patchset and is_draft:
-        # Comment on Launchpad only on first patchset for each change, and no notification for drafts.
-        if is_draft != 'true' and patchset == '1':
-            send_notifications(change_url, project, branch, uploader, commit)
-    else:
-        print 'Missing arguments: '
-        if not change_url:
-            print 'change_url '
-        if not project:
-            print 'project '
-        if not branch:
-            print 'branch '
-        if not uploader:
-            print 'uploader '
-        if not commit:
-            print 'commit '
-        if not patchset:
-            print 'patchset '
-        if not is_draft:
-            print 'is_draft '
-    	return 1
+    # Comment on Launchpad only on first patchset for each change, and no notification for drafts.
+    if args.is_draft != 'true' and args.patchset == '1':
+        send_notifications(args.change_url, args.project, args.branch, args.uploader, args.commit)
 
     return 0;
 
