@@ -71,7 +71,9 @@ def send_bug_mail(bug_number, change_url, project, commit, uploader, branch, git
     s.quit()
 
 def main():
-    # See https://git.eclipse.org/r/Documentation/config-hooks.html#_patchset_created
+    # See https://reviews.mahara.org/Documentation/config-hooks.html
+    # This should be replaced with argparse instead of getopt, when
+    # we upgrade the server to python 3.2 or later.
     gerrit_args = ['change=', 'is-draft=', 'change-url=', 'project=', 'branch=', 'topic=', 'uploader=', 'commit=', 'patchset=']
     args, unused = getopt(sys.argv[1:], '', gerrit_args)
 
