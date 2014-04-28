@@ -1,0 +1,11 @@
+selenium2gherkin -- package for converting selenium test commands
+  to gherkinscenarios
+------------------------------------------------------------ 
+
+Requirements:
+
+    * PHP 5+
+
+Usage:
+
+    * convert.php <selenium test suite html file> <output dir>
