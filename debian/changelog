@@ -1,3 +1,46 @@
+mahara-scripts (1.23) unstable; urgency=low
+
+  *  Updates for 1.9 release  
+
+ -- sonn <son.nguyen@catalyst.net.nz>  Mon, 28 Apr 2014 14:52:52 +1300
+
+mahara-scripts (1.22) unstable; urgency=low
+
+  *  Updates for 1.8 release  
+
+ -- john <jbillings@lair7253>  Thu, 24 Oct 2013 16:01:30 +1300
+
+mahara-scripts (1.21) unstable; urgency=low
+
+  *  Fix the warning of use of qw()
+  *  Perl version > 5.13.5 requires the explicit syntax
+
+ -- John Billings <jbillings@catalyst.net.nz>  Tue, 17 Sep 2013 13:08:01 +1200
+
+mahara-scripts (1.20) unstable; urgency=low
+
+  *  Fix package release info
+
+ -- John Billings <jbillings@catalyst.net.nz>  Tue, 17 Sep 2013 11:20:04 +1200
+
+mahara-scripts (1.19) unstable; urgency=low
+
+  *  Correct the path of language-repos.txt
+
+ -- John Billings <jbillings@catalyst.net.nz>  Tue, 17 Sep 2013 10:44:39 +1200
+
+mahara-scripts (1.18) precise; urgency=low
+
+  * Support for 1.7_STABLE
+
+ -- Craig Miskell <craig@catalyst.net.nz>  Tue, 23 Apr 2013 13:56:51 +1200
+
+mahara-scripts (1.17) precise; urgency=low
+
+  * Added Lithuanian and Vietnamese translations
+
+ -- Craig Miskell <craig@catalyst.net.nz>  Wed, 06 Mar 2013 12:07:19 +1300
+
 mahara-scripts (1.16) precise; urgency=low
 
   * Added 1.6 branch 
