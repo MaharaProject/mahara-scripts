@@ -85,7 +85,8 @@ pushd ${BUILDDIR}/mahara
 
 
 # Main Mahara repo to pull from
-PUBLIC="git@gitorious.org:mahara/mahara.git"
+#PUBLIC="git@gitorious.org:mahara/mahara.git"
+PUBLIC="git@github.com:MaharaProject/mahara.git"
 
 echo "Cloning public repository ${PUBLIC} in ${BUILDDIR}/mahara"
 git init
