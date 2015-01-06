@@ -1,6 +1,6 @@
 <?php
 
-$JOBNAME = basename(dirname(dirname(__DIR__)));
+$JOBNAME = getenv('JOB_NAME');
 
 $cfg = new stdClass();
 
@@ -11,9 +11,9 @@ $cfg->dbtype   = 'postgres';
 $cfg->dbhost   = 'localhost';
 $cfg->dbuser   = 'jenkins';
 $cfg->dbname   = $JOBNAME;
-$cfg->dbpass   = 'huds13!';
+$cfg->dbpass   = 'Sei2ZaRi';
 
-$cfg->dataroot = "/var/lib/jenkins/sitedata/{$JOBNAME}";
+$cfg->dataroot = "/var/lib/jenkins/mahara/sitedata/{$JOBNAME}";
 
 $cfg->sendemail = true;
 $cfg->sendallemailto = 'never@example.com';
@@ -23,9 +23,8 @@ $cfg->perftofoot = true;
 
 // Behat config
 $cfg->dbprefix = ''; // Behat complains without this
-$cfg->wwwroot = "http://127.0.0.1/{$JOBNAME}";
+$cfg->wwwroot = "http://127.0.0.1";
 $cfg->behat_dbprefix = 'behat_'; // must not empty
-$cfg->behat_dataroot = "/var/lib/jenkins/sitedata/behat_{$JOBNAME}";
-$cfg->behat_wwwroot = "http://{$JOBNAME}.localhost:8000";
+$cfg->behat_dataroot = "/var/lib/jenkins/mahara/sitedata/behat_{$JOBNAME}";
+$cfg->behat_wwwroot = "http://localhost:8000";
 
-unset($JOBNAME);

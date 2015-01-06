@@ -23,12 +23,12 @@ echo ""
 echo "########## Run install"
 echo ""
 dropdb $JOB_NAME
-rm -Rf $HOME/elearning/sitedata/$JOB_NAME/*
-rm -Rf $HOME/elearning/sitedata/behat_$JOB_NAME/*
+rm -Rf $HOME/mahara/sitedata/$JOB_NAME/*
+rm -Rf $HOME/mahara/sitedata/behat_$JOB_NAME/*
 createdb -O jenkins -E utf8 $JOB_NAME
 
 cd htdocs
-cp /home/catadmin/mahara_config.php config.php
+cp $HOME/mahara/mahara_config.php config.php
 php admin/cli/install.php --adminpassword='password' --adminemail=never@example.com
 cd ..
 
@@ -49,14 +49,5 @@ echo ""
 echo "########## Run Behat"
 echo ""
 
-# ensure selenium server is running
-if ! [[ `ps aux | grep "[s]elenium-server-standalone"` ]]
-then
-    currentdisplay=$DISPLAY
-    export DISPLAY=:10
-    # we want to run selenium headless on a different display - this allows for that ;)
-    echo "Starting Xvfb ..."
-    Xvfb :10 -ac > /dev/null 2>&1 & echo "PID [$!]"
-fi
-
 test/behat/mahara_behat.sh run
+
