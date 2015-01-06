@@ -28,7 +28,7 @@ rm -Rf $HOME/mahara/sitedata/behat_$JOB_NAME/*
 createdb -O jenkins -E utf8 $JOB_NAME
 
 cd htdocs
-cp $HOME/mahara/mahara_config.php config.php
+cp $HOME/mahara/mahara-scripts/jenkins/mahara_config.php config.php
 php admin/cli/install.php --adminpassword='password' --adminemail=never@example.com
 cd ..
 
