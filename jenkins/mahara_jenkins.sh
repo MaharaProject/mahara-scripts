@@ -32,6 +32,11 @@ cp $HOME/mahara/mahara-scripts/jenkins/mahara_config.php config.php
 php admin/cli/install.php --adminpassword='password' --adminemail=never@example.com
 cd ..
 
+# Check if composer is not available
+if [ ! -f external/composer.json ]; then
+    exit 0
+fi
+
 echo ""
 echo "########## Install composer"
 echo ""
