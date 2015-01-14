@@ -54,5 +54,5 @@ echo ""
 echo "########## Run Behat"
 echo ""
 
-test/behat/mahara_behat.sh run
+test/behat/mahara_behat.sh runheadless
 
