@@ -22,7 +22,7 @@ $cfg->productionmode = false;
 $cfg->perftofoot = true;
 
 // Behat config
-$cfg->dbprefix = ''; // Behat complains without this
+$cfg->dbprefix = 'a234567890123456789'; // Check for dbprefix problems
 $cfg->wwwroot = "http://127.0.0.1";
 $cfg->behat_dbprefix = 'behat_'; // must not empty
 $cfg->behat_dataroot = "/var/lib/jenkins/mahara/sitedata/behat_{$JOBNAME}";
