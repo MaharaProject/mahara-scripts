@@ -22,7 +22,7 @@ make minaccept
 echo ""
 echo "########## Run install"
 echo ""
-dropdb $JOB_NAME
+dropdb $JOB_NAME > /dev/null 2>&1
 rm -Rf $HOME/mahara/sitedata/$JOB_NAME/*
 rm -Rf $HOME/mahara/sitedata/behat_$JOB_NAME/*
 createdb -O jenkins -E utf8 $JOB_NAME
