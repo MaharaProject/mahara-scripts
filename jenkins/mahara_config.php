@@ -15,7 +15,7 @@ $cfg->dbpass   = 'Sei2ZaRi';
 
 $cfg->dataroot = "/var/lib/jenkins/mahara/sitedata/{$JOBNAME}";
 
-$cfg->sendemail = true;
+$cfg->sendemail = false;
 $cfg->sendallemailto = 'never@example.com';
 
 $cfg->productionmode = false;
