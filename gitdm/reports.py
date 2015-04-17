@@ -69,7 +69,7 @@ def ReportLine (text, count, pct):
 
 def EndReport ():
     if HTMLfile:
-        HTMLfile.write ('</table>\n\n')
+        HTMLfile.write ('</table>\n</p>\n\n')
         
 #
 # Comparison and report generation functions.
