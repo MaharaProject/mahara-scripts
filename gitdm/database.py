@@ -256,7 +256,7 @@ def MapToEmployer (email, unknown = 0):
         except KeyError:
             pass
     if unknown:
-        return [(nextyear, GetEmployer ('(Unknown)'))]
+        return [(nextyear, GetEmployer ('Other'))]
     return [(nextyear, GetEmployer (email))]
 
 

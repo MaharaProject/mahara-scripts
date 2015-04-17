@@ -134,7 +134,8 @@ def CompareEPCount (e1, e2):
 def ReportByPCEmpl (elist, cscount):
     elist.sort (CompareEPCount)
     count = 0
-    BeginReport ('Top changeset contributors by employer')
+#    BeginReport ('Top changeset contributors by employer')
+    BeginReport ('Top changeset contributors by organisation')
     for e in elist:
         if e.count != 0:
             ReportLine (e.name, e.count, (e.count*100.0)/cscount)
@@ -150,7 +151,8 @@ def CompareELChanged (e1, e2):
 def ReportByELChanged (elist, totalchanged):
     elist.sort (CompareELChanged)
     count = 0
-    BeginReport ('Top lines changed by employer')
+#    BeginReport ('Top lines changed by employer')
+    BeginReport ('Top lines changed by organisation')
     for e in elist:
         if e.changed != 0:
             ReportLine (e.name, e.changed, (e.changed*100.0)/totalchanged)
@@ -295,7 +297,8 @@ def ReportByESOBs (elist):
     for e in elist:
         totalsobs += e.sobs
     count = 0
-    BeginReport ('Employers with the most signoffs (total %d)' % totalsobs)
+#    BeginReport ('Employers with the most signoffs (total %d)' % totalsobs)
+    BeginReport ('Organisations with the most signoffs (total %d)' % totalsobs)
     for e in elist:
         if e.sobs > 0:
             ReportLine (e.name, e.sobs, (e.sobs*100.0)/totalsobs)
@@ -313,7 +316,8 @@ def ReportByEHackers (elist):
     for e in elist:
         totalhackers += len (e.hackers)
     count = 0
-    BeginReport ('Employers with the most hackers (total %d)' % totalhackers)
+#    BeginReport ('Employers with the most hackers (total %d)' % totalhackers)
+    BeginReport ('Organisations with the most contributors (total %d)' % totalhackers)
     for e in elist:
         nhackers = len (e.hackers)
         if nhackers > 0:
@@ -328,16 +332,16 @@ def DevReports (hlist, totalchanged, cscount, totalremoved):
     ReportByPCount (hlist, cscount)
     ReportByLChanged (hlist, totalchanged)
     ReportByLRemoved (hlist, totalremoved)
-    ReportBySOBs (hlist)
-    ReportByRevs (hlist)
-    ReportByTests (hlist)
-    ReportByTestCreds (hlist)
-    ReportByReports (hlist)
-    ReportByRepCreds (hlist)
+#    ReportBySOBs (hlist)
+#    ReportByRevs (hlist)
+#    ReportByTests (hlist)
+#    ReportByTestCreds (hlist)
+#    ReportByReports (hlist)
+#    ReportByRepCreds (hlist)
 
 def EmplReports (elist, totalchanged, cscount):
     ReportByPCEmpl (elist, cscount)
     ReportByELChanged (elist, totalchanged)
-    ReportByESOBs (elist)
+#    ReportByESOBs (elist)
     ReportByEHackers (elist)
     

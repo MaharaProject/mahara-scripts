@@ -395,7 +395,8 @@ for e in elist:
         nempl += 1
 reports.Write ('Processed %d csets from %d developers\n' % (CSCount,
                                                             ndev))
-reports.Write ('%d employers found\n' % (nempl))
+#reports.Write ('%d employers found\n' % (nempl))
+reports.Write ('%d organisations found\n' % (nempl))
 reports.Write ('A total of %d lines added, %d removed (delta %d)\n' %
                (TotalAdded, TotalRemoved, TotalAdded - TotalRemoved))
 if TotalChanged == 0:
