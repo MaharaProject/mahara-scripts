@@ -57,7 +57,7 @@ def send_bug_mail(bug_number, change_url, project, commit, uploader, branch, git
 
     to_address = bug_number + TO_ADDRESS_SUFFIX
 
-    gitorious_url = 'http://gitorious.org/mahara/%s/commit/%s' % (project, commit)
+    remote_url = 'https://git.nzoss.org.nz/mahara/%s/commit/%s' % (project, commit)
     body = 'Patch for "%s" branch: %s\n' % (branch, change_url)
 
     msg = MIMEText(body)
