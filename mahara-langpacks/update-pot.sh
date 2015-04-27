@@ -18,6 +18,12 @@ if [ ! -w ${DOCROOT} ]; then
     exit 1
 fi
 
+# Lock the script to prevent running in parallel
+if [ ! mkdir ${DATA}/lock ]; then
+    echo "The script is running" >&2
+    exit 0
+fi
+
 WORK=${DATA}/templates
 GITDIR=${WORK}/git
 TEMP=${WORK}/temp
@@ -181,3 +187,6 @@ for branch in ${branches} ; do
         echo "${remotecommit}" > ${last}
     fi
 done
+
+# Unlock the script
+rm -rf ${DATA}/lock
