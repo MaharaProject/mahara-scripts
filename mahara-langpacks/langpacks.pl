@@ -40,8 +40,8 @@ my $CLEAN     = "${DATA}/new";
 my $TARBALLS  = "${DATA}/tarballs";
 my $MAHARA    = "${DATA}/mahara";
 
-my $MAHARAREMOTE = 'git://gitorious.org/mahara/mahara.git';
-my $REPOLIST     = 'http://gitorious.org/mahara/mahara-scripts/blobs/raw/master/mahara-langpacks/language-repos.txt';
+my $MAHARAREMOTE = 'git@github.com:MaharaProject/mahara.git';
+my $REPOLIST     = 'https://git.nzoss.org.nz/mahara/mahara-scripts/blob/master/mahara-langpacks/language-repos.txt';
 
 mkpath $GITDIR;
 mkpath $DIRTY;
@@ -51,7 +51,7 @@ mkpath $TARBALLS;
 print STDERR "Checking langpacks for updates: " . `date \"+%Y-%m-%d %H:%M:%S\"`;
 
 # A language repo list can be put in the $DATA dir for testing.  If there's not one
-# there, try to get an up-to-date one out of the gitorious mahara-scripts repo
+# there, try to get an up-to-date one out of the mahara-scripts repository
 # (allows updates to the repo list without having to redeploy the package).
 my $repolist;
 if ( -f "$SCRIPTS/language-repos.txt" ) {
@@ -125,7 +125,7 @@ foreach my $branch (@branches) {
 foreach my $lang (@langkeys) {
 
     if ( ! defined $last->{$lang} ) {
-        $last->{$lang} = { repo => "git://gitorious.org/mahara-lang/$lang.git" };
+        $last->{$lang} = { repo => "git@git.nzoss.org.nz:mahara-lang/$lang.git" };
     }
 
     if ( defined $langs{$lang}->{repo} ) {
@@ -146,8 +146,8 @@ foreach my $lang (@langkeys) {
         $repotype = 'launchpad';
         @branches = qw(1.7_STABLE 1.8_STABLE 1.9_STABLE 1.10_STABLE 15.04_STABLE master);
     }
-    elsif ( $remote =~ m{^git://gitorious\.org} ) {
-        $repotype = 'gitorious';
+    elsif ( $remote =~ m{^git@git\.nzoss\.org\.nz} ) {
+        $repotype = 'git';
         ! -d "$gitlangdir" && system "git clone --quiet $remote $gitlangdir";
         chdir $gitlangdir;
         system "git fetch --quiet";
@@ -204,7 +204,7 @@ foreach my $lang (@langkeys) {
         if ( "$remotecommit" ne "$lastruncommit" ) {
             print STDERR "Updating $lang $branch\n";
 
-            if ( $repotype eq 'gitorious' ) {
+            if ( $repotype eq 'git' ) {
                 my $branchcmd = 'git branch | grep "' . $branch . '$"';
                 my $branchexists = `$branchcmd`;
 
@@ -250,7 +250,7 @@ foreach my $lang (@langkeys) {
                 }
 
             }
-            elsif ( $repotype eq 'gitorious' ) {
+            elsif ( $repotype eq 'git' ) {
 
                 # .po is not available, so this is a php langpack
 
@@ -329,7 +329,7 @@ foreach my $lang (@langkeys) {
             chdir $currentdir;
 
             my $localcommit;
-            if ( $repotype eq 'gitorious' ) {
+            if ( $repotype eq 'git' ) {
                 $localcommit = `git log --pretty=format:\"%H %ai %an\" $branch | head -1`;
             }
             else {

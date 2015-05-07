@@ -1,11 +1,11 @@
 ar lp:mahara-lang
 ca lp:mahara-lang
-cs git://gitorious.org/mahara-lang/cs.git
+cs git@git.nzoss.org.nz:mahara-lang/cs.git
 da lp:mahara-lang
 de lp:mahara-lang
 el lp:mahara-lang
 en_GB lp:mahara-lang
-en_us git://gitorious.org/mahara-lang/en_us.git
+en_us git@git.nzoss.org.nz:mahara-lang/en_us.git
 es lp:mahara-lang
 eu lp:mahara-lang
 fi lp:mahara-lang
