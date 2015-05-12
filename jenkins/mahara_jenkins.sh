@@ -21,7 +21,6 @@ echo ""
 # that exists in origin, ie the point that origin HEAD was at when the patch was made. If
 # there are more than 30 steps to get to origin HEAD the check above will handle that.
 HEAD=`git rev-parse HEAD`
-MAXBEHINDHEAD=`git rev-parse HEAD~$MAXBEHIND`
 the_list=`git log --pretty=format:'%H' origin/$GERRIT_BRANCH..$HEAD`
 while IFS= read -r line
 do
