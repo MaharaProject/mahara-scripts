@@ -14,6 +14,32 @@ BEHINDBY=`git rev-list HEAD..origin/$GERRIT_BRANCH | wc -l`
 echo "This patch is behind master by $BEHINDBY commit(s)"
 [[ "$BEHINDBY" -lt "$MAXBEHIND" ]] || { echo "This patch is too far behind master, please rebase"; exit 1; }
 
+echo "########## Check the patch and it's parents are not already rejected"
+echo ""
+# Fetch the last 30 git commit ids and check the ones that are not also present in origin
+# This allows us to check the current patch and it's parents all the way back to a commit
+# that exists in origin, ie the point that origin HEAD was at when the patch was made. If
+# there are more than 30 steps to get to origin HEAD the check above will handle that.
+HEAD=`git rev-parse HEAD`
+MAXBEHINDHEAD=`git rev-parse HEAD~$MAXBEHIND`
+the_list=`git rev-list $HEAD...$MAXBEHINDHEAD`
+while IFS= read -r line
+do
+    # see if the commit doesn't already exist in origin
+    testcommit=`git branch -r --contains $line`
+    if [ -z "$testcommit" ]; then
+        # check if the commit or it's parents have been rejected
+        outcome=`php gerrit_query.php -- $line`
+        if [ "$outcome" = "1" ]; then
+            echo "This patch or one of its parents has been rejected";
+            exit 1;
+        fi
+    else
+        # commit exists in origin
+        break
+    fi
+done <<< "$the_list"
+
 echo ""
 echo "########## Run make minaccept"
 echo ""
