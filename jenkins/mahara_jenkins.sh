@@ -26,8 +26,8 @@ the_list=`git log --pretty=format:'%H' origin/$GERRIT_BRANCH..$HEAD`
 while IFS= read -r line
 do
         # check if the commit or it's parents have been rejected
-	php=`which php`
-        outcome=`$php -f gerrit_query.php -- $line`
+        php=`which php`
+        outcome=`$php $HOME/mahara/mahara-scripts/jenkins/gerrit_query.php -- $line`
         if [ "$outcome" = "1" ]; then
             echo "This patch or one of its parents has been rejected"
             exit 1;
