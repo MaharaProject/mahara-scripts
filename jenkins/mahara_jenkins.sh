@@ -22,22 +22,16 @@ echo ""
 # there are more than 30 steps to get to origin HEAD the check above will handle that.
 HEAD=`git rev-parse HEAD`
 MAXBEHINDHEAD=`git rev-parse HEAD~$MAXBEHIND`
-the_list=`git rev-list $HEAD...$MAXBEHINDHEAD`
+the_list=`git log --pretty=format:'%H' origin/$GERRIT_BRANCH..$HEAD`
 while IFS= read -r line
 do
-    # see if the commit doesn't already exist in origin
-    testcommit=`git branch -r --contains $line`
-    if [ -z "$testcommit" ]; then
         # check if the commit or it's parents have been rejected
-        outcome=`php gerrit_query.php -- $line`
+	php=`which php`
+        outcome=`$php -f gerrit_query.php -- $line`
         if [ "$outcome" = "1" ]; then
-            echo "This patch or one of its parents has been rejected";
+            echo "This patch or one of its parents has been rejected"
             exit 1;
         fi
-    else
-        # commit exists in origin
-        break
-    fi
 done <<< "$the_list"
 
 echo ""
