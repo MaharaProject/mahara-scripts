@@ -30,6 +30,8 @@ do
         if [ "$outcome" = "1" ]; then
             echo "This patch or one of its parents has been rejected"
             exit 1;
+        else
+            echo "The patch series looks ok so we will continue"
         fi
 done <<< "$the_list"
 
