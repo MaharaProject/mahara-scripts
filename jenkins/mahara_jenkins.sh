@@ -14,7 +14,7 @@ BEHINDBY=`git rev-list HEAD..origin/$GERRIT_BRANCH | wc -l`
 echo "This patch is behind master by $BEHINDBY commit(s)"
 [[ "$BEHINDBY" -lt "$MAXBEHIND" ]] || { echo "This patch is too far behind master, please rebase"; exit 1; }
 
-echo "########## Check the patch and it's parents are not already rejected"
+echo "########## Check the patch and its parents are not already rejected"
 echo ""
 # Fetch the last 30 git commit ids and check the ones that are not also present in origin
 # This allows us to check the current patch and it's parents all the way back to a commit
@@ -28,10 +28,10 @@ do
         php=`which php`
         outcome=`$php $HOME/mahara/mahara-scripts/jenkins/gerrit_query.php -- $line`
         if [ "$outcome" = "1" ]; then
-            echo "This patch or one of its parents has been rejected"
+            echo "The patch with git commit id $line has been rejected"
             exit 1;
         else
-            echo "The patch series looks ok so we will continue"
+            echo "The patch with git commit id $line looks ok so we will continue"
         fi
 done <<< "$the_list"
 
