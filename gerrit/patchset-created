@@ -1,11 +1,16 @@
 #!/usr/bin/python
 #
-# Gerrit Launchpad and CIA Hook, inspired by:
+# Gerrit hook script to write a message about each new patch in its
+# associated Launchpad bug.
+#
+# Copy/symlink this to GERRIT_HOME/hooks/patchset-created
+#
+# Inspired by:
 #   https://github.com/hobbs/jirret
 #   http://cia.vc/clients/git/ciabot.bash
 #   http://cia.vc/clients/bzr/cia_bzr.py
 #
-# Copyright (C) 2011 - 2013 Catalyst IT (http://www.catalyst.net.nz)
+# Copyright (C) 2011 - 2015 Catalyst IT (http://www.catalyst.net.nz)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
