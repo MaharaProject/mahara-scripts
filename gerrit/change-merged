@@ -172,7 +172,8 @@ def main():
             'branch=',
             'topic=',
             'submitter=',
-            'commit='
+            'commit=',
+            'newrev=',
     ]
     args, unused = getopt(sys.argv[1:], '', gerrit_args)
 
