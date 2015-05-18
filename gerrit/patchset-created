@@ -79,10 +79,22 @@ def main():
     # See https://reviews.mahara.org/Documentation/config-hooks.html
     # This should be replaced with argparse instead of getopt, when
     # we upgrade the server to python 3.2 or later.
-    gerrit_args = ['change=', 'is-draft=', 'change-url=', 'project=', 'branch=', 'topic=', 'uploader=', 'commit=', 'patchset=']
+    gerrit_args = [
+            'change=',
+            'is-draft=',
+            'kind=',
+            'change-url=',
+            'change-owner=',
+            'project=',
+            'branch=',
+            'topic=',
+            'uploader=',
+            'commit=',
+            'patchset='
+    ]
     args, unused = getopt(sys.argv[1:], '', gerrit_args)
 
-    change_url = project = branch = uploader = commit = None
+    change_url = project = branch = uploader = commit = patchset = is_draft = None
     for argname, argv in args:
         if argname == '--change-url':
             change_url = argv
