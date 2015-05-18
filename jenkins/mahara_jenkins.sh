@@ -6,12 +6,12 @@ set -e
 MAXBEHIND=30
 
 echo ""
-echo "########## Check the patch is less than $MAXBEHIND patches behind master"
+echo "########## Check the patch is less than $MAXBEHIND patches behind remote branch HEAD"
 echo ""
-git fetch origin master
+git fetch origin $GERRIT_BRANCH
 echo ""
 BEHINDBY=`git rev-list HEAD..origin/$GERRIT_BRANCH | wc -l`
-echo "This patch is behind master by $BEHINDBY commit(s)"
+echo "This patch is behind $GERRIT_BRANCH by $BEHINDBY commit(s)"
 [[ "$BEHINDBY" -lt "$MAXBEHIND" ]] || { echo "This patch is too far behind master, please rebase"; exit 1; }
 
 echo "########## Check the patch and its parents are not already rejected"
