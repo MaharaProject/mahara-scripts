@@ -3,6 +3,7 @@ ca lp:mahara-lang
 cs git@git.nzoss.org.nz:mahara-lang/cs.git
 da lp:mahara-lang
 de lp:mahara-lang
+de_du lp:mahara-lang
 el lp:mahara-lang
 en_GB lp:mahara-lang
 en_us git@git.nzoss.org.nz:mahara-lang/en_us.git
