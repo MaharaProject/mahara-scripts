@@ -29,6 +29,9 @@ do
         if [ "$outcome" = "1" ]; then
             echo "The patch with git commit id $line has been rejected"
             exit 1;
+        elif [ "$outcome" = "3" ]; then
+            echo "The patch with git commit id $line is not the latest (current) patch"
+            exit 1;
         else
             echo "The patch with git commit id $line looks ok so we will continue"
         fi
