@@ -6,33 +6,36 @@ set -e
 MAXBEHIND=30
 
 echo ""
-echo "########## Check the patch is less than $MAXBEHIND patches behind master"
+echo "########## Check the patch is less than $MAXBEHIND patches behind remote branch HEAD"
 echo ""
-git fetch origin master
+git fetch origin $GERRIT_BRANCH
 echo ""
 BEHINDBY=`git rev-list HEAD..origin/$GERRIT_BRANCH | wc -l`
-echo "This patch is behind master by $BEHINDBY commit(s)"
+echo "This patch is behind $GERRIT_BRANCH by $BEHINDBY commit(s)"
 [[ "$BEHINDBY" -lt "$MAXBEHIND" ]] || { echo "This patch is too far behind master, please rebase"; exit 1; }
 
 echo "########## Check the patch and its parents are not already rejected"
 echo ""
-# Fetch the last 30 git commit ids and check the ones that are not also present in origin
-# This allows us to check the current patch and it's parents all the way back to a commit
-# that exists in origin, ie the point that origin HEAD was at when the patch was made. If
-# there are more than 30 steps to get to origin HEAD the check above will handle that.
+# Fetch the git commit ids that exist between this commit and the origin
+# that exists when the patch was made.
 HEAD=`git rev-parse HEAD`
 the_list=`git log --pretty=format:'%H' origin/$GERRIT_BRANCH..$HEAD`
+firstcommit=1
 while IFS= read -r line
 do
         # check if the commit or it's parents have been rejected
         php=`which php`
-        outcome=`$php $HOME/mahara/mahara-scripts/jenkins/gerrit_query.php -- $line`
+        outcome=`$php $HOME/mahara/mahara-scripts/jenkins/gerrit_query.php -- $line $firstcommit`
         if [ "$outcome" = "1" ]; then
             echo "The patch with git commit id $line has been rejected"
+            exit 1;
+        elif [ "$outcome" = "3" ]; then
+            echo "The patch with git commit id $line is not the latest (current) patch"
             exit 1;
         else
             echo "The patch with git commit id $line looks ok so we will continue"
         fi
+        firstcommit=0
 done <<< "$the_list"
 
 echo ""
