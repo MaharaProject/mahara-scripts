@@ -8,7 +8,7 @@
 $git_commit_id = $argv[2];
 $first_commit = $argv[3];
 $ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, 'https://reviews.mahara.org/changes/?q=' . $git_commit_id . '&o=LABELS&pp=0');
+curl_setopt($ch, CURLOPT_URL, 'https://reviews.mahara.org/changes/?q=' . $git_commit_id . '&o=LABELS&o=CURRENT_REVISION&pp=0');
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 $content = curl_exec($ch);
 curl_close($ch);
@@ -18,6 +18,12 @@ $content = json_decode($content[1]);
 // Doublecheck to see if this has already been merged
 if ($content[0]->status == 'MERGED') {
     echo 2;
+    exit;
+}
+
+// Check that the patch we are testing is the latest (current) patchset in series
+if ($content[0]->current_revision != $git_commit_id) {
+    echo 3;
     exit;
 }
 
