@@ -29,7 +29,7 @@ if [ ! -d ${MAHARA} ] ; then
     git clone ${mahararemote} ${MAHARA}
 fi
 
-langremotebase='git@git.nzoss.org.nz:mahara-lang/'
+langremotebase='git@git.mahara.org:lang-old/'
 langs="ca cs da de en_us es eu fi fr he it ja ko nl no_nb sl zh_tw"
 
 for lang in ${langs} ; do

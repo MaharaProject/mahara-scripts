@@ -9,5 +9,5 @@ Package: custom-site-mahara-langpacks
 Architecture: all
 Depends: ${misc:Depends}, apache2, php5-cli, perl, bash, debconf, git-core, libhtml-tiny-perl, liblocale-po-perl, libwww-perl, bzr
 Description: Mahara langpack repository scripts
- Scripts to download mahara langpacks from git.nzoss.org.nz, clean them up, and
+ Scripts to download mahara langpacks from git.mahara.org, clean them up, and
  make them available for HTTP download.

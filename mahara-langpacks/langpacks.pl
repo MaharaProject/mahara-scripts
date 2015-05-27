@@ -41,7 +41,7 @@ my $TARBALLS  = "${DATA}/tarballs";
 my $MAHARA    = "${DATA}/mahara";
 
 my $MAHARAREMOTE = 'git@github.com:MaharaProject/mahara.git';
-my $REPOLIST     = 'https://git.nzoss.org.nz/mahara/mahara-scripts/blob/master/mahara-langpacks/language-repos.txt';
+my $REPOLIST     = 'https://git.mahara.org/scripts/mahara-scripts/blob/master/mahara-langpacks/language-repos.txt';
 
 mkpath $GITDIR;
 mkpath $DIRTY;
@@ -125,7 +125,7 @@ foreach my $branch (@branches) {
 foreach my $lang (@langkeys) {
 
     if ( ! defined $last->{$lang} ) {
-        $last->{$lang} = { repo => "git@git.nzoss.org.nz:mahara-lang/$lang.git" };
+        $last->{$lang} = { repo => "git@git.mahara.org:lang-old/$lang.git" };
     }
 
     if ( defined $langs{$lang}->{repo} ) {

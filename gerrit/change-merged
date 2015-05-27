@@ -67,7 +67,7 @@ def send_bug_mail(bug_number, change_url, project, commit, submitter, branch, gi
 
     to_address = bug_number + TO_ADDRESS_SUFFIX
 
-    remote_url = 'https://git.nzoss.org.nz/mahara/%s/commit/%s' % (project, commit)
+    remote_url = 'https://git.mahara.org/mahara/%s/commit/%s' % (project, commit)
     body = '''Reviewed:  %s
 Committed: %s
 Submitter: %s
@@ -89,7 +89,7 @@ def append_commit(commits, document, project, full_commit_id, author, log):
 
     revision = subprocess.Popen(['git', '--git-dir=' + BASE_DIR + '/git/' + project + '.git', 'rev-parse', '--short', full_commit_id], stdout=subprocess.PIPE).communicate()[0].strip()
 
-    remote_url = 'https://git.nzoss.org.nz/mahara/%s/commit/%s' % (project, full_commit_id)
+    remote_url = 'https://git.mahara.org/mahara/%s/commit/%s' % (project, full_commit_id)
     commit = document.createElement('commit')
 
     commit_author = document.createElement('author')
@@ -136,7 +136,7 @@ def submit_to_cia(project, commit, branch, git_log):
     generator_version = doc.createElement('version')
     generator_version.appendChild(doc.createTextNode('1.0'))
     generator_url = doc.createElement('url')
-    generator_url.appendChild(doc.createTextNode('https://git.nzoss.org.nz/mahara/mahara-scripts/blobs/master/change-merged'))
+    generator_url.appendChild(doc.createTextNode('https://git.mahara.org/scripts/mahara-scripts/blob/master/gerrit/change-merged'))
     generator.appendChild(generator_name)
     generator.appendChild(generator_version)
     generator.appendChild(generator_url)
