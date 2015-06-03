@@ -66,6 +66,25 @@ MICROB=`echo ${MICRO} | sed 's/[a-z]//g'`
 
 BRANCH=$2
 
+drafts=$(ssh $USER@reviews.mahara.org -p 29418 gerrit query is:draft branch:$BRANCH project:mahara "label:Code-Review>=0" "label:Verified>=0" | while read line
+do
+    if [[ "$line" =~ rowCount:.*([0-9]) ]]; then
+        if [[ "${BASH_REMATCH[1]}" != "0" ]]; then
+            echo "1" # we have some draft patches that match
+        fi
+    fi
+done)
+if [[ "$drafts" == "1" ]]; then
+    read -r -p "There are Draft patches that may need to be merged. Do you want to continue with release [y/n]?" response
+    response=${response,,} #to lower
+    if [[ $response =~ ^(yes|y)$ ]]; then
+        echo "Continuing..."
+    else
+        echo "Quitting out"
+        exit 1;
+    fi
+fi
+
 BUILDDIR=`mktemp -d /tmp/mahara.XXXXX`
 CURRENTDIR="`pwd`"
 SCRIPTDIR=$( readlink -f -- "${0%/*}" )
