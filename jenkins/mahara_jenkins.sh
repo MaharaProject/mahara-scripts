@@ -4,6 +4,8 @@
 set -e
 
 MAXBEHIND=30
+BEHATNOTNEEDED="behatnotneeded"
+BEHATTESTREGEX="^test/behat/features/"
 
 echo ""
 echo "########## Check the patch is less than $MAXBEHIND patches behind remote branch HEAD"
@@ -37,6 +39,24 @@ do
         fi
         firstcommit=0
 done <<< "$the_list"
+
+echo ""
+echo "########## Check the patch contains a Behat test"
+echo ""
+git diff-tree --no-commit-id --name-only -r HEAD | grep $BEHATTESTREGEX > /dev/null
+if [ $? = 0 ]; then
+    echo "Patch includes a Behat test."
+else
+    echo "This patch does not include a Behat test!"
+    # Check whether the commit message has "behatnotneeded" in it.
+    git log -1 | grep -i $BEHATNOTNEEDED > /dev/null
+    if [ $? = 0 ]; then
+        echo "... but the patch is marked with \"$BEHATNOTNEEDED\", so we will continue."
+    else
+        echo "Please write a Behat test for it, or, if it cannot be tested, put \"$BEHATNOTNEEDED\" in its commit message."
+        exit 1;
+    fi
+fi
 
 echo ""
 echo "########## Run make minaccept"
