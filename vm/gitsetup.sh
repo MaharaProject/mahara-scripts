@@ -20,7 +20,7 @@ echo "Otherwise, hit Return to continue."
 read
 
 
-echo "Please enter your name (e.g. \"Mike O'Connor\"): "
+echo "Please enter your name (example: Mike O'Connor): "
 read name
 echo "Please enter your email address: "
 read email
