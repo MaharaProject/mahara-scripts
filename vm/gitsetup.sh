@@ -7,19 +7,6 @@ homedir=/home/$localuser
 sshdir=$homedir/.ssh
 desktopdir=$homedir/Desktop
 
-echo ""
-echo "This script will help you set up your git and generate your SSH public key"
-echo "for the Mahara Project's Gerrit."
-echo ""
-echo "If you haven't set up accounts on"
-echo " * https://launchpad.net"
-echo " * https://reviews.mahara.org"
-echo "... hit Control-C to quit, and set those up now."
-echo ""
-echo "Otherwise, hit Return to continue."
-read
-
-
 echo "Please enter your name (example: Mike O'Connor): "
 read name
 echo "Please enter your email address: "
