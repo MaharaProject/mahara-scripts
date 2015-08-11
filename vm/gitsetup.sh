@@ -7,7 +7,6 @@ localuser=qa
 homedir=/home/$localuser
 sshdir=$homedir/.ssh
 desktopdir=$homedir/Desktop
-wwwroot=/var/www/html/mahara
 
 echo "Please enter your name (e.g. \"Mike O'Connor\"): "
 read name
@@ -18,7 +17,6 @@ echo ""
 echo "Setting up \"${name} <${email}>\..."
 echo ""
 
-cd $wwwroot
 git config --global user.name $name
 git config --global user.email $email
 
