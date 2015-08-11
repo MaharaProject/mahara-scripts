@@ -3,6 +3,18 @@
 # This is a shell script to assist non-technical users in customizing the git environment
 # in a VM that already has Mahara installed.
 
+echo ""
+echo "This script will help you set up your git and generate your SSH public key"
+echo "for the Mahara Project's Gerrit."
+echo ""
+echo "If you haven't set up accounts on"
+echo " * https://launchpad.net"
+echo " * https://reviews.mahara.org"
+echo "... hit Control-C to quit, and set those up now."
+echo ""
+echo "Otherwise, hit Return to continue."
+read
+
 localuser=qa
 homedir=/home/$localuser
 sshdir=$homedir/.ssh
