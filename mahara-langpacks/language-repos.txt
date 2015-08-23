@@ -1,6 +1,7 @@
 ar lp:mahara-lang
 ca lp:mahara-lang
-cs git@git.mahara.org:lang-old/cs.git
+#cs git@git.mahara.org:lang-old/cs.git
+cs git@gitlab.com:umim-to/mahara-cs-test.git
 da lp:mahara-lang
 de lp:mahara-lang
 de_du lp:mahara-lang
