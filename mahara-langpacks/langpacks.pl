@@ -40,7 +40,7 @@ my $CLEAN     = "${DATA}/new";
 my $TARBALLS  = "${DATA}/tarballs";
 my $MAHARA    = "${DATA}/mahara";
 
-my $MAHARAREMOTE = 'git@github.com:MaharaProject/mahara.git';
+my $MAHARAREMOTE = 'git@git.mahara.org:mahara/mahara.git';
 my $REPOLIST     = 'https://git.mahara.org/scripts/mahara-scripts/blob/master/mahara-langpacks/language-repos.txt';
 
 mkpath $GITDIR;

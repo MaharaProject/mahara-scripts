@@ -37,6 +37,8 @@ case "$1" in
 
         if [ ! -d /var/lib/mahara-langpacks ]; then
             mkdir /var/lib/mahara-langpacks
+        else
+            rm -rf /var/lib/mahara-langpacks/*
         fi
 
         if [ `stat -c %U /var/lib/mahara-langpacks` != 'maharabot' ]; then
@@ -55,15 +57,14 @@ case "$1" in
         echo "DATA=/var/lib/mahara-langpacks" > /etc/mahara-langpacks.conf
         echo "SCRIPTS=/usr/lib/mahara-langpacks" >> /etc/mahara-langpacks.conf
         echo "DOCROOT=/var/www/mahara-langpacks" >> /etc/mahara-langpacks.conf
-        db_get custom-site-mahara-langpacks/projdir
-        echo "PROJDIR='${RET}'" >> /etc/mahara-langpacks.conf
-        db_get custom-site-mahara-langpacks/wwwroot
-        WWWROOT=${RET}
-        echo "WWWROOT='http://${WWWROOT}'" >> /etc/mahara-langpacks.conf
+        echo "PROJDIR='git@git.mahara.org:mahara/mahara.git'" >> /etc/mahara-langpacks.conf
+        DOMAINNAME="langpacks.mahara.org"
+        echo "WWWROOT='http://${DOMAINNAME}'" >> /etc/mahara-langpacks.conf
+
         NVH=`apache2ctl -S 2>&1 |grep "is a NameVirtualHost"|sed 's/ .*//'|head -1`
         cat <<EOF > /etc/apache2/sites-available/mahara-langpacks.conf
 <VirtualHost ${NVH}>
-  ServerName ${WWWROOT}
+  ServerName ${DOMAINNAME}
   DocumentRoot /var/www/mahara-langpacks
   CustomLog /var/log/apache2/custom-site-mahara-langpacks-access.log combined
   ErrorLog  /var/log/apache2/custom-site-mahara-langpacks-error.log

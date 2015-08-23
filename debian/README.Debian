@@ -1,6 +1,6 @@
 mahara-scripts
 --------------
 
-The custom-site-mahara-langpacks package tries to detect what NameBasedVirtualHost settings you have, and configure the VirtualHost automatically. It may well get that wrong.
+The custom-site-mahara-langpacks package installs mahara language scripts on the langpacks.mahara.org server.
 
--- Richard Hector <richard@catalyst.net.nz> Sat, 20 Nov 2010 19:26:29 +1300
+-- Son Nguyen <son.nguyen@catalyst.net.nz> Sat, 11 Aug 2015 11:49:37 +1300

@@ -1,7 +1,7 @@
 Source: mahara-scripts
 Section: web
 Priority: extra
-Maintainer: Richard Hector <richard@catalyst.net.nz>
+Maintainer: Son Nguyen <son.nguyen@catalyst.net.nz>
 Build-Depends: debhelper (>=7)
 Standards-Version: 3.9.1
 
@@ -9,5 +9,6 @@ Package: custom-site-mahara-langpacks
 Architecture: all
 Depends: ${misc:Depends}, apache2, php5-cli, perl, bash, debconf, git-core, libhtml-tiny-perl, liblocale-po-perl, libwww-perl, bzr
 Description: Mahara langpack repository scripts
- Scripts to download mahara langpacks from git.mahara.org, clean them up, and
+ Scripts to download mahara translations from launchpad.net, clean them up, create language packs and
  make them available for HTTP download.
+ They also updates new language strings from git.mahara.org, create .po files and push them to launchpad.net
