@@ -57,7 +57,7 @@ case "$1" in
         echo "DATA=/var/lib/mahara-langpacks" > /etc/mahara-langpacks.conf
         echo "SCRIPTS=/usr/lib/mahara-langpacks" >> /etc/mahara-langpacks.conf
         echo "DOCROOT=/var/www/mahara-langpacks" >> /etc/mahara-langpacks.conf
-        echo "PROJDIR='git@git.mahara.org:mahara/mahara.git'" >> /etc/mahara-langpacks.conf
+        echo "PROJDIR='https://git.mahara.org/mahara/mahara.git'" >> /etc/mahara-langpacks.conf
         DOMAINNAME="langpacks.mahara.org"
         echo "WWWROOT='http://${DOMAINNAME}'" >> /etc/mahara-langpacks.conf
 

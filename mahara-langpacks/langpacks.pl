@@ -40,7 +40,7 @@ my $CLEAN     = "${DATA}/new";
 my $TARBALLS  = "${DATA}/tarballs";
 my $MAHARA    = "${DATA}/mahara";
 
-my $MAHARAREMOTE = 'git@git.mahara.org:mahara/mahara.git';
+my $MAHARAREMOTE = 'https://git.mahara.org/mahara/mahara.git';
 my $REPOLIST     = 'https://git.mahara.org/scripts/mahara-scripts/blob/master/mahara-langpacks/language-repos.txt';
 
 mkpath $GITDIR;
@@ -125,7 +125,7 @@ foreach my $branch (@branches) {
 foreach my $lang (@langkeys) {
 
     if ( ! defined $last->{$lang} ) {
-        $last->{$lang} = { repo => "git@git.mahara.org:lang-old/$lang.git" };
+        $last->{$lang} = { repo => "https://git.mahara.org/lang-old/$lang.git" };
     }
 
     if ( defined $langs{$lang}->{repo} ) {
@@ -146,7 +146,7 @@ foreach my $lang (@langkeys) {
         $repotype = 'launchpad';
         @branches = qw(1.7_STABLE 1.8_STABLE 1.9_STABLE 1.10_STABLE 15.04_STABLE master);
     }
-    elsif ( $remote =~ m{^git@git\.nzoss\.org\.nz} ) {
+    elsif ( $remote =~ m{^https://git\.mahara\.org} ) {
         $repotype = 'git';
         ! -d "$gitlangdir" && system "git clone --quiet $remote $gitlangdir";
         chdir $gitlangdir;

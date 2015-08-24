@@ -32,7 +32,8 @@ TEMP=${WORK}/temp
 [ ! -d ${TEMP} ] && mkdir ${TEMP}
 [ ! -d ${DOCROOT}/pot ] && mkdir ${DOCROOT}/pot
 
-mahararemote='git@git.mahara.org/mahara/mahara.git'
+mahararemote='https://git.mahara.org/mahara/mahara.git'
+#mahararemote='git@git.mahara.org/mahara/mahara.git'
 #mahararemote='git@github.com:MaharaProject/mahara.git'
 
 if [ ! -d ${GITDIR} ]; then

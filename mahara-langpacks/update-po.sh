@@ -22,14 +22,15 @@ PHPSCRIPT=${HOME}/mahara-scripts/mahara-langpacks/php-po.php
 [ ! -d ${GITDIR} ] && mkdir ${GITDIR}
 [ ! -d ${OUT} ] && mkdir ${OUT}
 
-mahararemote='git@github.com:MaharaProject/mahara.git'
+#mahararemote='git@github.com:MaharaProject/mahara.git'
+mahararemote='https://git.mahara.org/mahara/mahara.git'
 
 if [ ! -d ${MAHARA} ] ; then
     cd ${WORK}
     git clone ${mahararemote} ${MAHARA}
 fi
 
-langremotebase='git@git.mahara.org:lang-old/'
+langremotebase='https://git.mahara.org/lang-old/'
 langs="ca cs da de en_us es eu fi fr he it ja ko nl no_nb sl zh_tw"
 
 for lang in ${langs} ; do
