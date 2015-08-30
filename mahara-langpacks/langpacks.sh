@@ -38,11 +38,11 @@ fi
 [ ! -d ${TARBALLS} ] && mkdir ${TARBALLS}
 
 # Lock the script to prevent running in parallel
-if [ ! mkdir ${DATA}/lock ]; then
+if ! mkdir ${DATA}/langpacks-lock; then
     echo "The script is running" >&2
     exit 0
 fi
 
 env DATA=$DATA DOCROOT=$DOCROOT SCRIPTS=$SCRIPTS /usr/bin/perl ${SCRIPTS}/langpacks.pl
 
-rm -rf ${DATA}/lock
+rmdir ${DATA}/langpacks-lock

@@ -109,6 +109,7 @@ system "git fetch --quiet origin";
 
 
 # For launchpad, all languages are in a single branch, so update the lot
+system "bzr launchpad-login dev-mahara";
 ! -d $BZRDIR && system "bzr init-repo $BZRDIR";
 my @branches = qw(1.7_STABLE 1.8_STABLE 1.9_STABLE 1.10_STABLE 15.04_STABLE master);
 
@@ -146,7 +147,7 @@ foreach my $lang (@langkeys) {
         $repotype = 'launchpad';
         @branches = qw(1.7_STABLE 1.8_STABLE 1.9_STABLE 1.10_STABLE 15.04_STABLE master);
     }
-    elsif ( $remote =~ m{^https://git\.mahara\.org} ) {
+    elsif ( $remote =~ m{^https://git\.mahara\.org|^https://gitlab\.com} ) {
         $repotype = 'git';
         ! -d "$gitlangdir" && system "git clone --quiet $remote $gitlangdir";
         chdir $gitlangdir;

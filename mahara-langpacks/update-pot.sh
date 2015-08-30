@@ -19,7 +19,7 @@ if [ ! -w ${DOCROOT} ]; then
 fi
 
 # Lock the script to prevent running in parallel
-if [ ! mkdir ${DATA}/lock ]; then
+if ! mkdir ${DATA}/update-pot-lock; then
     echo "The script is running" >&2
     exit 0
 fi
@@ -33,14 +33,15 @@ TEMP=${WORK}/temp
 [ ! -d ${DOCROOT}/pot ] && mkdir ${DOCROOT}/pot
 
 mahararemote='https://git.mahara.org/mahara/mahara.git'
-#mahararemote='git@git.mahara.org/mahara/mahara.git'
-#mahararemote='git@github.com:MaharaProject/mahara.git'
+# mahararemote='git@git.mahara.org/mahara/mahara.git'
+# mahararemote='git@github.com:MaharaProject/mahara.git'
 
 if [ ! -d ${GITDIR} ]; then
     echo "git clone ${mahararemote} ${GITDIR}"
     git clone --quiet ${mahararemote} ${GITDIR}
 fi
 
+bzr launchpad-login dev-mahara
 [ ! -d "${WORK}/mahara-lang-bzr" ] && bzr init-repo ${WORK}/mahara-lang-bzr
 
 BZR=${WORK}/mahara-lang-bzr
@@ -190,4 +191,4 @@ for branch in ${branches} ; do
 done
 
 # Unlock the script
-rm -rf ${DATA}/lock
+rmdir ${DATA}/update-pot-lock
