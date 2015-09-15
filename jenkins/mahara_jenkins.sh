@@ -93,6 +93,11 @@ echo ""
 external/vendor/bin/phpunit htdocs/
 
 echo ""
+echo "########## Build & Minify CSS"
+echo ""
+make
+
+echo ""
 echo "########## Run Behat"
 echo ""
 
