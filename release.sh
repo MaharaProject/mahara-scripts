@@ -1,4 +1,8 @@
-#!/bin/bash
+#!/usr/bin/php
+<?php
+define('INTERNAL', 1);
+define('CLI', 1);
+
 #
 # Builds release tarballs of Mahara at the given version, ready for
 # distribution
@@ -8,297 +12,294 @@
 # apply the patches before committing the version bumps and editing
 # the changelog.
 #
-set -e
 
-
-print_usage() {
-    echo "Usage is $0 [version] [branch] [<patchfile>...]"
-    echo "e.g. $0 1.3.5 1.3_STABLE ~/patches/0001-Add-foo-to-bar.patch ~/patches/0002-Fix-big-security-hole.patch"
-    echo "e.g. $0 1.2.8 1.2_STABLE"
-    echo "Patches should be created with git format-patch"
+if (count($argv) < 3) {
+    echo "Usage is ${argv[0]} [version] [branch] [<patchfile>...]";
+    echo "e.g. ${argv[0]} 16.04.3 16.04_STABLE";
+    echo "e.g. ${argv[0]} 15.10.1 15.10_STABLE";
+    exit(1);
 }
-
-if [ $# -lt 2 ]; then
-    print_usage
-    exit 1
-fi
 
 # Check for git gpg lp-project-upload
 
-if [ ! -x /usr/bin/gpg ] ; then
-  echo "You need to install gpg: apt-get install gnupg"
-  exit 1
-fi
+if (!@is_executable('/usr/bin/gpg')) {
+  echo "You need to install gpg: apt-get install gnupg";
+  exit(1);
+}
 
-if [ ! -x /usr/bin/git ] ; then
-  echo "You need to install git: apt-get install git-core"
-  exit 1
-fi
+if (!@is_executable('/usr/bin/git')) {
+  echo "You need to install git: apt-get install git-core";
+  exit(1);
+}
 
-if [ ! -x /usr/bin/lp-project-upload ] ; then
-  echo "You need to install lp-project-upload: apt-get install ubuntu-dev-tools (maverick or earlier) or lptools"
-  exit 1
-fi
+if (!@is_executable('/usr/bin/lp-project-upload')) {
+  echo "You need to install lp-project-upload: apt-get install ubuntu-dev-tools (maverick or earlier) or lptools";
+  exit(1);
+}
 
-if [ ! -x /usr/bin/m4 ] ; then
-  echo "You need to install m4: apt-get install m4"
-  exit 1
-fi
+if (!@is_executable('/usr/bin/m4')) {
+  echo "You need to install m4: apt-get install m4";
+  exit(1);
+}
 
-GIT_MAJOR=`git --version | cut -d' ' -f 3 | cut -d'.' -f 1`
-GIT_MINOR=`git --version | cut -d' ' -f 3 | cut -d'.' -f 2`
+$GIT_MAJOR = `git --version | cut -d' ' -f 3 | cut -d'.' -f 1`;
+$GIT_MINOR = `git --version | cut -d' ' -f 3 | cut -d'.' -f 2`;
 
-if [ $GIT_MAJOR -lt 1 ] || [ $GIT_MAJOR == 1 -a $GIT_MINOR -lt 6 ] ; then
-  echo "Your version of git is too old. Install git 1.6."
-  exit 1
-fi
+if ($GIT_MAJOR < 1 || ($GIT_MAJOR == 1 && $GIT_MINOR < 6 )) {
+  echo "Your version of git is too old. Install git 1.6.";
+  exit(1);
+}
 
 # Check all parameters
 
-VERSION=$1
+$VERSION=$argv[1];
 
-MAJOR=${VERSION%.*}
-REST=${VERSION##*.}
-MINOR=${REST%%[a-z]*}
-MICRO=`echo ${REST} | sed 's/^[0-9]*//g'`
-MICROA=`echo ${MICRO} | sed 's/[^a-z]//g'`
-MICROB=`echo ${MICRO} | sed 's/[a-z]//g'`
+$result = preg_match('/([0-9]+\.[0-9]+)(\.|rc)([0-9]+)/i', $VERSION, $matches);
+if (!$result) {
+    echo "Invalid version number. It must match the pattern \"15.04.1\" or \"15.04rc1\".";
+    exit(1);
+}
+$MAJOR = $matches[1];
+$MINOR = $matches[3];
+$releasecandidate = ($matches[2] == 'rc');
 
-BRANCH=$2
+$BRANCH = $argv[2];
 
-drafts=$(ssh $USER@reviews.mahara.org -p 29418 gerrit query is:draft branch:$BRANCH project:mahara "label:Code-Review>=0" "label:Verified>=0" | while read line
-do
-    if [[ "$line" =~ rowCount:.*([0-9]) ]]; then
-        if [[ "${BASH_REMATCH[1]}" != "0" ]]; then
-            echo "1" # we have some draft patches that match
-        fi
-    fi
-done)
-if [[ "$drafts" == "1" ]]; then
-    read -r -p "There are Draft patches that may need to be merged. Do you want to continue with release [y/n]?" response
-    response=${response,,} #to lower
-    if [[ $response =~ ^(yes|y)$ ]]; then
-        echo "Continuing..."
-    else
-        echo "Quitting out"
-        exit 1;
-    fi
-fi
+// Check for unmerged drafts
+if ($releasecandidate) {
+    // If it's a release candidate, draft patches will be on the master branch still
+    $draftbranch = 'master';
+}
+else {
+    $draftbranch = $BRANCH;
+}
+$draftlines = explode(
+    "\n",
+    `ssh \$USER@reviews.mahara.org -p 29418 gerrit query is:draft branch:$draftbranch project:mahara "label:Code-Review>=0" "label:Verified>=0"`
+);
+$draftcount = 0;
+foreach ($draftlines as $line) {
+    if (preg_match("/rowCount: *([0-9]+)/", $line, $matches)) {
+        $draftcount = $matches[1];
+        break;
+    }
+}
+if ($draftcount > 0) {
+    $response = readline("There are Draft patches that may need to be merged. Do you want to continue with release [y/n]?");
+    $response = trim(strtolower($response));
+    if ($response == 'yes' || $response == 'y') {
+        echo "Continuing...";
+    }
+    else {
+        echo "Quitting out";
+        exit(1);
+    }
+}
 
-BUILDDIR=`mktemp -d /tmp/mahara.XXXXX`
-CURRENTDIR="`pwd`"
-SCRIPTDIR=$( readlink -f -- "${0%/*}" )
+$BUILDDIR = trim(`mktemp -d /tmp/mahara.XXXXX`);
+$CURRENTDIR = getcwd();
+$SCRIPTDIR = dirname(__FILE__);
 
-if [ -z "${MAJOR}" ] || [ -z "${MINOR}" ]; then
-    print_usage
-    exit 1
-fi
-
-if [ ! -z "${MICRO}" ] && [ "${BRANCH}" != 'master' ]; then
-    echo "* Micro version is ${MICRO} and this is a stable branch. Stuff may be wrong. *"
-fi
-
-mkdir -p ${BUILDDIR}/mahara
-pushd ${BUILDDIR}/mahara
-
-
+mkdir("${BUILDDIR}/mahara", 0777, true);
+chdir("${BUILDDIR}/mahara");
 
 # Main Mahara repo to pull from
-#PUBLIC="git@git.mahara.org:mahara/mahara.git"
-PUBLIC="git@github.com:MaharaProject/mahara.git"
+$PUBLIC="git@github.com:MaharaProject/mahara.git";
+$PUBLIC = "https://git.mahara.org/mahara/mahara.git";
 
-echo "Cloning public repository ${PUBLIC} in ${BUILDDIR}/mahara"
-git init
-git remote add -t ${BRANCH} mahara ${PUBLIC}
-git fetch mahara
-git checkout -b ${BRANCH} mahara/${BRANCH}
-git fetch -t
-
-# Apply patch files named on command line
-patch=3
-while [ $patch -le $# ]; do
-    git am ${!patch}
-    patch=$((patch+1))
-done
+echo "Cloning public repository ${PUBLIC} in ${BUILDDIR}/mahara\n";
+passthru('git init');
+passthru("git remote add -t ${BRANCH} mahara ${PUBLIC}");
+passthru("git fetch -q mahara");
+passthru("git checkout -b ${BRANCH} mahara/${BRANCH}");
+passthru("git fetch -q -t");
 
 # Edit ChangeLog
-if [ -z "${MICRO}" ] && [ ! -f "ChangeLog" ]; then
-    echo "The ChangeLog file is missing and this is a stable release. Create an empty file called ChangeLog and commit it."
-    exit 1
-fi
+if (!file_exists("ChangeLog")) {
+    echo "The ChangeLog file is missing and this is a stable release. Create an empty file called ChangeLog and commit it.";
+    exit(1);
+}
 
-RELEASE="${MAJOR}.${MINOR}${MICRO}"
+// This is a separate variable for historical reasons
+$RELEASE = $VERSION;
 
-echo -e "#\n# Please add a description of the major changes in this release, one per line.\n# Don't put a dash or asterisk at the front of each line, they'll get added automatically.\n# Also, don't leave any blank lines at the bottom of this file.\n#\n" > ${CURRENTDIR}/ChangeLog.temp
-sensible-editor ${CURRENTDIR}/ChangeLog.temp
-grep -v "^#" ${CURRENTDIR}/ChangeLog.temp > ${CURRENTDIR}/changes.temp
+passthru("echo \"#\n# Please add a description of the major changes in this release, one per line.\n# Don't put a dash or asterisk at the front of each line, they'll get added automatically.\n# Also, don't leave any blank lines at the bottom of this file.\n#\" > ${CURRENTDIR}/ChangeLog.temp");
+passthru("sensible-editor ${CURRENTDIR}/ChangeLog.temp");
+passthru("grep -v \"^#\" ${CURRENTDIR}/ChangeLog.temp > ${CURRENTDIR}/changes.temp");
 
-if [ -f "ChangeLog" ]; then
-    cp ChangeLog ChangeLog.back
-    echo "$RELEASE (`date +%Y-%m-%d`)" > ChangeLog
-    sed 's/^/- /g' ${CURRENTDIR}/changes.temp >> ChangeLog
-    echo >> ChangeLog
-    cat ChangeLog.back >> ChangeLog
-    git add ChangeLog
-fi
-
-
-
+if (file_exists("ChangeLog")) {
+    copy('ChangeLog', 'ChangeLog.back');
+    passthru("echo \"$RELEASE (`date +%Y-%m-%d`)\" > ChangeLog");
+    passthru("sed 's/^/- /g' ${CURRENTDIR}/changes.temp >> ChangeLog");
+    passthru("echo >> ChangeLog");
+    passthru("cat ChangeLog.back >> ChangeLog");
+    passthru("git add ChangeLog");
+}
 
 # Add a version bump commit for the release
-
-VERSIONFILE=htdocs/lib/version.php
+$VERSIONFILE='htdocs/lib/version.php';
 
 # If there's no 'micro' part of the version number, assume it's a stable release, and
-# bump version by 1.  If it's an unstable release, use 
-if [ -z "${MICRO}" ] || [ "${BRANCH}" != 'master' ]; then
-    OLDVERSION=$(perl -n -e 'print if s/^\$config->version = (\d{10}).*/$1/' < ${VERSIONFILE})
-    NEWVERSION=$(( ${OLDVERSION} + 1 ))
-else
-    NEWVERSION=`date +%Y%m%d`00
-fi
+# bump version by 1.  If it's an unstable release, use
+$OLDVERSION = call_user_func(function($versionfile) {
+    require($versionfile);
+    return $config->version;
+}, $VERSIONFILE);;
+$NEWVERSION = $OLDVERSION + 1;
 
-sed "s/\$config->version = [0-9]\{10\};/\$config->version = $NEWVERSION;/" ${VERSIONFILE} > ${VERSIONFILE}.temp
-sed "s/\$config->release = .*/\$config->release = '$RELEASE';/" ${VERSIONFILE}.temp > ${VERSIONFILE}
+passthru("sed \"s/\$config->version = [0-9]\{10\};/\$config->version = $NEWVERSION;/\" ${VERSIONFILE} > ${VERSIONFILE}.temp");
+passthru("sed \"s/\$config->release = .*/\$config->release = '$RELEASE';/\" ${VERSIONFILE}.temp > ${VERSIONFILE}");
 
-echo
-git add ${VERSIONFILE}
-git commit -s -m "Version bump for $RELEASE"
-
-
+echo "\n\n";
+passthru("git add ${VERSIONFILE}");
+passthru("git commit -s -m \"Version bump for $RELEASE\"");
 
 # Tag the version bump commit
-LASTTAG=`git describe --abbrev=0`
-RELEASETAG="`echo $RELEASE | tr '[:lower:]' '[:upper:]'`_RELEASE"
-echo -e "\nTag new version bump commit as '$RELEASETAG'"
-git tag -s ${RELEASETAG} -m "$RELEASE release"
+$LASTTAG = trim(`git describe --abbrev=0`);
+$RELEASETAG = strtoupper($RELEASE) . '_RELEASE';
+echo "\nTag new version bump commit as '$RELEASETAG'\n";
+passthru("git tag -s ${RELEASETAG} -m \"$RELEASE release\"");
 
+# Build the css
+if ($OLDVERSION >= 2015091700) {
+    echo "Building css...\n";
+    echo `make css >> ../css.log 2>&1`;
+    if (!file_exists('htdocs/theme/raw/style/style.css')) {
+        echo "CSS files did not build correctly! Check $BUILDDIR/css.log for details.";
+        exit(1);
+    }
+}
 
-# Update the .gitattributes to ignore tests directories
-# First get the location for all phpunit directories
-phpunitdirs=`find ./ -type d -name 'phpunit' | grep 'tests/phpunit' | sed "s_./__"`
+# Package up the release
+$PACKAGEDIR = $BUILDDIR . '/mahara-' . $VERSION;
+echo "Package directory: $PACKAGEDIR\n";
+passthru("cp -r $BUILDDIR/mahara $PACKAGEDIR");
+chdir("$PACKAGEDIR");
 
-for dir in $phpunitdirs
-do
-  parentdir=`dirname "$dir"`
-  # Determine whether the parent directory contains anything other than
-  # phpunit. If not, ignore the whole parent directory.
-  siblings=`find "$parentdir" -maxdepth 1 -mindepth 1 | wc -l`
-  if [ "$siblings" = "1" ]
-  then
-    echo "$parentdir export-ignore" >> .gitattributes
-  else
-    echo "$dir export-ignore" >> .gitattributes
-  fi
-done
+# Delete everything that shouldn't be included
+if (getcwd() != "$PACKAGEDIR" || $PACKAGEDIR == '') {
+    echo "Couldn't cd into the right directory";
+    exit(1);
+}
+passthru('find . -type d -name ".git" -execdir rm -Rf {} \; 2> /dev/null');
+passthru('find . -type d -name "node_modules" -execdir rm -Rf {} \; 2> /dev/null');
+passthru('find . -type f -name "gulpfile.js" -execdir rm -Rf {} \; 2> /dev/null');
+passthru('find htdocs/theme -type d -name "sass" -execdir rm -Rf {} \; 2> /dev/null');
+passthru("rm -Rf test");
+passthru("rm -Rf .gitattributes");
+passthru("rm -Rf .gitignore");
+passthru("rm -Rf Makefile");
+passthru("rm -Rf phpunit.xml");
+passthru("rm -Rf external");
+passthru("rm -Rf package.json");
+
+# Get the location for all phpunit directories
+$phpunitdirs = explode("\n", `find . -type d -name 'phpunit' -path '*/tests/phpunit'`);
+foreach ($phpunitdirs as $dir) {
+    $parentdir = dirname($dir);
+    # Determine whether the parent directory contains anything other than
+    # phpunit. If not, remove the whole parent directory.
+    $siblings = explode("\n", `find "$parentdir" -maxdepth 1 -mindepth 1`);
+    if (count($siblings) == 1) {
+        passthru("rm -Rf $parentdir");
+    }
+    else {
+        passthru("rm -Rf $dir");
+    }
+}
 
 # Create tarballs
-
-echo "Creating mahara-${RELEASE}.tar.gz"
-git archive --worktree-attributes --format=tar --prefix=mahara-${VERSION}/ ${RELEASETAG} | gzip -9 > ${CURRENTDIR}/mahara-${RELEASE}.tar.gz
-echo "Creating mahara-${RELEASE}.tar.bz2"
-git archive --worktree-attributes --format=tar --prefix=mahara-${VERSION}/ ${RELEASETAG} | bzip2 -9 > ${CURRENTDIR}/mahara-${RELEASE}.tar.bz2
-echo "Creating mahara-${RELEASE}.zip"
-git archive --worktree-attributes --format=zip --prefix=mahara-${VERSION}/ -9 ${RELEASETAG} > ${CURRENTDIR}/mahara-${RELEASE}.zip
-
+chdir($BUILDDIR);
+echo "Creating mahara-${RELEASE}.tar.gz\n";
+passthru("tar c $PACKAGEDIR | gzip -9 > ${CURRENTDIR}/mahara-${RELEASE}.tar.gz");
+echo "Creating mahara-${RELEASE}.tar.bz2\n";
+passthru("tar c $PACKAGEDIR | bzip2 -9 > ${CURRENTDIR}/mahara-${RELEASE}.tar.bz2");
+echo "Creating mahara-${RELEASE}.zip\n";
+passthru("zip ${CURRENTDIR}/mahara-${RELEASE}.zip $PACKAGEDIR");
 
 
 # Save git changelog
-if [ -n "${LASTTAG}" ] ; then
-    echo "Getting changelog from previous tag ${LASTTAG}"
-    git log --pretty=format:"%s" --no-color --no-merges ${LASTTAG}..${RELEASETAG} > ${CURRENTDIR}/${RELEASETAG}.cl
-else
-    git log --pretty=format:"%s" --no-color --no-merges ${RELEASETAG} > ${CURRENTDIR}/${RELEASETAG}.cl
-fi
-OLDRELEASE=${LASTTAG%_RELEASE}
+chdir("$BUILDDIR/mahara");
+if ($LASTTAG) {
+    echo "Getting changelog from previous tag ${LASTTAG}\n";
+    passthru("git log --pretty=format:\"%s\" --no-color --no-merges ${LASTTAG}..${RELEASETAG} > ${CURRENTDIR}/${RELEASETAG}.cl");
+    $OLDRELEASE = substr($LASTTAG, 0, -1 * strlen('_RELEASE'));
+}
+else {
+    passthru("git log --pretty=format:\"%s\" --no-color --no-merges ${RELEASETAG} > ${CURRENTDIR}/${RELEASETAG}.cl");
+    $OLDRELEASE = '';
+}
 
-
-
-# Prepare eduforge release notes
-
-TMP_M4_FILE=/tmp/mahara-releasnotes.m4.tmp
-echo "changecom" > $TMP_M4_FILE
-echo "define(\`__RELEASE__',\`${RELEASE}')dnl" >> $TMP_M4_FILE
-echo "define(\`__OLDRELEASE__',\`${OLDRELEASE}')dnl" >> $TMP_M4_FILE
-echo "define(\`__MAJOR__',\`${MAJOR}')dnl" >> $TMP_M4_FILE
-sed 's/^/ * /g' ${CURRENTDIR}/changes.temp >> ${CURRENTDIR}/changes.eduforge.temp
-echo "define(\`__CHANGES__',\`include(\`${CURRENTDIR}/changes.eduforge.temp')')dnl" >> $TMP_M4_FILE
-
-if [ -z "${MICRO}" ]; then
-    TEMPLATE=releasenotes.stable.template
-else
-    TEMPLATE=releasenotes.${MICROA}.template
-fi
-
-m4 ${TMP_M4_FILE} ${SCRIPTDIR}/${TEMPLATE} > ${CURRENTDIR}/releasenotes-${RELEASE}.txt
-
-
+# Prepare release notes
+// TODO: Replace this with a simple find/replace, to remove the m4 dependency
+$TMP_M4_FILE = '/tmp/mahara-releasnotes.m4.tmp';
+$m4script = <<<STRING
+changecom
+define(\\`__RELEASE__',\\`${RELEASE}')dnl
+define(\\`__OLDRELEASE__',\\`${OLDRELEASE}')dnl
+define(\\`__MAJOR__',\\`${MAJOR}')dnl
+STRING;
+file_put_contents($TMP_M4_FILE, $m4script);
+if ($releasecandidate) {
+    $TEMPLATE = 'releasenotes.rc.template';
+}
+else {
+    $TEMPLATE = 'releasenotes.stable.template';
+}
+passthru("m4 ${TMP_M4_FILE} ${SCRIPTDIR}/${TEMPLATE} > ${CURRENTDIR}/releasenotes-${RELEASE}.txt");
 
 # Second version bump for post-release
+$NEWVERSION = $NEWVERSION + 1;
+$NEWRELEASE = $MAJOR . ($releasecandidate ? 'rc' : '.') . ($MINOR + 1) . "testing";
 
-NEWVERSION=$(( ${NEWVERSION} + 1 ))
-if [ -z "${MICRO}" ]; then
-    NEWRELEASE="${MAJOR}.$(( ${MINOR} + 1 ))testing"
-else
-    NEWRELEASE="${MAJOR}.${MINOR}${MICROA}$(( ${MICROB} + 1 ))dev"
-fi
+passthru("sed \"s/\$config->version = [0-9]\{10\};/\$config->version = $NEWVERSION;/\" ${VERSIONFILE} > ${VERSIONFILE}.temp");
+passthru("sed \"s/\$config->release = .*/\$config->release = '$NEWRELEASE';/\" ${VERSIONFILE}.temp > ${VERSIONFILE}");
 
-sed "s/\$config->version = [0-9]\{10\};/\$config->version = $NEWVERSION;/" ${VERSIONFILE} > ${VERSIONFILE}.temp
-sed "s/\$config->release = .*/\$config->release = '$NEWRELEASE';/" ${VERSIONFILE}.temp > ${VERSIONFILE}
-
-git add ${VERSIONFILE}
-git commit -s -m "Version bump for $NEWRELEASE"
-
-
+passthru("git add ${VERSIONFILE}");
+passthru("git commit -s -m \"Version bump for $NEWRELEASE\"");
 
 # Add gerrit repo, for pushing the new security patches, version bump & changelog commits
-GERRIT="ssh://reviews.mahara.org:29418/mahara"
-git remote add gerrit ${GERRIT}
-
+$GERRIT = "ssh://reviews.mahara.org:29418/mahara";
+passthru("git remote add gerrit ${GERRIT}");
 
 # Output commands to push to the remote repository and clean up
+$CLEANUPSCRIPT = "$CURRENTDIR/release-${RELEASE}-cleanup.sh";
+$cleanup  = <<<CLEANUP
+#!/bin/sh
 
-CLEANUPSCRIPT=release-${RELEASE}-cleanup.sh
-echo "#!/bin/sh" > ${CURRENTDIR}/${CLEANUPSCRIPT}
+set -e
 
-echo "set -e" > ${CURRENTDIR}/${CLEANUPSCRIPT}
+cd ${BUILDDIR}/mahara
+git push gerrit ${BRANCH}:refs/heads/${BRANCH}
+git push gerrit ${RELEASETAG}:refs/tags/${RELEASETAG}
 
-echo "cd ${BUILDDIR}/mahara" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
-echo "git push gerrit ${BRANCH}:refs/heads/${BRANCH}" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
-echo "git push gerrit ${RELEASETAG}:refs/tags/${RELEASETAG}" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
+gpg --armor --sign --detach-sig ${CURRENTDIR}/mahara-${RELEASE}.tar.gz
+gpg --armor --sign --detach-sig ${CURRENTDIR}/mahara-${RELEASE}.tar.bz2
+gpg --armor --sign --detach-sig ${CURRENTDIR}/mahara-${RELEASE}.zip
 
-echo "gpg --armor --sign --detach-sig ${CURRENTDIR}/mahara-${RELEASE}.tar.gz" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
-echo "gpg --armor --sign --detach-sig ${CURRENTDIR}/mahara-${RELEASE}.tar.bz2" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
-echo "gpg --armor --sign --detach-sig ${CURRENTDIR}/mahara-${RELEASE}.zip" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
+cd ${CURRENTDIR}
+lp-project-upload mahara ${RELEASE} mahara-${RELEASE}.tar.gz
+lp-project-upload mahara ${RELEASE} mahara-${RELEASE}.tar.bz2
+lp-project-upload mahara ${RELEASE} mahara-${RELEASE}.zip
 
-echo "cd ${CURRENTDIR}" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
-echo "lp-project-upload mahara ${RELEASE} mahara-${RELEASE}.tar.gz" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
-echo "lp-project-upload mahara ${RELEASE} mahara-${RELEASE}.tar.bz2" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
-echo "lp-project-upload mahara ${RELEASE} mahara-${RELEASE}.zip" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
+echo
+echo \"All done. Once you've checked that the files were uploaded successfully, run this:\"
+echo \"  rm -rf ${BUILDDIR}\"
+CLEANUP;
 
-echo "echo" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
-echo "echo \"All done. Once you've checked that the files were uploaded successfully, run this:\"" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
-echo "echo \"  rm -rf ${BUILDDIR}\"" >> ${CURRENTDIR}/${CLEANUPSCRIPT}
-
-chmod 700 ${CURRENTDIR}/${CLEANUPSCRIPT}
-
-
+file_put_contents($CLEANUPSCRIPT, $cleanup);
+chmod($CLEANUPSCRIPT, 0700);
 
 # Clean up
+passthru("rm ${VERSIONFILE}.temp");
+passthru("rm ${CURRENTDIR}/ChangeLog.temp");
+passthru("rm ${CURRENTDIR}/changes.temp");
+passthru("rm ${TMP_M4_FILE}");
 
-rm ${VERSIONFILE}.temp
-rm ${CURRENTDIR}/ChangeLog.temp
-rm ${CURRENTDIR}/changes.temp
-rm ${CURRENTDIR}/changes.eduforge.temp
-rm ${TMP_M4_FILE}
+echo "\n\nTarballs, release notes & changelog for Launchpad:\n\n";
+chdir($CURRENTDIR);
+passthru("ls -l mahara-${RELEASE}.tar.gz mahara-${RELEASE}.tar.bz2 mahara-${RELEASE}.zip releasenotes-${RELEASE}.txt ${RELEASETAG}.cl");
 
-
-
-
-echo -e "\n\nTarballs, release notes & changelog for Launchpad:\n"
-cd ${CURRENTDIR}
-ls -l mahara-${RELEASE}.tar.gz mahara-${RELEASE}.tar.bz2 mahara-${RELEASE}.zip releasenotes-${RELEASE}.txt ${RELEASETAG}.cl
-
-echo -e "\n1. Check that everything is in order in the ${BUILDDIR}/mahara repository."
-echo -e "\n2. Create the release on launchpad at https://launchpad.net/mahara/+milestone/${RELEASE}"
-echo -e "\n3. Run the commands in ${CLEANUPSCRIPT} to push the changes back to the remote repository and upload the tarballs."
+echo "\n1. Check that everything is in order in the ${BUILDDIR}/mahara repository.\n";
+echo "\n2. Create the release on launchpad at https://launchpad.net/mahara/+milestone/${RELEASE}\n";
+echo "\n3. Run the commands in ${CLEANUPSCRIPT} to push the changes back to the remote repository and upload the tarballs.\n";
