@@ -171,35 +171,36 @@ if ($OLDVERSION >= 2015091700) {
 }
 
 # Package up the release
-$PACKAGEDIR = $BUILDDIR . '/mahara-' . $VERSION;
-echo "Package directory: $PACKAGEDIR\n";
-passthru("cp -r $BUILDDIR/mahara $PACKAGEDIR");
-chdir("$PACKAGEDIR");
+$PACKAGEDIR = 'mahara-' . $VERSION;
+echo "Package directory: $BUILDDIR/$PACKAGEDIR\n";
+passthru("cp -r $BUILDDIR/mahara $BUILDDIR/$PACKAGEDIR");
+chdir("$BUILDDIR/$PACKAGEDIR");
 
 # Delete everything that shouldn't be included
-if (getcwd() != "$PACKAGEDIR" || $PACKAGEDIR == '') {
+if (getcwd() != "$BUILDDIR/$PACKAGEDIR" || $PACKAGEDIR == '') {
     echo "Couldn't cd into the right directory";
     exit(1);
 }
 passthru('find . -type d -name ".git" -execdir rm -Rf {} \; 2> /dev/null');
+passthru('find . -type f -name ".gitignore" -execdir rm -Rf {} \; 2> /dev/null');
 passthru('find . -type d -name "node_modules" -execdir rm -Rf {} \; 2> /dev/null');
 passthru('find . -type f -name "gulpfile.js" -execdir rm -Rf {} \; 2> /dev/null');
 passthru('find htdocs/theme -type d -name "sass" -execdir rm -Rf {} \; 2> /dev/null');
 passthru("rm -Rf test");
 passthru("rm -Rf .gitattributes");
-passthru("rm -Rf .gitignore");
 passthru("rm -Rf Makefile");
 passthru("rm -Rf phpunit.xml");
 passthru("rm -Rf external");
 passthru("rm -Rf package.json");
+passthru("rm -Rf ChangeLog.back");
 
 # Get the location for all phpunit directories
-$phpunitdirs = explode("\n", `find . -type d -name 'phpunit' -path '*/tests/phpunit'`);
+$phpunitdirs = explode("\n", `find . -type d -name 'phpunit' -path '*/tests/phpunit' 2> /dev/null`);
 foreach ($phpunitdirs as $dir) {
     $parentdir = dirname($dir);
     # Determine whether the parent directory contains anything other than
     # phpunit. If not, remove the whole parent directory.
-    $siblings = explode("\n", `find "$parentdir" -maxdepth 1 -mindepth 1`);
+    $siblings = explode("\n", `find "$parentdir" -maxdepth 1 -mindepth 1 2> /dev/null`);
     if (count($siblings) == 1) {
         passthru("rm -Rf $parentdir");
     }
@@ -215,7 +216,7 @@ passthru("tar c $PACKAGEDIR | gzip -9 > ${CURRENTDIR}/mahara-${RELEASE}.tar.gz")
 echo "Creating mahara-${RELEASE}.tar.bz2\n";
 passthru("tar c $PACKAGEDIR | bzip2 -9 > ${CURRENTDIR}/mahara-${RELEASE}.tar.bz2");
 echo "Creating mahara-${RELEASE}.zip\n";
-passthru("zip ${CURRENTDIR}/mahara-${RELEASE}.zip $PACKAGEDIR");
+passthru("zip -rq ${CURRENTDIR}/mahara-${RELEASE}.zip $PACKAGEDIR");
 
 
 # Save git changelog
@@ -232,12 +233,13 @@ else {
 
 # Prepare release notes
 // TODO: Replace this with a simple find/replace, to remove the m4 dependency
-$TMP_M4_FILE = '/tmp/mahara-releasnotes.m4.tmp';
+$TMP_M4_FILE = '/tmp/mahara-releasenotes.m4.tmp';
 $m4script = <<<STRING
 changecom
 define(\\`__RELEASE__',\\`${RELEASE}')dnl
 define(\\`__OLDRELEASE__',\\`${OLDRELEASE}')dnl
 define(\\`__MAJOR__',\\`${MAJOR}')dnl
+
 STRING;
 file_put_contents($TMP_M4_FILE, $m4script);
 if ($releasecandidate) {
