@@ -285,8 +285,8 @@ lp-project-upload mahara ${RELEASE} mahara-${RELEASE}.tar.bz2
 lp-project-upload mahara ${RELEASE} mahara-${RELEASE}.zip
 
 echo
-echo \"All done. Once you've checked that the files were uploaded successfully, run this:\"
-echo \"  rm -rf ${BUILDDIR}\"
+echo "All done. Once you've checked that the files were uploaded successfully, run this:"
+echo "  rm -rf ${BUILDDIR}"
 CLEANUP;
 
 file_put_contents($CLEANUPSCRIPT, $cleanup);
