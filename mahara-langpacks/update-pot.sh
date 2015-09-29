@@ -49,7 +49,7 @@ BZR=${WORK}/mahara-lang-bzr
 cd ${GITDIR}
 git fetch --quiet origin
 
-branches="1.7_STABLE 1.8_STABLE 1.9_STABLE 1.10_STABLE 15.04_STABLE master"
+branches="1.7_STABLE 1.8_STABLE 1.9_STABLE 1.10_STABLE 15.04_STABLE 15.10_STABLE master"
 
 for branch in ${branches} ; do
     branchexists=`git branch | grep "${branch}$"`
