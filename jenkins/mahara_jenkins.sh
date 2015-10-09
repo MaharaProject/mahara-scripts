@@ -22,13 +22,13 @@ echo ""
 # that exists when the patch was made.
 HEAD=`git rev-parse HEAD`
 the_list=`git log --pretty=format:'%H' origin/$GERRIT_BRANCH..$HEAD`
-if [ -z "$the_lists" ]; then
-    echo "The patch has already been merged"
-    exit 1;
-fi
 firstcommit=1
 while IFS= read -r line
 do
+        if [ -z "$line" ]; then
+            echo "Patch already merged"
+            exit 1;
+        fi
         # check if the commit or it's parents have been rejected
         php=`which php`
         outcome=`$php $HOME/mahara/mahara-scripts/jenkins/gerrit_query.php -- $line $firstcommit`
