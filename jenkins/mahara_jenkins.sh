@@ -22,6 +22,10 @@ echo ""
 # that exists when the patch was made.
 HEAD=`git rev-parse HEAD`
 the_list=`git log --pretty=format:'%H' origin/$GERRIT_BRANCH..$HEAD`
+if [ -z "$the_lists" ]; then
+    echo "The patch has already been merged"
+    exit 1;
+fi
 firstcommit=1
 while IFS= read -r line
 do
