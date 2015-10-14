@@ -92,14 +92,14 @@ php composer.phar update
 cd ..
 
 echo ""
-echo "########## Run unit tests"
-echo ""
-external/vendor/bin/phpunit htdocs/
-
-echo ""
 echo "########## Build & Minify CSS"
 echo ""
 make
+
+echo ""
+echo "########## Run unit tests"
+echo ""
+external/vendor/bin/phpunit htdocs/
 
 echo ""
 echo "########## Run Behat"
