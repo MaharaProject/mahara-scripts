@@ -14,9 +14,9 @@ define('CLI', 1);
 #
 
 if (count($argv) < 3) {
-    echo "Usage is ${argv[0]} [version] [branch] [<patchfile>...]";
-    echo "e.g. ${argv[0]} 16.04.3 16.04_STABLE";
-    echo "e.g. ${argv[0]} 15.10.1 15.10_STABLE";
+    echo "Usage is ${argv[0]} [version] [branch] [<changesetnumber>...]\n";
+    echo "e.g. ${argv[0]} 16.04.3 16.04_STABLE\n";
+    echo "e.g. ${argv[0]} 15.10.1 15.10_STABLE 5793 5795\n";
     exit(1);
 }
 
@@ -113,6 +113,36 @@ passthru("git remote add -t ${BRANCH} mahara ${PUBLIC}");
 passthru("git fetch -q mahara");
 passthru("git checkout -b ${BRANCH} mahara/${BRANCH}");
 passthru("git fetch -q -t");
+
+
+// Applying gerrit patches named on the command line
+if (count($argv) > 3) {
+    $successwithpatches = true;
+    for ($i = 3; $i < count($argv); $i++) {
+        $patchno = $argv[$i];
+        $refline = shell_exec("ssh reviews.mahara.org -p 29418 gerrit query --current-patch-set --format=TEXT change:'{$patchno}'| grep ref");
+        if ($refline) {
+            $result = preg_match('#ref: (refs/changes/[/0-9]+)#', $refline, $matches);
+            if ($result) {
+                $return_var = passthru("git fetch ssh://reviews.mahara.org:29418/mahara {$matches[1]} && git cherry-pick FETCH_HEAD");
+                if ($return_var != 0) {
+                    echo "Couldn't cherry-pick Gerrit change number {$patchno}.\n";
+                    $successwithpatches = false;
+                }
+            }
+            else {
+                echo "Couldn't find latest patch number for Gerrit change number {$patchno}.\n";
+                $succesoverall = false;
+            }
+        } else {
+            echo "Couldn't retrieve information about Gerrit change number {$patchno}.\n";
+            $successwithpatches = false;
+        }
+    }
+    if (!$successwithpatches) {
+        exit();
+    }
+}
 
 # Edit ChangeLog
 if (!file_exists("ChangeLog")) {
