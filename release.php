@@ -270,13 +270,13 @@ else {
 # Prepare release notes
 // TODO: Replace this with a simple find/replace, to remove the m4 dependency
 $TMP_M4_FILE = '/tmp/mahara-releasenotes.m4.tmp';
-passthru("sed 's/^/ * /g' ${CURRENTDIR}/changes.temp >> ${CURRENTDIR}/changes.noasterisks.temp");
+passthru("sed 's/^/ * /g' ${CURRENTDIR}/changes.temp >> ${CURRENTDIR}/changes.withasterisks.temp");
 $m4script = <<<STRING
 changecom
 define(`__RELEASE__',`${RELEASE}')dnl
 define(`__OLDRELEASE__',`${OLDRELEASE}')dnl
 define(`__MAJOR__',`${MAJOR}')dnl
-define(`__CHANGES__',`include(`${CURRENTDIR}/changes.noasterisks.temp')')dnl
+define(`__CHANGES__',`include(`${CURRENTDIR}/changes.withasterisks.temp')')dnl
 
 STRING;
 file_put_contents($TMP_M4_FILE, $m4script);
@@ -319,9 +319,9 @@ gpg --armor --sign --detach-sig ${CURRENTDIR}/mahara-${RELEASE}.tar.bz2
 gpg --armor --sign --detach-sig ${CURRENTDIR}/mahara-${RELEASE}.zip
 
 cd ${CURRENTDIR}
-lp-project-upload mahara ${RELEASE} mahara-${RELEASE}.tar.gz
-lp-project-upload mahara ${RELEASE} mahara-${RELEASE}.tar.bz2
-lp-project-upload mahara ${RELEASE} mahara-${RELEASE}.zip
+${CURRENTDIR}/lptools/lp-project-upload mahara ${RELEASE} mahara-${RELEASE}.tar.gz changes.withasterisks.temp releasenotes-${RELEASE}.txt
+${CURRENTDIR}/lptools/lp-project-upload mahara ${RELEASE} mahara-${RELEASE}.tar.bz2 changes.withasterisks.temp releasenotes-${RELEASE}.txt
+${CURRENTDIR}/lptools/lp-project-upload mahara ${RELEASE} mahara-${RELEASE}.zip changes.withasterisks.temp releasenotes-${RELEASE}.txt
 
 echo
 echo "All done. Once you've checked that the files were uploaded successfully, run this:"
@@ -332,10 +332,11 @@ file_put_contents($CLEANUPSCRIPT, $cleanup);
 chmod($CLEANUPSCRIPT, 0700);
 
 # Clean up
-passthru("rm ${VERSIONFILE}.temp");
-passthru("rm ${CURRENTDIR}/ChangeLog.temp");
-passthru("rm ${CURRENTDIR}/changes.temp");
-passthru("rm ${TMP_M4_FILE}");
+// Let people clean these up manually. They might be useful for debugging.
+// passthru("rm ${VERSIONFILE}.temp");
+// passthru("rm ${CURRENTDIR}/ChangeLog.temp");
+// passthru("rm ${CURRENTDIR}/changes.temp");
+// passthru("rm ${TMP_M4_FILE}");
 
 echo "\n\nTarballs, release notes & changelog for Launchpad:\n\n";
 chdir($CURRENTDIR);

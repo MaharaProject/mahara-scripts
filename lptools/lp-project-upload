@@ -85,10 +85,10 @@ def cat_file(f):
     return content.strip()
 
 def main():
-    if len(sys.argv) < 4 or len(sys.argv) > 7:
+    if len(sys.argv) < 4 or len(sys.argv) > 6:
         print >> sys.stderr, '''Upload a release tarball to a Launchpad project.
 
-    Usage: %s <project name> <version> <tarball> [new milestone] [changelog file] [releasenotes file]''' % sys.argv[0]
+    Usage: %s <project name> <version> <tarball> [changelog file] [releasenotes file]''' % sys.argv[0]
         sys.exit(1)
 
     new_milestone = None
@@ -97,12 +97,11 @@ def main():
     if len(sys.argv) == 4:
         (project, version, tarball) = sys.argv[1:]
     elif len(sys.argv) == 5:
-        (project, version, tarball, new_milestone) = sys.argv[1:]
+        (project, version, tarball, changelog_file) = sys.argv[1:]
     elif len(sys.argv) == 6:
-        (project, version, tarball, new_milestone, changelog_file) = sys.argv[1:]
-    elif len(sys.argv) == 7:
-        (project, version, tarball, new_milestone, changelog_file, releasenotes_file) = sys.argv[1:]
+        (project, version, tarball, changelog_file, releasenotes_file) = sys.argv[1:]
 
+    print "Uploading..."
     launchpad = config.get_launchpad("project-upload")
 
     try:
