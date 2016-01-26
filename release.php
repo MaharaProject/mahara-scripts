@@ -13,32 +13,37 @@ define('CLI', 1);
 # the changelog.
 #
 
+$usage = <<<STRING
+Usage is ${argv[0]} [version] [branch] [<changesetnumber>...]
+e.g. ${argv[0]} 16.04.3 16.04_STABLE
+e.g. ${argv[0]} 15.10.1 15.10_STABLE 5793 5795
+
+STRING;
+
 if (count($argv) < 3) {
-    echo "Usage is ${argv[0]} [version] [branch] [<patchfile>...]";
-    echo "e.g. ${argv[0]} 16.04.3 16.04_STABLE";
-    echo "e.g. ${argv[0]} 15.10.1 15.10_STABLE";
+    echo $usage;
     exit(1);
 }
 
 # Check for git gpg lp-project-upload
 
 if (!@is_executable('/usr/bin/gpg')) {
-  echo "You need to install gpg: apt-get install gnupg";
+  echo "You need to install gpg: apt-get install gnupg\n";
   exit(1);
 }
 
 if (!@is_executable('/usr/bin/git')) {
-  echo "You need to install git: apt-get install git-core";
+  echo "You need to install git: apt-get install git-core\n";
   exit(1);
 }
 
 if (!@is_executable('/usr/bin/lp-project-upload')) {
-  echo "You need to install lp-project-upload: apt-get install ubuntu-dev-tools (maverick or earlier) or lptools";
+  echo "You need to install lp-project-upload: apt-get install ubuntu-dev-tools (maverick or earlier) or lptools\n";
   exit(1);
 }
 
 if (!@is_executable('/usr/bin/m4')) {
-  echo "You need to install m4: apt-get install m4";
+  echo "You need to install m4: apt-get install m4\n";
   exit(1);
 }
 
@@ -46,7 +51,7 @@ $GIT_MAJOR = `git --version | cut -d' ' -f 3 | cut -d'.' -f 1`;
 $GIT_MINOR = `git --version | cut -d' ' -f 3 | cut -d'.' -f 2`;
 
 if ($GIT_MAJOR < 1 || ($GIT_MAJOR == 1 && $GIT_MINOR < 6 )) {
-  echo "Your version of git is too old. Install git 1.6.";
+  echo "Your version of git is too old. Install git 1.6.\n";
   exit(1);
 }
 
@@ -56,7 +61,8 @@ $VERSION=$argv[1];
 
 $result = preg_match('/([0-9]+\.[0-9]+)(\.|rc)([0-9]+)/i', $VERSION, $matches);
 if (!$result) {
-    echo "Invalid version number. It must match the pattern \"15.04.1\" or \"15.04rc1\".";
+    echo "Invalid version number. It must match the pattern \"15.04.1\" or \"15.04rc1\".\n";
+    echo $usage;
     exit(1);
 }
 $MAJOR = $matches[1];
@@ -114,6 +120,36 @@ passthru("git fetch -q mahara");
 passthru("git checkout -b ${BRANCH} mahara/${BRANCH}");
 passthru("git fetch -q -t");
 
+
+// Applying gerrit patches named on the command line
+if (count($argv) > 3) {
+    $successwithpatches = true;
+    for ($i = 3; $i < count($argv); $i++) {
+        $patchno = $argv[$i];
+        $refline = shell_exec("ssh reviews.mahara.org -p 29418 gerrit query --current-patch-set --format=TEXT change:'{$patchno}'| grep ref");
+        if ($refline) {
+            $result = preg_match('#ref: (refs/changes/[/0-9]+)#', $refline, $matches);
+            if ($result) {
+                $return_var = passthru("git fetch ssh://reviews.mahara.org:29418/mahara {$matches[1]} && git cherry-pick FETCH_HEAD");
+                if ($return_var != 0) {
+                    echo "Couldn't cherry-pick Gerrit change number {$patchno}.\n";
+                    $successwithpatches = false;
+                }
+            }
+            else {
+                echo "Couldn't find latest patch number for Gerrit change number {$patchno}.\n";
+                $succesoverall = false;
+            }
+        } else {
+            echo "Couldn't retrieve information about Gerrit change number {$patchno}.\n";
+            $successwithpatches = false;
+        }
+    }
+    if (!$successwithpatches) {
+        exit();
+    }
+}
+
 # Edit ChangeLog
 if (!file_exists("ChangeLog")) {
     echo "The ChangeLog file is missing and this is a stable release. Create an empty file called ChangeLog and commit it.";
@@ -163,7 +199,7 @@ passthru("git tag -s ${RELEASETAG} -m \"$RELEASE release\"");
 # Build the css
 if ($OLDVERSION >= 2015091700) {
     echo "Building css...\n";
-    echo `make css >> ../css.log 2>&1`;
+    passthru("make css >> ../css.log 2>&1");
     if (!file_exists('htdocs/theme/raw/style/style.css')) {
         echo "CSS files did not build correctly! Check $BUILDDIR/css.log for details.";
         exit(1);
@@ -234,14 +270,17 @@ else {
 # Prepare release notes
 // TODO: Replace this with a simple find/replace, to remove the m4 dependency
 $TMP_M4_FILE = '/tmp/mahara-releasenotes.m4.tmp';
+passthru("sed 's/^/ * /g' ${CURRENTDIR}/changes.temp >> ${CURRENTDIR}/changes.withasterisks.temp");
 $m4script = <<<STRING
 changecom
-define(\\`__RELEASE__',\\`${RELEASE}')dnl
-define(\\`__OLDRELEASE__',\\`${OLDRELEASE}')dnl
-define(\\`__MAJOR__',\\`${MAJOR}')dnl
+define(`__RELEASE__',`${RELEASE}')dnl
+define(`__OLDRELEASE__',`${OLDRELEASE}')dnl
+define(`__MAJOR__',`${MAJOR}')dnl
+define(`__CHANGES__',`include(`${CURRENTDIR}/changes.withasterisks.temp')')dnl
 
 STRING;
 file_put_contents($TMP_M4_FILE, $m4script);
+
 if ($releasecandidate) {
     $TEMPLATE = 'releasenotes.rc.template';
 }
@@ -280,9 +319,9 @@ gpg --armor --sign --detach-sig ${CURRENTDIR}/mahara-${RELEASE}.tar.bz2
 gpg --armor --sign --detach-sig ${CURRENTDIR}/mahara-${RELEASE}.zip
 
 cd ${CURRENTDIR}
-lp-project-upload mahara ${RELEASE} mahara-${RELEASE}.tar.gz
-lp-project-upload mahara ${RELEASE} mahara-${RELEASE}.tar.bz2
-lp-project-upload mahara ${RELEASE} mahara-${RELEASE}.zip
+${CURRENTDIR}/lptools/lp-project-upload mahara ${RELEASE} mahara-${RELEASE}.tar.gz changes.withasterisks.temp releasenotes-${RELEASE}.txt
+${CURRENTDIR}/lptools/lp-project-upload mahara ${RELEASE} mahara-${RELEASE}.tar.bz2 changes.withasterisks.temp releasenotes-${RELEASE}.txt
+${CURRENTDIR}/lptools/lp-project-upload mahara ${RELEASE} mahara-${RELEASE}.zip changes.withasterisks.temp releasenotes-${RELEASE}.txt
 
 echo
 echo "All done. Once you've checked that the files were uploaded successfully, run this:"
@@ -293,10 +332,11 @@ file_put_contents($CLEANUPSCRIPT, $cleanup);
 chmod($CLEANUPSCRIPT, 0700);
 
 # Clean up
-passthru("rm ${VERSIONFILE}.temp");
-passthru("rm ${CURRENTDIR}/ChangeLog.temp");
-passthru("rm ${CURRENTDIR}/changes.temp");
-passthru("rm ${TMP_M4_FILE}");
+// Let people clean these up manually. They might be useful for debugging.
+// passthru("rm ${VERSIONFILE}.temp");
+// passthru("rm ${CURRENTDIR}/ChangeLog.temp");
+// passthru("rm ${CURRENTDIR}/changes.temp");
+// passthru("rm ${TMP_M4_FILE}");
 
 echo "\n\nTarballs, release notes & changelog for Launchpad:\n\n";
 chdir($CURRENTDIR);
