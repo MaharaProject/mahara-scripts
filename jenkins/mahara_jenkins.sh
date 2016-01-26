@@ -38,6 +38,9 @@ do
         elif [ "$outcome" = "3" ]; then
             echo "The patch with git commit id $line is not the latest (current) patch"
             exit 1;
+        elif [ "$outcome" = "4" ]; then
+            echo "This patch or a parent patch has been abandoned"
+            exit 1;
         else
             echo "The patch with git commit id $line looks ok so we will continue"
         fi

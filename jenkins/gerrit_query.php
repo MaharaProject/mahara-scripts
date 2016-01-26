@@ -21,6 +21,11 @@ if ($content[0]->status == 'MERGED') {
     exit;
 }
 
+if ($content[0]->status == 'ABANDONED') {
+    echo 4;
+    exit;
+}
+
 // Check that the patch we are testing is the latest (current) patchset in series
 if ($content[0]->current_revision != $git_commit_id) {
     echo 3;
