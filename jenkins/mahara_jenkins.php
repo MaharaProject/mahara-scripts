@@ -48,7 +48,7 @@ passthru_or_die("git fetch origin $GERRIT_BRANCH");
 echo "";
 $behindby = shell_exec_or_die("git rev-list HEAD..origin/$GERRIT_BRANCH | wc -l");
 echo "This patch is behind $GERRIT_BRANCH by $behindby commit(s)\n";
-if ($behindby < $MAXBEHIND) {
+if ($behindby > $MAXBEHIND) {
     echo "This patch is too far behind master, please rebase\n";
     exit(1);
 }
