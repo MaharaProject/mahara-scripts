@@ -72,7 +72,6 @@ $i = 0;
 $trustedusers = array();
 foreach ($commitancestors as $commit) {
     $commit = trim($commit);
-    $i++;
 
     $content = gerrit_query('/changes/?q=commit:' . $commit . '+branch:' . $GERRIT_BRANCH . '&o=LABELS&o=CURRENT_REVISION&pp=0');
     // Because we queried by commit and branch, should return exactly one record.
@@ -144,7 +143,7 @@ foreach ($commitancestors as $commit) {
         // in groups that are set to make their list of members public)
         $groups = gerrit_query('/accounts/' . $uploader . '/groups/?pp=0');
         foreach ($groups as $group) {
-            if ($groups->owner == 'Mahara Reviewers' || $groups->owner == 'Mahara Testers') {
+            if ($group->owner == 'Mahara Reviewers' || $group->owner == 'Mahara Testers') {
                 $trustedusers[$uploader] = true;
             }
         }
@@ -175,24 +174,7 @@ foreach ($commitancestors as $commit) {
         echo "$i. Ancestor patch with git commit id $commit looks ok so we will continue\n";
     }
     $firstcommit = false;
-}
-
-echo "\n";
-echo "########## Check the patch contains a Behat test\n";
-echo "\n";
-if (trim(shell_exec("git diff-tree --no-commit-id --name-only -r HEAD | grep -c $BEHATTESTREGEX")) >= 1) {
-    echo "Patch includes a Behat test.\n";
-}
-else {
-    echo "This patch does not include a Behat test!\n";
-    # Check whether the commit message has "behatnotneeded" in it.
-    if (trim(shell_exec("git log -1 | grep -i -c $BEHATNOTNEEDED")) >= 1) {
-        echo "... but the patch is marked with \"$BEHATNOTNEEDED\", so we will continue.\n";
-    }
-    else {
-        echo "Please write a Behat test for it, or, if it cannot be tested, put \"$BEHATNOTNEEDED\" in its commit message.\n";
-        exit(1);
-    }
+    $i++;
 }
 
 echo "\n";
@@ -231,6 +213,24 @@ echo "\n";
 echo "########## Run unit tests\n";
 echo "\n";
 passthru_or_die('external/vendor/bin/phpunit htdocs/');
+
+echo "\n";
+echo "########## Verify that the patch contains a Behat test\n";
+echo "\n";
+if (trim(shell_exec("git diff-tree --no-commit-id --name-only -r HEAD | grep -c $BEHATTESTREGEX")) >= 1) {
+    echo "Patch includes a Behat test.\n";
+}
+else {
+    echo "This patch does not include a Behat test!\n";
+    # Check whether the commit message has "behatnotneeded" in it.
+    if (trim(shell_exec("git log -1 | grep -i -c $BEHATNOTNEEDED")) >= 1) {
+        echo "... but the patch is marked with \"$BEHATNOTNEEDED\", so we will continue.\n";
+    }
+    else {
+        echo "Please write a Behat test for it, or, if it cannot be tested, put \"$BEHATNOTNEEDED\" in its commit message.\n";
+        exit(1);
+    }
+}
 
 echo "\n";
 echo "########## Build & Minify CSS\n";
