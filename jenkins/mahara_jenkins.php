@@ -59,35 +59,84 @@ echo "\n";
 # Fetch the git commit ids that exist between this commit and the origin
 # that exists when the patch was made.
 $headcommithash = shell_exec_or_die("git rev-parse HEAD");
-exec_or_die("git log --pretty=format:'%H' origin/$GERRIT_BRANCH..$headcommithash", $the_list);
-$firstcommit = 1;
+exec_or_die("git log --pretty=format:'%H' origin/$GERRIT_BRANCH..$headcommithash", $commitancestors);
+if (empty($commitancestors)) {
+    // No ancestors means this commit is the head of the branch, or is an ancestor of the branch.
+    // In which case... well, it's not really either a pass or a failure. But a pass makes more sense.
+    echo "Patch already merged\n";
+    exit(0);
+}
+$firstcommit = true;
+$i = 0;
 
-foreach ($the_list as $line) {
-    $line = trim($line);
-    if (empty($line)) {
-        echo "Patch already merged\n";
+foreach ($commitancestors as $commit) {
+    $commit = trim($commit);
+    $i++;
+
+    $content = gerrit_query('/changes/?q=commit:' . $commit . '+branch:' . $GERRIT_BRANCH . '&o=LABELS&o=CURRENT_REVISION&pp=0');
+    // Because we queried by commit and branch, should return exactly one record.
+    $content = $content[0];
+
+    // Doublecheck to see if this has already been merged
+    if ($content->status == 'MERGED') {
+        // If this commit has been merged, then there's no reason to check it or any earlier ones.
+        break;
+    }
+
+    $myurl = 'https://reviews.mahara.org/' . $content->_number;
+
+    // Check that the patch we are testing is the latest (current) patchset in series
+    if ($content->current_revision != $commit) {
+        if ($firstcommit) {
+            echo "This patch is not the latest (current) patch in its Gerrit change set";
+        }
+        else {
+            echo "This patch is descended from a patch that is not the latest (current) patch in its Gerrit change set: $myurl\n";
+        }
         exit(1);
     }
 
-    # check if the commit or it's parents have been rejected
-    $outcome = shell_exec_or_die(PHP_BINARY . " $HOME/mahara/mahara-scripts/jenkins/gerrit_query.php -- $line $firstcommit $GERRIT_BRANCH");
-    switch ($outcome) {
-        case 1:
-            echo "The patch with git commit id $line has been rejected\n";
-            exit(1);
-            break;
-        case 3:
-            echo "The patch with git commit id $line is not the latest (current) patch\n";
-            exit(1);
-            break;
-        case 4:
-            echo "This patch or a parent patch has been abandoned\n";
-            exit(1);
-            break;
-        default:
-            echo "The patch with git commit id $line looks ok so we will continue\n";
+    if ($content->status == 'ABANDONED') {
+        if ($firstcommit) {
+            echo "This patch has been abandoned.\n";
+        }
+        else {
+            echo "This patch is descended from abandoned Gerrit patch: $myurl\n";
+        }
+        exit(1);
     }
-    $firstcommit = 0;
+
+    if (!empty($content->labels->{'Verified'}->rejected)) {
+        if ($firstcommit) {
+            echo "This patch has failed manual testing.\n";
+        } else {
+            echo "This patch is descended from a patch that has failed manual testing: $myurl\n";
+        }
+        exit(1);
+    }
+
+    if (!empty($content->labels->{'Code-Review'}->rejected)) {
+        if ($firstcommit) {
+            echo "This patch has failed code review.\n";
+        } else {
+            echo "This patch is descended from a patch that has failed code review: $myurl\n";
+        }
+        exit(1);
+    }
+
+    if (!$firstcommit && !empty($content->labels->{'Automated-Tests'}->rejected)) {
+        echo "This patch is descended from a patch that has failed automated testing: $myurl\n";
+        exit(1);
+    }
+
+    // SUCCESS!
+    if ($firstcommit) {
+        echo "$i. This patch is ready for automated testing, so we will continue\n";
+    }
+    else {
+        echo "$i. Ancestor patch with git commit id $commit looks ok so we will continue\n";
+    }
+    $firstcommit = false;
 }
 
 echo "\n";
@@ -220,4 +269,24 @@ function log_and_die($commandtolog, $itsreturnvar) {
     debug_print_backtrace();
     echo "\n";
     exit(1);
+}
+
+
+/**
+ * Make an unauthenticated request to gerrit's REST service.
+ *
+ * @param string $relurl The relative URL of the REST service. URL query component should include 'pp=0'
+ */
+function gerrit_query($relurl) {
+    $ch = curl_init();
+    if ($relurl[0] !== '/') {
+        $relurl = '/' . $relurl;
+    }
+    curl_setopt($ch, CURLOPT_URL, 'https://reviews.mahara.org' . $relurl);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    $content = curl_exec($ch);
+    curl_close($ch);
+    // We need to fetch the json line from the result
+    $content = explode("\n", $content);
+    return json_decode($content[1]);
 }
