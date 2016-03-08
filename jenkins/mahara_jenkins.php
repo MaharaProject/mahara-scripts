@@ -70,7 +70,7 @@ foreach ($the_list as $line) {
     }
 
     # check if the commit or it's parents have been rejected
-    $outcome = shell_exec_or_die(PHP_BINARY . " $HOME/mahara/mahara-scripts/jenkins/gerrit_query.php -- $line $firstcommit");
+    $outcome = shell_exec_or_die(PHP_BINARY . " $HOME/mahara/mahara-scripts/jenkins/gerrit_query.php -- $line $firstcommit $GERRIT_BRANCH");
     switch ($outcome) {
         case 1:
             echo "The patch with git commit id $line has been rejected\n";
