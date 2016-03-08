@@ -69,6 +69,7 @@ if (empty($commitancestors)) {
 $firstcommit = true;
 $i = 0;
 
+$trustedusers = array();
 foreach ($commitancestors as $commit) {
     $commit = trim($commit);
     $i++;
@@ -127,6 +128,43 @@ foreach ($commitancestors as $commit) {
     if (!$firstcommit && !empty($content->labels->{'Automated-Tests'}->rejected)) {
         echo "This patch is descended from a patch that has failed automated testing: $myurl\n";
         exit(1);
+    }
+
+    // To prevent attackers from using our Jenkins to execute arbitrary unsafe code, reject any
+    // code that was uploaded by someone who has not been manually added to the Mahara Reviewers
+    // or Mahara Testers group. Or if the code has a +2 code review, then it's also okay to run.
+    $uploader = $content->revisions->{$commit}->uploader->_account_id;
+
+    // Cacheing the list of trusted users to reduce the number of queries we have to make.
+    if (!array_key_exists($uploader, $trustedusers)) {
+        // Assume we don't trust them, until we find that they belong to a trusted group.
+        $trustedusers[$uploader] = false;
+
+        // (note that because we're not authenticating, this will only return their membership
+        // in groups that are set to make their list of members public)
+        $groups = gerrit_query('/accounts/' . $uploader . '/groups/?pp=0');
+        foreach ($groups as $group) {
+            if ($groups->owner == 'Mahara Reviewers' || $groups->owner == 'Mahara Testers') {
+                $trustedusers[$uploader] = true;
+            }
+        }
+    }
+
+    // If they're not a trusted user, then only run their code if it has passed code review.
+    if (!$trustedusers[$uploader]) {
+        if (empty($content->labels->{'Code-Review'}->approved)) {
+            if ($firstcommit) {
+                echo "This patch was uploaded by an unvetted user in Gerrit.\n";
+            }
+            else {
+                echo "This patch is descended from a patch that was uploaded by an unvetted user in Gerrit: $myurl\n";
+            }
+            echo "For security purposes, it needs to be code reviewed before it is put through automated testing.\n";
+            exit(1);
+        }
+        else {
+            echo "Commit {$commit} was uploaded by an unvetted user in Gerrit, however it has passed code review, so it is assumed safe for automated testing.\n";
+        }
     }
 
     // SUCCESS!
