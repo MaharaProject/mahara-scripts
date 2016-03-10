@@ -235,7 +235,6 @@ foreach ($commitancestors as $commit) {
     $firstcommit = false;
     $i++;
 }
-    exit();
 
 echo "\n";
 echo "########## Run make minaccept\n";
