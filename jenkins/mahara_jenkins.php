@@ -25,8 +25,20 @@
  */
 $GERRIT_REFSPEC = getenv('GERRIT_REFSPEC');
 $GERRIT_BRANCH = getenv('GERRIT_BRANCH');
+$GERRIT_CHANGE_ID = getenv('GERRIT_CHANGE_ID');
+$GERRIT_PATCHSET_REVISION = getenv('GERRIT_PATCHSET_REVISION');
 $JOB_NAME = getenv('JOB_NAME');
 $HOME = getenv('HOME');
+
+/**
+ * Environment variables set by us in the Jenkins project itself.
+ */
+$RESTUSERNAME = getenv('RESTUSERNAME');
+$RESTPASSWORD = getenv('RESTPASSWORD');
+if (!$RESTUSERNAME || !$RESTPASSWORD) {
+    echo "\n";
+    echo "WARNING: Username and password for the REST api are not present, which prevents posting comments in gerrit.\n";
+}
 
 /**
  * Configuration variables
@@ -41,6 +53,7 @@ $BEHATNOTNEEDED = "behatnotneeded";
 // that match this regex)
 $BEHATTESTREGEX = "^test/behat/features/";
 
+
 echo "\n";
 echo "########## Check the patch is less than $MAXBEHIND patches behind remote branch HEAD\n";
 echo "\n";
@@ -49,10 +62,14 @@ echo "";
 $behindby = shell_exec_or_die("git rev-list HEAD..origin/$GERRIT_BRANCH | wc -l");
 echo "This patch is behind $GERRIT_BRANCH by $behindby commit(s)\n";
 if ($behindby > $MAXBEHIND) {
-    echo "This patch is too far behind master, please rebase\n";
+    gerrit_comment(
+            "This patch is more than {$MAXBEHIND} commits behind {$GERRIT_BRANCH}.\n\n"
+            ."Please rebase it."
+    );
     exit(1);
 }
 
+echo "\n";
 echo "########## Check the patch and its parents are not already rejected\n";
 echo "\n";
 
@@ -66,6 +83,14 @@ if (empty($commitancestors)) {
     echo "Patch already merged\n";
     exit(0);
 }
+else {
+    if (count($commitancestors) === 1) {
+        echo "Patch has no unmerged dependencies. That's good. :)\n";
+    }
+    else {
+        echo "Patch has " . (count($commitancestors)-1) . " unmerged ancestor(s).\n";
+    }
+}
 $firstcommit = true;
 $i = 0;
 
@@ -73,7 +98,7 @@ $trustedusers = array();
 foreach ($commitancestors as $commit) {
     $commit = trim($commit);
 
-    $content = gerrit_query('/changes/?q=commit:' . $commit . '+branch:' . $GERRIT_BRANCH . '&o=LABELS&o=CURRENT_REVISION&pp=0');
+    $content = gerrit_get('/changes/?q=commit:' . $commit . '+branch:' . $GERRIT_BRANCH . '&o=LABELS&o=CURRENT_REVISION&pp=0');
     // Because we queried by commit and branch, should return exactly one record.
     $content = $content[0];
 
@@ -88,44 +113,77 @@ foreach ($commitancestors as $commit) {
     // Check that the patch we are testing is the latest (current) patchset in series
     if ($content->current_revision != $commit) {
         if ($firstcommit) {
-            echo "This patch is not the latest (current) patch in its Gerrit change set";
+            gerrit_comment(
+                    "This patchset has been made obsolete by a later patchset in the same Gerrit change set.\n\n"
+                        ."This requires no further action; the latest for this change patchset will be tested automatically instead."
+            );
         }
         else {
-            echo "This patch is descended from a patch that is not the latest (current) patch in its Gerrit change set: $myurl\n";
+            $comment = "This patchset is descended from a patchset that is not the latest in its Gerrit change set: $myurl\n\n";
+            // This patch is the direct child of the obsolete patch, so just rebase it.
+            if ($i === 1) {
+                $comment .= "You will need to rebase this patch for the automated tests to pass.";
+            }
+            else {
+                $comment .= "You will need to rebase the descendents of that change, up to and including this change, for the automated tests to pass.";
+            }
+            gerrit_comment($comment);
         }
         exit(1);
     }
 
     if ($content->status == 'ABANDONED') {
         if ($firstcommit) {
-            echo "This patch has been abandoned.\n";
+            gerrit_comment("This patch has been abandoned, so there is no need to test it.");
         }
         else {
-            echo "This patch is descended from abandoned Gerrit patch: $myurl\n";
+            gerrit_comment(
+                    "This patch is descended from an abandoned Gerrit patch: $myurl\n\n"
+                        ."You will need to either: restore its abandoned parent patch (probably a bad idea), "
+                        ."rebase it onto a different parent (if this patch is still useful), or abandon this patch."
+            );
         }
         exit(1);
     }
 
     if (!empty($content->labels->{'Verified'}->rejected)) {
         if ($firstcommit) {
-            echo "This patch has failed manual testing.\n";
+            gerrit_comment(
+                    "This patch was marked \"Verified:-1\", which means that it has failed manual testing\n\n"
+                        ."Please fix the problems found by the manual testers and submit a revision to this patch."
+            );
         } else {
-            echo "This patch is descended from a patch that has failed manual testing: $myurl\n";
+            gerrit_comment(
+                    "This patch is descended from a patch that has failed manual testing: $myurl\n\n"
+                        ."Please fix the problems in the parent patch. Once the parent patch has passed manual testing, "
+                        ."rebase this patch onto the latest version of the parent."
+            );
         }
         exit(1);
     }
 
-    if (!empty($content->labels->{'Code-Review'}->rejected)) {
+    if (!empty($content->labels->{'Code-Review'}->rejected) || !empty($content->labels->{'Code-Review'}->disliked)) {
         if ($firstcommit) {
-            echo "This patch has failed code review.\n";
+            gerrit_comment(
+                    "This patch failed manual code review.\n\n"
+                    ."Please fix the problems pointed out by the code reviewers, and submit a new revision of this patch."
+            );
         } else {
-            echo "This patch is descended from a patch that has failed code review: $myurl\n";
+            gerrit_comment(
+                    "This patch is descended from a patch that has failed code review: $myurl\n\n"
+                        ."Please fix the problems in the parent patch. Once the parent patch has passed code review, "
+                        ."rebase this patch onto the latest version of the parent."
+            );
         }
         exit(1);
     }
 
     if (!$firstcommit && !empty($content->labels->{'Automated-Tests'}->rejected)) {
-        echo "This patch is descended from a patch that has failed automated testing: $myurl\n";
+        gerrit_comment(
+                "This patch is descended from a patch that has failed automated testing: $myurl\n\n"
+                    ."Please fix the problems in the parent patch. Once the parent patch has passed automated testing, "
+                    ."rebase this patch onto the latest version of the parent."
+        );
         exit(1);
     }
 
@@ -141,7 +199,7 @@ foreach ($commitancestors as $commit) {
 
         // (note that because we're not authenticating, this will only return their membership
         // in groups that are set to make their list of members public)
-        $groups = gerrit_query('/accounts/' . $uploader . '/groups/?pp=0');
+        $groups = gerrit_get('/accounts/' . $uploader . '/groups/?pp=0');
         foreach ($groups as $group) {
             if ($group->owner == 'Mahara Reviewers' || $group->owner == 'Mahara Testers') {
                 $trustedusers[$uploader] = true;
@@ -153,12 +211,13 @@ foreach ($commitancestors as $commit) {
     if (!$trustedusers[$uploader]) {
         if (empty($content->labels->{'Code-Review'}->approved)) {
             if ($firstcommit) {
-                echo "This patch was uploaded by an unvetted user in Gerrit.\n";
+                $comment = "This patch was uploaded by an unvetted user in Gerrit.\n\n";
             }
             else {
-                echo "This patch is descended from a patch that was uploaded by an unvetted user in Gerrit: $myurl\n";
+                $comment = "This patch is descended from a patch that was uploaded by an unvetted user in Gerrit: $myurl\n\n";
             }
-            echo "For security purposes, it needs to be code reviewed before it is put through automated testing.\n";
+            $comment .= "For security purposes, it needs to be code reviewed before it is put through automated testing.";
+            gerrit_comment($comment);
             exit(1);
         }
         else {
@@ -176,11 +235,16 @@ foreach ($commitancestors as $commit) {
     $firstcommit = false;
     $i++;
 }
+    exit();
 
 echo "\n";
 echo "########## Run make minaccept\n";
 echo "\n";
-passthru_or_die("make minaccept");
+passthru_or_die(
+        "make minaccept",
+        "This patch did not pass the minaccept script.\n\n"
+            ."Please run \"make minaccept\" in your local workspace and fix any problems it finds."
+);
 
 echo "\n";
 echo "########## Run install\n";
@@ -188,7 +252,9 @@ echo "\n";
 passthru("dropdb $JOB_NAME");
 passthru_or_die("rm -Rf $HOME/mahara/sitedata/$JOB_NAME/*");
 passthru_or_die("rm -Rf $HOME/mahara/sitedata/behat_$JOB_NAME/*");
-passthru_or_die("createdb -O jenkins -E utf8 $JOB_NAME");
+//passthru_or_die("createdb -O jenkins -E utf8 $JOB_NAME");
+// DEBUG ONLY!
+passthru_or_die("createdb $JOB_NAME");
 
 chdir('htdocs');
 passthru_or_die("cp $HOME/mahara/mahara-scripts/jenkins/mahara_config.php config.php");
@@ -211,7 +277,11 @@ chdir('..');
 echo "\n";
 echo "########## Run unit tests\n";
 echo "\n";
-passthru_or_die('external/vendor/bin/phpunit htdocs/');
+passthru_or_die(
+        'external/vendor/bin/phpunit htdocs/',
+            "This patch caused one or more phpunit tests to fail.\n\n"
+            ."Please see the console output on test.mahara.org for details, and fix any failing tests."
+);
 
 echo "\n";
 echo "########## Verify that the patch contains a Behat test\n";
@@ -220,13 +290,15 @@ if (trim(shell_exec("git diff-tree --no-commit-id --name-only -r HEAD | grep -c 
     echo "Patch includes a Behat test.\n";
 }
 else {
-    echo "This patch does not include a Behat test!\n";
     # Check whether the commit message has "behatnotneeded" in it.
     if (trim(shell_exec("git log -1 | grep -i -c $BEHATNOTNEEDED")) >= 1) {
-        echo "... but the patch is marked with \"$BEHATNOTNEEDED\", so we will continue.\n";
+        echo "This patch does not include a Behat test!\n... but the patch is marked with \"$BEHATNOTNEEDED\", so we will continue.\n";
     }
     else {
-        echo "Please write a Behat test for it, or, if it cannot be tested, put \"$BEHATNOTNEEDED\" in its commit message.\n";
+        gerrit_comment(
+                "This patch does not include a Behat test (an automated test plan).\n\n"
+                    ."Please write a Behat test for it, or, if it cannot be tested in Behat or is covered by existing tests, put \"$BEHATNOTNEEDED\" in its commit message."
+        );
         exit(1);
     }
 }
@@ -234,13 +306,21 @@ else {
 echo "\n";
 echo "########## Build & Minify CSS\n";
 echo "\n";
-passthru_or_die('make');
+passthru_or_die(
+        'make',
+        "This patch encountered an error while attempting to build its CSS.\n\n"
+            ."This may be an error in Jenkins"
+);
 
 echo "\n";
 echo "########## Run Behat\n";
 echo "\n";
 
-passthru_or_die('test/behat/mahara_behat.sh runheadless');
+passthru_or_die(
+        'test/behat/mahara_behat.sh runheadless',
+        "This patch caused one or more Behat tests to fail.\n\n"
+            ."Please see the console output on test.mahara.org for details, and fix any failing tests."
+);
 
 exit(0);
 
@@ -250,11 +330,22 @@ exit(0);
  * Call this function to do passthru(), but die if the command that was being
  * invoked exited with a non-success return value.
  *
- * @param string $command
+ * @param string $command The command to run
+ * @param string $diemsg If we die, then print this message explaining why we died.
  */
-function passthru_or_die($command, &$return_var = null) {
+function passthru_or_die($command, $diemsg = null) {
     passthru($command, $return_var);
     if ($return_var !== 0) {
+        if ($diemsg) {
+            gerrit_comment($diemsg);
+        }
+        else {
+            gerrit_comment(
+                    "This patch failed attempting to run this command:\n{$command}\n\n"
+                    ."This is probably an error in Jenkins. Please retrigger this patch when the problem in Jenkins has been resolved."
+                    ,false
+            );
+        }
         log_and_die($command, $return_var);
     }
 }
@@ -266,6 +357,11 @@ function passthru_or_die($command, &$return_var = null) {
 function exec_or_die($command, &$output = null, &$return_var = null) {
     $returnstring = exec($command, $output, $return_var);
     if ($return_var !== 0) {
+        gerrit_comment(
+                "This patch failed attempting to run this command:\n{$command}\n\n"
+                ."This is probably an error in Jenkins. Please retrigger this patch when the problem in Jenkins has been resolved."
+                , false
+        );
         log_and_die($command, $return_var);
     }
 
@@ -310,11 +406,36 @@ function log_and_die($commandtolog, $itsreturnvar) {
 
 
 /**
- * Make an unauthenticated request to gerrit's REST service.
+ * Post this message as a comment in gerrit, and optionally print it to the Jenkins console too.
+ * @param string $comment (Shouldn't have a newline on the end)
+ * @param boolean $printtoconsole If true, also print this message to the Jenkins console (STDOUT)
+ */
+function gerrit_comment($comment, $printtoconsole = true) {
+    global $GERRIT_CHANGE_ID, $GERRIT_BRANCH, $GERRIT_PATCHSET_REVISION;
+
+    if ($printtoconsole) {
+        echo $comment;
+        echo "\n";
+    }
+
+    $reviewinput = (object) array(
+            'message' => $comment . " :)",
+            'notify' => 'NONE',
+    );
+    $changeid = rawurlencode("mahara~{$GERRIT_BRANCH}~{$GERRIT_CHANGE_ID}");
+    $revisionid = $GERRIT_PATCHSET_REVISION;
+    $url = "/changes/{$changeid}/revisions/{$revisionid}/review?pp=0";
+    gerrit_post($url, $reviewinput, true);
+}
+
+
+/**
+ * Make an unauthenticated GET request to gerrit's REST service.
  *
  * @param string $relurl The relative URL of the REST service. URL query component should include 'pp=0'
+ * @return mixed The json-decoded return value from Gerrit.
  */
-function gerrit_query($relurl) {
+function gerrit_get($relurl) {
     $ch = curl_init();
     if ($relurl[0] !== '/') {
         $relurl = '/' . $relurl;
@@ -323,6 +444,59 @@ function gerrit_query($relurl) {
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     $content = curl_exec($ch);
     curl_close($ch);
+    // We need to fetch the json line from the result
+    $content = explode("\n", $content);
+    return json_decode($content[1]);
+}
+
+/**
+ * Make a POST request to gerrit's REST service.
+ *
+ * @param string $relurl Relative URL of the REST service. URL query component should include 'pp=0'
+ * @param unknown $postobj A PHP object to include in the POST body (will be json-encoded by this function)
+ * @param string boolean Whether or not to use authentication
+ * @return mixed The json-decoded return value from Gerrit.
+ */
+function gerrit_post($relurl, $postobj, $authenticated = false) {
+    global $RESTUSERNAME, $RESTPASSWORD;
+
+    $ch = curl_init();
+    if ($relurl[0] !== '/') {
+        $relurl = '/' . $relurl;
+    }
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    $postbody = urldecode(json_encode($postobj));
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $postbody);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json; charset=UTF-8'));
+
+    if ($authenticated) {
+        // Can't make an authenticated request if the usernme and password aren't provided.
+        if (!$RESTUSERNAME || !$RESTPASSWORD) {
+            // No need to log this because we already posted a warning about it at the top
+            // of the page.
+            return array();
+        }
+        $relurl = '/a' . $relurl;
+        curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
+        curl_setopt($ch, CURLOPT_USERPWD, "$RESTUSERNAME:$RESTPASSWORD");
+    }
+
+    curl_setopt($ch, CURLOPT_URL, 'https://reviews.mahara.org' . $relurl);
+    $content = curl_exec($ch);
+
+    $responsecode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($responsecode !== 200) {
+        echo "WARNING: Error attempting to access Gerrit REST api.\n";
+        echo "URL: $relurl\n";
+        echo "Response:\n";
+        echo $content;
+        echo "\n";
+        return array();
+    }
+
     // We need to fetch the json line from the result
     $content = explode("\n", $content);
     return json_decode($content[1]);
