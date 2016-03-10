@@ -252,9 +252,7 @@ echo "\n";
 passthru("dropdb $JOB_NAME");
 passthru_or_die("rm -Rf $HOME/mahara/sitedata/$JOB_NAME/*");
 passthru_or_die("rm -Rf $HOME/mahara/sitedata/behat_$JOB_NAME/*");
-//passthru_or_die("createdb -O jenkins -E utf8 $JOB_NAME");
-// DEBUG ONLY!
-passthru_or_die("createdb $JOB_NAME");
+passthru_or_die("createdb -O jenkins -E utf8 $JOB_NAME");
 
 chdir('htdocs');
 passthru_or_die("cp $HOME/mahara/mahara-scripts/jenkins/mahara_config.php config.php");
