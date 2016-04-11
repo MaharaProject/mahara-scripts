@@ -126,7 +126,7 @@ system "git fetch --quiet origin";
 system "bzr launchpad-login dev-mahara";
 ! -d $BZRDIR && system "bzr init-repo $BZRDIR";
 # @UPDATE when there is a new series
-my @branches = qw(1.7_STABLE 1.8_STABLE 1.9_STABLE 1.10_STABLE 15.04_STABLE 15.10_STABLE 16.04_STABLE master);
+my @branches = qw(1.10_STABLE 15.04_STABLE 15.10_STABLE 16.04_STABLE master);
 
 foreach my $branch (@branches) {
     if ( ! -d "$BZRDIR/$branch" ) {
@@ -161,7 +161,7 @@ foreach my $lang (@langkeys) {
     if ( $remote =~ m/^lp:mahara-lang/ ) {
         $repotype = 'launchpad';
         # @UPDATE when there is a new series
-        @branches = qw(1.7_STABLE 1.8_STABLE 1.9_STABLE 1.10_STABLE 15.04_STABLE 15.10_STABLE 16.04_STABLE master);
+        @branches = qw(1.10_STABLE 15.04_STABLE 15.10_STABLE 16.04_STABLE master);
     }
     elsif ( $remote =~ m{^https://git\.mahara\.org|^https://gitlab\.com} ) {
         $repotype = 'git';
@@ -169,7 +169,7 @@ foreach my $lang (@langkeys) {
         chdir $gitlangdir;
         system "git fetch --quiet";
         # @UPDATE when there is a new series
-        my $remotebranchcmd = 'git branch -r | grep -v "HEAD" | grep "origin\/\(master\|1.7_STABLE\|1.8_STABLE\|1.9_STABLE\|1.10_STABLE|15.04_STABLE|15.10_STABLE|16.04_STABLE\)$"';
+        my $remotebranchcmd = 'git branch -r | grep -v "HEAD" | grep "origin\/\(master\|1.10_STABLE|15.04_STABLE|15.10_STABLE|16.04_STABLE\)$"';
         my $remotebranches = `$remotebranchcmd`;
         $remotebranches =~ s/\s+/ /;
         @branches = ();
