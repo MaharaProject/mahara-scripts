@@ -15,6 +15,20 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+###########################
+# Mahara langpacks generation file.
+#
+# This script pulls the latest .po translation files from all the translation
+# branches, processes them into Mahara language files, and compresses them
+# into tarballs.
+#
+# NOTE: It contains multiple hard-coded lists of branch names to get translations
+# from. Whenever there's a new Mahara series, you'll need to manually update those
+# lists. Each one has been tagged with this comment:
+#
+#     # @UPDATE when there is a new series
+#
+
 use Data::Dumper;
 use FindBin;
 use File::Path qw(mkpath rmtree);
@@ -111,7 +125,8 @@ system "git fetch --quiet origin";
 # For launchpad, all languages are in a single branch, so update the lot
 system "bzr launchpad-login dev-mahara";
 ! -d $BZRDIR && system "bzr init-repo $BZRDIR";
-my @branches = qw(1.7_STABLE 1.8_STABLE 1.9_STABLE 1.10_STABLE 15.04_STABLE 15.10_STABLE master);
+# @UPDATE when there is a new series
+my @branches = qw(1.7_STABLE 1.8_STABLE 1.9_STABLE 1.10_STABLE 15.04_STABLE 15.10_STABLE 16.04_STABLE master);
 
 foreach my $branch (@branches) {
     if ( ! -d "$BZRDIR/$branch" ) {
@@ -145,14 +160,16 @@ foreach my $lang (@langkeys) {
 
     if ( $remote =~ m/^lp:mahara-lang/ ) {
         $repotype = 'launchpad';
-        @branches = qw(1.7_STABLE 1.8_STABLE 1.9_STABLE 1.10_STABLE 15.04_STABLE 15.10_STABLE master);
+        # @UPDATE when there is a new series
+        @branches = qw(1.7_STABLE 1.8_STABLE 1.9_STABLE 1.10_STABLE 15.04_STABLE 15.10_STABLE 16.04_STABLE master);
     }
     elsif ( $remote =~ m{^https://git\.mahara\.org|^https://gitlab\.com} ) {
         $repotype = 'git';
         ! -d "$gitlangdir" && system "git clone --quiet $remote $gitlangdir";
         chdir $gitlangdir;
         system "git fetch --quiet";
-        my $remotebranchcmd = 'git branch -r | grep -v "HEAD" | grep "origin\/\(master\|1.7_STABLE\|1.8_STABLE\|1.9_STABLE\|1.10_STABLE|15.04_STABLE|15.10_STABLE\)$"';
+        # @UPDATE when there is a new series
+        my $remotebranchcmd = 'git branch -r | grep -v "HEAD" | grep "origin\/\(master\|1.7_STABLE\|1.8_STABLE\|1.9_STABLE\|1.10_STABLE|15.04_STABLE|15.10_STABLE|16.04_STABLE\)$"';
         my $remotebranches = `$remotebranchcmd`;
         $remotebranches =~ s/\s+/ /;
         @branches = ();

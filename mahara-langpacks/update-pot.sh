@@ -1,6 +1,16 @@
 #!/bin/bash
 
-# Update .pot files
+####################################################
+# This script pulls the latest English language strings from the Mahara core project,
+# converts them into .pot files, and uploads those into the branches for the
+# mahara-lang project, so that they can be translated through Launchpad.
+#
+# NOTE: This script contains a hard-coded list of branch names to operate on.
+# Whenever there is a new major release of Mahara, these lists need to be
+# manually updated. The list has been tagged with this comment:
+#
+#     # @UPDATE when there is a new series
+#
 
 # this is expected to define DATA, SCRIPTS, DOCROOT
 . /etc/mahara-langpacks.conf
@@ -49,7 +59,8 @@ BZR=${WORK}/mahara-lang-bzr
 cd ${GITDIR}
 git fetch --quiet origin
 
-branches="1.7_STABLE 1.8_STABLE 1.9_STABLE 1.10_STABLE 15.04_STABLE 15.10_STABLE master"
+# @UPDATE when there is a new series
+branches="1.7_STABLE 1.8_STABLE 1.9_STABLE 1.10_STABLE 15.04_STABLE 15.10_STABLE 16.04_STABLE master"
 
 for branch in ${branches} ; do
     branchexists=`git branch | grep "${branch}$"`
