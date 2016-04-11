@@ -169,7 +169,9 @@ foreach my $lang (@langkeys) {
         chdir $gitlangdir;
         system "git fetch --quiet";
         # @UPDATE when there is a new series
-        my $remotebranchcmd = 'git branch -r | grep -v "HEAD" | grep "origin\/\(master\|1.10_STABLE|15.04_STABLE|15.10_STABLE|16.04_STABLE\)$"';
+        # When adding a new branch name here, make sure to preface it with 
+        # "\|", that is, a backslash, then a pipe.
+        my $remotebranchcmd = 'git branch -r | grep -v "HEAD" | grep "origin\/\(master\|1.10_STABLE\|15.04_STABLE\|15.10_STABLE\|16.04_STABLE\)$"';
         my $remotebranches = `$remotebranchcmd`;
         $remotebranches =~ s/\s+/ /;
         @branches = ();
