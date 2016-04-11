@@ -1,3 +1,9 @@
+mahara-scripts (1.29) unstable; urgency=medium
+
+  * 16.04 release 
+
+ -- Aaron Wells <aaron@mahara.org>  Mon, 11 Apr 2016 12:59:18 +1200
+
 mahara-scripts (1.28) unstable; urgency=low
 
   *  Add gitlab as a git repository source.
