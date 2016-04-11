@@ -1,3 +1,9 @@
+mahara-scripts (1.30) unstable; urgency=medium
+
+  * Missing backslashes in grep command are why 15.10_STABLE wasn't being picked up from git
+
+ -- Aaron Wells <aaron@mahara.org>  Mon, 11 Apr 2016 16:09:22 +1200
+
 mahara-scripts (1.29) unstable; urgency=medium
 
   * 16.04 release 
