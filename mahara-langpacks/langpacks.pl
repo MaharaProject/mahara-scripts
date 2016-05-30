@@ -55,7 +55,7 @@ my $TARBALLS  = "${DATA}/tarballs";
 my $MAHARA    = "${DATA}/mahara";
 
 my $MAHARAREMOTE = 'https://git.mahara.org/mahara/mahara.git';
-my $REPOLIST     = 'https://git.mahara.org/scripts/mahara-scripts/blob/master/mahara-langpacks/language-repos.txt';
+my $REPOLIST     = 'https://git.mahara.org/scripts/mahara-scripts/raw/master/mahara-langpacks/language-repos.txt';
 
 mkpath $GITDIR;
 mkpath $DIRTY;
