@@ -68,9 +68,9 @@ print STDERR "Checking langpacks for updates: " . `date \"+%Y-%m-%d %H:%M:%S\"`;
 # there, try to get an up-to-date one out of the mahara-scripts repository
 # (allows updates to the repo list without having to redeploy the package).
 my $repolist;
-if ( -f "$SCRIPTS/language-repos.txt" ) {
-    print STDERR "Using repository list in $SCRIPTS/language-repos.txt\n";
-    open $repofh, '<', "$SCRIPTS/language-repos.txt" or die $!;
+if ( -f "$DATA/language-repos.txt" ) {
+    print STDERR "Using repository list in $DATA/language-repos.txt\n";
+    open $repofh, '<', "$DATA/language-repos.txt" or die $!;
     local $/ = undef;
     $repolist = <$repofh>;
 }
