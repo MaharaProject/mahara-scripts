@@ -25,6 +25,13 @@ case "$1" in
             mkdir /home/maharabot/.ssh
             ssh-keygen -q -t rsa -N '' -f /home/maharabot/.ssh/id_rsa
             chown -R maharabot /home/maharabot/.ssh
+            echo "Please add the following public key to Launchpad.net https://launchpad.net/~dev-mahara/+editsshkeys"
+            echo "### Begin of the public key###"
+            cat /home/maharabot/.ssh/id_rsa.pub
+            echo "### End of the public key###"
+            sudo -u maharabot -sH ssh-keyscan -H bazaar.launchpad.net > /home/maharabot/.ssh/known_hosts
+            chown maharabot /home/maharabot/.ssh/known_hosts
+            sudo -u maharabot -sH bzr whoami "Mahara Bot <dev@mahara.org>"
         fi
 
         if [ ! -d /var/www/mahara-langpacks ]; then
