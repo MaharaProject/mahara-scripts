@@ -243,6 +243,26 @@ $BEHATTESTREGEX = "^test/behat/features/";
 //     $i++;
 // }
 
+// echo "\n";
+// echo "########## Verify that the patch contains a Behat test\n";
+// echo "\n";
+// if (trim(shell_exec("git diff-tree --no-commit-id --name-only -r HEAD | grep -c $BEHATTESTREGEX")) >= 1) {
+//     echo "Patch includes a Behat test.\n";
+// }
+// else {
+//     # Check whether the commit message has "behatnotneeded" in it.
+//     if (trim(shell_exec("git log -1 | grep -i -c $BEHATNOTNEEDED")) >= 1) {
+//         echo "This patch does not include a Behat test!\n... but the patch is marked with \"$BEHATNOTNEEDED\", so we will continue.\n";
+//     }
+//     else {
+//         gerrit_comment(
+//                 "This patch does not include a Behat test (an automated test plan).\n\n"
+//                     ."Please write a Behat test for it, or, if it cannot be tested in Behat or is covered by existing tests, put \"$BEHATNOTNEEDED\" in its commit message."
+//         );
+//         exit(1);
+//     }
+// }
+
 // Create and start docker instance
 $imagename = "mahara/jenkins:{$JOB_NAME}";
 $containername = "container-{$JOB_NAME}";
@@ -251,9 +271,7 @@ passthru_or_die("docker build -t {$imagename} docker");
 // Initialize the Mahara site
 passthru("docker rm -f $containername");
 $containerid = exec_or_die("docker run --name={$containername} -v {$HOME}:/var/lib/codesrc:rw {$imagename} git clone --no-hardlinks --depth 2 file:///var/lib/codesrc /var/www/mahara");
-passthru_or_die("docker commit --change='WORKDIR /var/www/mahara' --change='CMD /usr/bin/supervisord -n -c /etc/supervisor/conf.d/supervisord.conf' $containername $imagename");
-passthru("docker rm -f $containername");
-passthru_or_die("docker run -d --name={$containername} {$imagename}");
+save_docker();
 
 echo "########## Run make minaccept\n";
 echo "\n";
@@ -284,71 +302,54 @@ passthru_or_die(
         . " {$containername}"
         . " sudo -u www-data " . PHP_BINARY . " htdocs/admin/cli/install.php --adminpassword='password' --adminemail=never@example.com"
 );
-passthru_or_die("docker commit --change='WORKDIR /var/www/mahara' --change='CMD /usr/bin/supervisord -n -c /etc/supervisor/conf.d/supervisord.conf' $containername $imagename");
-passthru("docker rm -f $containername");
-passthru_or_die("docker run -d --name={$containername} {$imagename}");
-
+//save_docker();
 
 // # Check if composer is not available
-// if (!file_exists("external/composer.json")) {
-//     exit(0);
-// }
+exec("docker exec $containername [ -f external/composer.json ]", $output, $return_var);
+if ($return_var !== 0) {
+    echo "No composer.json. Exiting.";
+    exit(0);
+}
 
-// echo "\n";
-// echo "########## Install composer\n";
-// echo "\n";
-// chdir('external');
-// passthru_or_die("curl -sS https://getcomposer.org/installer | php");
-// passthru_or_die(PHP_BINARY . ' composer.phar update');
-// chdir('..');
+echo "\n";
+echo "########## Install composer\n";
+echo "\n";
+passthru_or_die(
+        "docker exec"
+        . " {$containername}"
+        . " /bin/sh -c \""
+        . " cd external;"
+        . " curl -sS https://getcomposer.org/installer | php; "
+        . PHP_BINARY . " composer.phar update;"
+        . "\""
+);
+//save_docker();
 
-// echo "\n";
-// echo "########## Run unit tests\n";
-// echo "\n";
-// passthru_or_die(
-//         'external/vendor/bin/phpunit htdocs/',
-//             "This patch caused one or more phpunit tests to fail.\n\n"
-//             ."Please see the console output on test.mahara.org for details, and fix any failing tests."
-// );
+echo "\n";
+echo "########## Run unit tests\n";
+echo "\n";
+passthru_or_die(
+        "docker exec"
+        . " {$containername}"
+        . " external/vendor/bin/phpunit htdocs/",
+        "This patch caused one or more phpunit tests to fail.\n\n"
+        ."Please see the console output on test.mahara.org for details, and fix any failing tests."
+);
 
-// echo "\n";
-// echo "########## Verify that the patch contains a Behat test\n";
-// echo "\n";
-// if (trim(shell_exec("git diff-tree --no-commit-id --name-only -r HEAD | grep -c $BEHATTESTREGEX")) >= 1) {
-//     echo "Patch includes a Behat test.\n";
-// }
-// else {
-//     # Check whether the commit message has "behatnotneeded" in it.
-//     if (trim(shell_exec("git log -1 | grep -i -c $BEHATNOTNEEDED")) >= 1) {
-//         echo "This patch does not include a Behat test!\n... but the patch is marked with \"$BEHATNOTNEEDED\", so we will continue.\n";
-//     }
-//     else {
-//         gerrit_comment(
-//                 "This patch does not include a Behat test (an automated test plan).\n\n"
-//                     ."Please write a Behat test for it, or, if it cannot be tested in Behat or is covered by existing tests, put \"$BEHATNOTNEEDED\" in its commit message."
-//         );
-//         exit(1);
-//     }
-// }
 
-// echo "\n";
-// echo "########## Build & Minify CSS\n";
-// echo "\n";
-// passthru_or_die(
-//         'make',
-//         "This patch encountered an error while attempting to build its CSS.\n\n"
-//             ."This may be an error in Jenkins"
-// );
+echo "\n";
+echo "########## Run Behat\n";
+echo "\n";
 
-// echo "\n";
-// echo "########## Run Behat\n";
-// echo "\n";
+passthru_or_die(
+        'docker exec'
+        . " {$containername}"
+        . ' test/behat/mahara_behat.sh runheadless',
+        "This patch caused one or more Behat tests to fail.\n\n"
+            ."Please see the console output on test.mahara.org for details, and fix any failing tests."
+);
 
-// passthru_or_die(
-//         'test/behat/mahara_behat.sh runheadless',
-//         "This patch caused one or more Behat tests to fail.\n\n"
-//             ."Please see the console output on test.mahara.org for details, and fix any failing tests."
-// );
+passthru('docker rm -f {$containername}');
 
 exit(0);
 
@@ -531,4 +532,19 @@ function gerrit_post($relurl, $postobj, $authenticated = false) {
     // We need to fetch the json line from the result
     $content = explode("\n", $content);
     return json_decode($content[1]);
+}
+
+function save_docker() {
+    global $containername, $imagename;
+    passthru_or_die("docker commit --change='WORKDIR /var/www/mahara' --change='CMD /usr/bin/supervisord -n -c /etc/supervisor/conf.d/supervisord.conf' $containername $imagename");
+    passthru("docker rm -f $containername");
+    passthru_or_die("docker run -d --name={$containername} {$imagename}");
+    while(true) {
+      exec("docker exec {$containername} sudo -u postgres psql -l", $output, $exitcode);
+      if ($exitcode === 0) {
+          break;
+      }
+      echo "waiting for postgres...\n";
+      sleep(1);
+    }
 }

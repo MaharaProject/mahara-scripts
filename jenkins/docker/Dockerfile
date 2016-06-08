@@ -13,8 +13,10 @@ ENV LOCALE en_US.UTF-8
 
 # Install needed software
 RUN apt-get update && apt-get install -y \
+    curl \
     firefox \
     git \
+    haveged \
     libapache2-mod-php5 \
     postgresql \
     php5-cli \
@@ -28,6 +30,7 @@ RUN apt-get update && apt-get install -y \
     npm \
     openjdk-7-jre \
     supervisor \
+    wget \
     xvfb \
 && rm -rf /var/lib/apt/lists/*
 
