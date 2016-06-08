@@ -52,6 +52,21 @@ $BEHATNOTNEEDED = "behatnotneeded";
 // The regex we use to check for whether a commit includes new Behat tests (any changes to files)
 // that match this regex)
 $BEHATTESTREGEX = "^test/behat/features/";
+// If a user belongs to one of these groups in Gerrit, it means that a member of the Mahara community
+// has manually checked them out and added them to the group, so we can trust they're probably not
+// an attacker.
+$TRUSTED_GERRIT_GROUPS = array(
+    'Mahara Reviewers',
+    'Mahara Testers'
+);
+// If a user's primary email address is one of these, we can trust they're probably not an attacker.
+// (Gerrit verifies user email addresses to make sure the account's user also controls the email
+// address.)
+$TRUSTED_EMAIL_DOMAINS = array(
+    'catalyst.net.nz',
+    'catalyst-au.net',
+    'catalyst-eu.net'
+);
 
 
 echo "\n";
@@ -201,8 +216,23 @@ foreach ($commitancestors as $commit) {
         // in groups that are set to make their list of members public)
         $groups = gerrit_get('/accounts/' . $uploader . '/groups/?pp=0');
         foreach ($groups as $group) {
-            if ($group->owner == 'Mahara Reviewers' || $group->owner == 'Mahara Testers') {
+            if (in_array($group->owner, $TRUSTED_GERRIT_GROUPS)) {
                 $trustedusers[$uploader] = true;
+                break;
+            }
+        }
+
+        // If they're not in a trusted group, we can still trust them if they have an email
+        // address that marks them as an employee of a Mahara contributor organization
+        if (!$trustedusers[$uploader]) {
+            $account = gerrit_get('/accounts/' . $uploader . '?pp=0');
+            foreach ($TRUSTED_EMAIL_DOMAINS as $domain) {
+                // Verify that the user's email address ends with "@" and this domain
+                // (Security of this relies on Gerrit to have properly validated their email address's structure)
+                if (strrpos(strrev($account->email), strrev('@' . $domain)) === 0) {
+                    $trustedusers[$uploader] = true;
+                    break;
+                }
             }
         }
     }
