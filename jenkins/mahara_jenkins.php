@@ -229,7 +229,7 @@ foreach ($commitancestors as $commit) {
             foreach ($TRUSTED_EMAIL_DOMAINS as $domain) {
                 // Verify that the user's email address ends with "@" and this domain
                 // (Security of this relies on Gerrit to have properly validated their email address's structure)
-                if (strrpos(strrev($account->email), strrev('@' . $domain)) === 0) {
+                if (strpos(strrev($account->email), strrev('@' . $domain)) === 0) {
                     $trustedusers[$uploader] = true;
                     break;
                 }
