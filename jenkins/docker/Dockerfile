@@ -1,4 +1,4 @@
-FROM ubuntu:14.04
+FROM ubuntu:16.04
 MAINTAINER "Aaron Wells <aaronw@catalyst.net.nz>"
 
 COPY catalyst.sources.list /etc/apt/sources.list
@@ -13,22 +13,25 @@ ENV LOCALE en_US.UTF-8
 
 # Install needed software
 RUN apt-get update && apt-get install -y \
+    apache2 \
     curl \
     firefox \
     git \
     haveged \
-    libapache2-mod-php5 \
+    libapache2-mod-php \
     postgresql \
-    php5-cli \
-    php5-curl \
-    php5-gd \
-    php5-json \
-    php5-ldap \
-    php5-pgsql \
-    php5-xmlrpc \
+    php-cli \
+    php-curl \
+    php-gd \
+    php-json \
+    php-ldap \
+    php-pgsql \
+    php-xmlrpc \
+    php-zip \
     nodejs-legacy \
     npm \
-    openjdk-7-jre \
+    openjdk-8-jre \
+    sudo \
     supervisor \
     wget \
     xvfb \
@@ -49,8 +52,8 @@ RUN /etc/init.d/postgresql start &&\
 
 # Configure Apache
 USER root
-RUN sudo sh -c "echo 'post_max_size = 32M' >> /etc/php5/cli/php.ini"
-RUN sudo sh -c "echo 'post_max_size = 32M' >> /etc/php5/apache2/php.ini"
+RUN sudo sh -c "echo 'post_max_size = 32M' >> /etc/php/7.0/cli/php.ini"
+RUN sudo sh -c "echo 'post_max_size = 32M' >> /etc/php/7.0/apache2/php.ini"
 RUN mkdir -p /var/www/mahara
 RUN chown -R www-data:www-data /var/www/mahara
 COPY docker-apache.conf /etc/apache2/sites-available/000-default
