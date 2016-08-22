@@ -68,6 +68,8 @@ $TRUSTED_EMAIL_DOMAINS = array(
     'catalyst-eu.net'
 );
 
+passthru_or_die("git clean -df");
+passthru_or_die("git reset --hard");
 
 echo "\n";
 echo "########## Check the patch is less than $MAXBEHIND patches behind remote branch HEAD\n";
@@ -333,6 +335,7 @@ else {
 echo "\n";
 echo "########## Build & Minify CSS\n";
 echo "\n";
+passthru('make clean-css');
 passthru_or_die(
         'make',
         "This patch encountered an error while attempting to build its CSS.\n\n"
