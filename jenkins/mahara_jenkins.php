@@ -277,40 +277,6 @@ passthru_or_die(
             ."Please run \"make minaccept\" in your local workspace and fix any problems it finds."
 );
 
-echo "\n";
-echo "########## Run install\n";
-echo "\n";
-passthru("dropdb $JOB_NAME");
-passthru_or_die("rm -Rf $HOME/mahara/sitedata/$JOB_NAME/*");
-passthru_or_die("rm -Rf $HOME/mahara/sitedata/behat_$JOB_NAME/*");
-passthru_or_die("createdb -O jenkins -E utf8 $JOB_NAME");
-
-chdir('htdocs');
-passthru_or_die("cp $HOME/mahara/mahara-scripts/jenkins/mahara_config.php config.php");
-passthru_or_die(PHP_BINARY . " admin/cli/install.php --adminpassword='password' --adminemail=never@example.com");
-chdir('..');
-
-# Check if composer is not available
-if (!file_exists("external/composer.json")) {
-    exit(0);
-}
-
-echo "\n";
-echo "########## Install composer\n";
-echo "\n";
-chdir('external');
-passthru_or_die("curl -sS https://getcomposer.org/installer | php");
-passthru_or_die(PHP_BINARY . ' composer.phar update');
-chdir('..');
-
-echo "\n";
-echo "########## Run unit tests\n";
-echo "\n";
-passthru_or_die(
-        'external/vendor/bin/phpunit htdocs/',
-            "This patch caused one or more phpunit tests to fail.\n\n"
-            ."Please see the console output on test.mahara.org for details, and fix any failing tests."
-);
 
 echo "\n";
 echo "########## Verify that the patch contains a Behat test\n";
@@ -332,6 +298,7 @@ else {
     }
 }
 
+
 echo "\n";
 echo "########## Build & Minify CSS\n";
 echo "\n";
@@ -342,8 +309,47 @@ passthru_or_die(
             ."This may be an error in Jenkins"
 );
 
+
 echo "\n";
-echo "########## Run Behat\n";
+echo "########## Run installer\n";
+echo "\n";
+passthru("dropdb $JOB_NAME");
+passthru_or_die("rm -Rf $HOME/mahara/sitedata/$JOB_NAME/*");
+passthru_or_die("rm -Rf $HOME/mahara/sitedata/behat_$JOB_NAME/*");
+passthru_or_die("createdb -O jenkins -E utf8 $JOB_NAME");
+
+chdir('htdocs');
+passthru_or_die("cp $HOME/mahara/mahara-scripts/jenkins/mahara_config.php config.php");
+passthru_or_die(PHP_BINARY . " admin/cli/install.php --adminpassword='password' --adminemail=never@example.com");
+chdir('..');
+
+# Check if composer is not available
+if (!file_exists("external/composer.json")) {
+    exit(0);
+}
+
+
+echo "\n";
+echo "########## Install composer dependencies\n";
+echo "\n";
+chdir('external');
+passthru_or_die("curl -sS https://getcomposer.org/installer | php");
+passthru_or_die(PHP_BINARY . ' composer.phar update');
+chdir('..');
+
+
+echo "\n";
+echo "########## Run phpunit tests\n";
+echo "\n";
+passthru_or_die(
+        'external/vendor/bin/phpunit htdocs/',
+            "This patch caused one or more phpunit tests to fail.\n\n"
+            ."Please see the console output on test.mahara.org for details, and fix any failing tests."
+);
+
+
+echo "\n";
+echo "########## Run Behat tests\n";
 echo "\n";
 
 passthru_or_die(
