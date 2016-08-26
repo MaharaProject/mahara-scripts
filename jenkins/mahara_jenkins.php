@@ -302,7 +302,9 @@ else {
 echo "\n";
 echo "########## Build & Minify CSS\n";
 echo "\n";
-passthru('make clean-css');
+if (branch_above($GERRIT_BRANCH, '15', '04')) {
+    passthru('make clean-css');
+}
 passthru_or_die(
         'make',
         "This patch encountered an error while attempting to build its CSS.\n\n"
@@ -464,6 +466,28 @@ function gerrit_comment($comment, $printtoconsole = true) {
     gerrit_post($url, $reviewinput, true);
 }
 
+/**
+ * Check that the branch of the patch we are testing is above a certain version
+ * This is useful if the branch doesn't have certain Makefile commands
+ *
+ * @param string $branch
+ * @param string $major
+ * @param string $minor
+ * @return bool
+ */
+function branch_above($branch, $major, $minor) {
+    // If the branch is master it should have all we need
+    if ($branch == 'master') {
+        return true;
+    }
+    $branch = explode('_', $branch);
+    // Get the major.minor version
+    $branchversion = explode('.', $branch[0]);
+    if ((int) $major >= (int) $branchversion[0] && (int) $minor > (int) $branch[1]) {
+        return true;
+    }
+    return false;
+}
 
 /**
  * Make an unauthenticated GET request to gerrit's REST service.
