@@ -476,17 +476,16 @@ function gerrit_comment($comment, $printtoconsole = true) {
  * @return bool
  */
 function branch_above($branch, $major, $minor) {
-    echo "Branch: " . $branch . "\n";
     // If the branch is master it should have all we need
     if ($branch == 'master') {
         return true;
     }
     $branch = explode('_', $branch);
-    echo "Branch parts: " . print_r($branch, true) . "\n";
     // Get the major.minor version
     $branchversion = explode('.', $branch[0]);
     echo "Branch version parts: " . print_r($branchversion, true) . "\n";
-    if ((int) $major >= (int) $branchversion[0] && (int) $minor > (int) $branchversion[1]) {
+    if (((int) $major >= (int) $branchversion[0]) && ((int) $minor > (int) $branchversion[1])) {
+echo "greater than : $major $minor";
         return true;
     }
     return false;
