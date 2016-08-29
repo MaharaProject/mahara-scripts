@@ -483,9 +483,7 @@ function branch_above($branch, $major, $minor) {
     $branch = explode('_', $branch);
     // Get the major.minor version
     $branchversion = explode('.', $branch[0]);
-    echo "Branch version parts: " . print_r($branchversion, true) . "\n";
     if (((int) $major >= (int) $branchversion[0]) && ((int) $minor > (int) $branchversion[1])) {
-echo "greater than : $major $minor";
         return true;
     }
     return false;
