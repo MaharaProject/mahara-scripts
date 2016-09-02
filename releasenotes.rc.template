@@ -7,7 +7,7 @@ the tracker:
 
 https://bugs.launchpad.net/mahara/+filebug
 
-In this release, upgrading from the 1.1 stable version is possible. This does
+In this release, upgrading from the 1.6 stable version is possible. This does
 not mean that this should be done on a live website! Please perform any testing
 you might want to make on either a new install of this release or a copy of
 your site.
