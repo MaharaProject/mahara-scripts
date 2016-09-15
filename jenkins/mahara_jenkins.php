@@ -348,7 +348,7 @@ passthru_or_die(
         'external/vendor/bin/phpunit htdocs/',
         "This patch caused one or more phpunit tests to fail.\n\n"
             . "Please see the console output on test.mahara.org for details, and fix any failing tests:\n"
-            . $BUILD_URL . '/console'
+            . $BUILD_URL . 'console'
 );
 
 
@@ -360,7 +360,7 @@ passthru_or_die(
         'test/behat/mahara_behat.sh runheadless',
         "This patch caused one or more Behat tests to fail.\n\n"
             . "Please see the console output on test.mahara.org for details, and fix any failing tests:\n"
-            . $BUILD_URL . '/console'
+            . $BUILD_URL . 'console'
 );
 
 exit(0);
