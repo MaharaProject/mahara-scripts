@@ -199,9 +199,19 @@ passthru("git tag -s ${RELEASETAG} -m \"$RELEASE release\"");
 # Build the css
 if ($OLDVERSION >= 2015091700) {
     echo "Building css...\n";
-    passthru("make css >> ../css.log 2>&1");
+    passthru("make css >> ../make.log 2>&1");
     if (!file_exists('htdocs/theme/raw/style/style.css')) {
-        echo "CSS files did not build correctly! Check $BUILDDIR/css.log for details.";
+        echo "CSS files did not build correctly! Check $BUILDDIR/make.log for details.";
+        exit(1);
+    }
+}
+
+# Build the ssphp
+if ($OLDVERSION >= 2016092600) {
+    echo "Building ssphp...\n";
+    passthru("make ssphp >> ../make.log 2>&1");
+    if (!file_exists('htdocs/auth/saml/extlib/simplesamlphp/config/config.php')) {
+        echo "SimpleSAMLphp files did not build correctly! Check $BUILDDIR/make.log for details.";
         exit(1);
     }
 }
