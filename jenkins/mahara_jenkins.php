@@ -28,6 +28,7 @@ $GERRIT_BRANCH = getenv('GERRIT_BRANCH');
 $GERRIT_CHANGE_ID = getenv('GERRIT_CHANGE_ID');
 $GERRIT_PATCHSET_REVISION = getenv('GERRIT_PATCHSET_REVISION');
 $JOB_NAME = getenv('JOB_NAME');
+$BUILD_URL = getenv('BUILD_URL');
 $HOME = getenv('HOME');
 
 /**
@@ -345,8 +346,9 @@ echo "########## Run phpunit tests\n";
 echo "\n";
 passthru_or_die(
         'external/vendor/bin/phpunit htdocs/',
-            "This patch caused one or more phpunit tests to fail.\n\n"
-            ."Please see the console output on test.mahara.org for details, and fix any failing tests."
+        "This patch caused one or more phpunit tests to fail.\n\n"
+            . $BUILD_URL . "console\n\n"
+            . "Please see the console output on test.mahara.org for details, and fix any failing tests."
 );
 
 
@@ -357,7 +359,8 @@ echo "\n";
 passthru_or_die(
         'test/behat/mahara_behat.sh runheadless',
         "This patch caused one or more Behat tests to fail.\n\n"
-            ."Please see the console output on test.mahara.org for details, and fix any failing tests."
+            . $BUILD_URL . "console\n\n"
+            . "Please see the console output on test.mahara.org for details, and fix any failing tests."
 );
 
 exit(0);

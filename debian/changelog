@@ -1,3 +1,9 @@
+mahara-scripts (1.32) UNRELEASED; urgency=medium
+
+  * Add 16.10 branch
+
+ -- Son Nguyen <sonn@warnock.catalyst.net.nz>  Mon, 05 Sep 2016 08:50:19 +1200
+
 mahara-scripts (1.30) unstable; urgency=medium
 
   * Missing backslashes in grep command are why 15.10_STABLE wasn't being picked up from git
