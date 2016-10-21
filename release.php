@@ -207,7 +207,7 @@ if ($OLDVERSION >= 2015091700) {
 }
 
 # Build the ssphp
-if ($OLDVERSION >= 2016092600) {
+if ($OLDVERSION >= 2016090206) {
     echo "Building ssphp...\n";
     passthru("make ssphp >> ../make.log 2>&1");
     if (!file_exists('htdocs/auth/saml/extlib/simplesamlphp/config/config.php')) {
