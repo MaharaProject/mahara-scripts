@@ -1,0 +1,12 @@
+Template: custom-site-mahara-langpacks/projdir
+Type: string
+Default: https://git.mahara.org/mahara/mahara.git
+Description: Mahara project repo
+ The git repository url of Mahara project
+
+Template: custom-site-mahara-langpacks/wwwroot
+Type: string
+Default: langpacks.mahara.org
+Description: Domain name
+ The domain name for the site
+ Use the default value for prod server only

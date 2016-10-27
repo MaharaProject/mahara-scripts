@@ -64,8 +64,10 @@ case "$1" in
         echo "DATA=/var/lib/mahara-langpacks" > /etc/mahara-langpacks.conf
         echo "SCRIPTS=/usr/lib/mahara-langpacks" >> /etc/mahara-langpacks.conf
         echo "DOCROOT=/var/www/mahara-langpacks" >> /etc/mahara-langpacks.conf
-        echo "PROJDIR='https://git.mahara.org/mahara/mahara.git'" >> /etc/mahara-langpacks.conf
-        DOMAINNAME="langpacks.mahara.org"
+        db_get custom-site-mahara-langpacks/projdir
+        echo "PROJDIR='${RET}'" >> /etc/mahara-langpacks.conf
+        db_get custom-site-mahara-langpacks/wwwroot
+        DOMAINNAME=${RET}
         echo "WWWROOT='http://${DOMAINNAME}'" >> /etc/mahara-langpacks.conf
 
         NVH=`apache2ctl -S 2>&1 |grep "is a NameVirtualHost"|sed 's/ .*//'|head -1`

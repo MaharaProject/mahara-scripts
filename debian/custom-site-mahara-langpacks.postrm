@@ -28,7 +28,7 @@ case "$1" in
 
     remove)
         a2dissite mahara-langpacks.conf
-    ;;    
+    ;;
     upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
     ;;
 
