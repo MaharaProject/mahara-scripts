@@ -1,3 +1,9 @@
+mahara-scripts (1.33) UNRELEASED; urgency=medium
+
+  * Update the deb package for custom-site-mahara-langpacks
+
+ -- Son Nguyen <sonn@warnock.catalyst.net.nz>  Thu, 27 Oct 2016 14:57:53 +1300
+
 mahara-scripts (1.32) UNRELEASED; urgency=medium
 
   * Add 16.10 branch
