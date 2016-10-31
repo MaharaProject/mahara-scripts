@@ -1,0 +1,20 @@
+#!/bin/bash
+set -e
+
+sudo -u www-data mkdir -p /var/lib/sitedata/${MAHARA_CODEPATH}
+echo -e "*  *    * * *   www-data  php /var/www/html/${MAHARA_CODEPATH}/htdocs/lib/cron.php >> /var/lib/sitedata/${MAHARA_CODEPATH}/cron.log 2>&1\n" > /etc/cron.d/mahara
+chmod 0644 /etc/cron.d/mahara
+cron
+
+PHP_ERROR_REPORTING=${PHP_ERROR_REPORTING:-"E_ALL & ~E_DEPRECATED & ~E_NOTICE"}
+sed -ri 's/^display_errors\s*=\s*Off/display_errors = On/g' /etc/php5/apache2/php.ini
+sed -ri 's/^display_errors\s*=\s*Off/display_errors = On/g' /etc/php5/cli/php.ini
+sed -ri "s/^error_reporting\s*=.*$//g" /etc/php5/apache2/php.ini
+sed -ri "s/^error_reporting\s*=.*$//g" /etc/php5/cli/php.ini
+echo "error_reporting = $PHP_ERROR_REPORTING" >> /etc/php5/apache2/php.ini
+echo "error_reporting = $PHP_ERROR_REPORTING" >> /etc/php5/cli/php.ini
+
+echo "xdebug.remote_enable=on" >> /etc/php5/apache2/conf.d/xdebug.ini
+echo "xdebug.remote_connect_back=on" >> /etc/php5/apache2/conf.d/xdebug.ini
+
+source /etc/apache2/envvars && exec /usr/sbin/apache2 -DFOREGROUND

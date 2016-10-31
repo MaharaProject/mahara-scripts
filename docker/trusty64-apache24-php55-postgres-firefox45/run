@@ -1,0 +1,89 @@
+#!/bin/bash
+set -e
+
+# This script will launch a fresh mahara site on the docker container
+# The mahara code and dataroot folder must be mapped from the host
+
+if [ $# -ne 1 ]; then
+  echo -e "Launch a fresh mahara site on the docker container\n\
+	Usage: $0 <port>\n"
+  exit 1;
+fi
+PORT=$1
+
+# PHP settings for mahara
+PHP_ERROR_REPORTING=${PHP_ERROR_REPORTING:-"E_ALL & ~E_DEPRECATED & ~E_NOTICE"}
+sed -ri 's/^display_errors\s*=\s*Off/display_errors = On/g' /etc/php5/apache2/php.ini
+sed -ri 's/^display_errors\s*=\s*Off/display_errors = On/g' /etc/php5/cli/php.ini
+sed -ri "s/^error_reporting\s*=.*$//g" /etc/php5/apache2/php.ini
+sed -ri "s/^error_reporting\s*=.*$//g" /etc/php5/cli/php.ini
+echo "error_reporting = $PHP_ERROR_REPORTING" >> /etc/php5/apache2/php.ini
+echo "error_reporting = $PHP_ERROR_REPORTING" >> /etc/php5/cli/php.ini
+
+sed -ri "s/^post_max_size\s*=.*$/post_max_size = 32M/g" /etc/php5/apache2/php.ini
+sed -ri "s/^post_max_size\s*=.*$/post_max_size = 32M/g" /etc/php5/cli/php.ini
+
+# Uncomment to enable remote debugging
+echo "xdebug.remote_enable=on" >> /etc/php5/apache2/conf.d/xdebug.ini
+echo "xdebug.remote_connect_back=on" >> /etc/php5/apache2/conf.d/xdebug.ini
+
+echo -e 'LANG=en_NZ.UTF-8\nLC_ALL=en_NZ.UTF-8\nLANGUAGE=en_NZ:en' > /etc/default/locale
+locale-gen en_NZ en_NZ.UTF-8 > /dev/null 2>&1
+dpkg-reconfigure locales > /dev/null 2>&1
+
+# Setup mahara site
+
+# 1. mahara code
+# The mahara code must be available under the directory
+# /var/www
+if [ ! -f /var/www/htdocs/index.php ]; then
+  echo -e "Can not find the mahara code\n\
+    Please use the option -v to map the mahara code folder which has the folder 'htdocs' on the host machine to the docker\n\
+	e.g. docker run -v <path to mahara coderoot>:/var/www\n"
+  exit;
+fi
+# Update the apache2 default site configuration
+sed -ri "s/html$/htdocs/g" /etc/apache2/sites-available/000-default.conf
+
+# 2. dataroot
+if ! sudo -u www-data test -w /var/lib/sitedata; then
+  echo -e "Can not access the dataroot\n\
+    Please use the option -v to map the mahara dataroot on the host machine to the docker\n\
+    and make sure it can be read and written by user www-data\n\
+	e.g. docker run -v <path to mahara dataroot>:/var/lib/sitedata\n"
+  exit;
+fi
+
+# 3. Postgres database
+service postgresql start > /dev/null 2>&1
+
+echo -en "Creating mahara database ..."
+sudo -u postgres psql -c "CREATE USER maharauser WITH NOSUPERUSER NOCREATEDB NOCREATEROLE PASSWORD 'mahara'" > /dev/null 2>&1
+sudo -u postgres createdb --template=template0 mahara-db -Omaharauser -EUTF8 > /dev/null 2>&1
+echo -e " Done."
+
+# 4 config.php
+# Update the mahara config.php
+echo -e "Please update the following settings in the file <path to mahara htdocs>/config.php\n\
+\$cfg->dbtype   = 'postgres8';\n\
+\$cfg->dbhost   = 'localhost';\n\
+\$cfg->dbuser   = 'maharauser';\n\
+\$cfg->dbname   = 'mahara-db';\n\
+\$cfg->dbpass   = 'mahara';\n\
+\$cfg->wwwroot  = 'http://localhost:$PORT/';\n\
+\$cfg->dataroot = '/var/lib/sitedata';\n"
+
+
+# 5. cron job
+echo -e "*  *    * * *   www-data  php /var/www/htdocs/lib/cron.php >> /var/lib/sitedata/cron.log 2>&1\n" > /etc/cron.d/mahara
+chmod 0644 /etc/cron.d/mahara
+cron
+
+# 6. Elastic search engine
+#service elasticsearch start
+
+# 7. memcache server
+service memcached start
+
+# 8. Apache web server
+/usr/sbin/apache2ctl -D FOREGROUND
