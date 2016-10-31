@@ -1,0 +1,7 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Mahara
+GenericName=Mahara
+Exec=/home/ubuntu/.config/autostart/mahara.sh
+Terminal=false
