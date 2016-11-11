@@ -28,8 +28,20 @@ $GERRIT_BRANCH = getenv('GERRIT_BRANCH');
 $GERRIT_CHANGE_ID = getenv('GERRIT_CHANGE_ID');
 $GERRIT_PATCHSET_REVISION = getenv('GERRIT_PATCHSET_REVISION');
 $JOB_NAME = getenv('JOB_NAME');
+$MULTI_JOB_NAME = getenv('MULTI_JOB_NAME');
 $BUILD_URL = getenv('BUILD_URL');
 $HOME = getenv('HOME');
+
+$PHP_PORT = getenv('PHP_PORT');
+$SELENIUM_PORT = getenv('SELENIUM_PORT');
+
+if (! $PHP_PORT ) {
+    $PHP_PORT=8000;
+}
+
+if (! $SELENIUM_PORT ) {
+    $SELENIUM_PORT=4444;
+}
 
 /**
  * Environment variables set by us in the Jenkins project itself.
@@ -316,14 +328,14 @@ passthru_or_die(
 echo "\n";
 echo "########## Run installer\n";
 echo "\n";
-passthru("dropdb $JOB_NAME");
-passthru_or_die("rm -Rf $HOME/mahara/sitedata/$JOB_NAME/*");
-passthru_or_die("rm -Rf $HOME/mahara/sitedata/behat_$JOB_NAME/*");
-passthru_or_die("createdb -O jenkins -E utf8 $JOB_NAME");
+passthru("dropdb $MULTI_JOB_NAME");
+passthru_or_die("rm -Rf $HOME/mahara/sitedata/$MULTI_JOB_NAME/*");
+passthru_or_die("rm -Rf $HOME/mahara/sitedata/behat_$MULTI_JOB_NAME/*");
+passthru_or_die("createdb -O jenkins -E utf8 $MULTI_JOB_NAME");
 
 chdir('htdocs');
 passthru_or_die("cp $HOME/mahara/mahara-scripts/jenkins/mahara_config.php config.php");
-passthru_or_die(PHP_BINARY . " admin/cli/install.php --adminpassword='password' --adminemail=never@example.com");
+passthru_or_die("PHP_PORT=${PHP_PORT} " . PHP_BINARY . " admin/cli/install.php --adminpassword='password' --adminemail=never@example.com");
 chdir('..');
 
 # Check if composer is not available
@@ -357,7 +369,7 @@ echo "########## Run Behat tests\n";
 echo "\n";
 
 passthru_or_die(
-        'test/behat/mahara_behat.sh runheadless',
+        "MULTI_JOB_NAME=${MULTI_JOB_NAME} PHP_PORT=${PHP_PORT} SELENIUM_PORT=${SELENIUM_PORT} test/behat/mahara_behat.sh runheadless",
         "This patch caused one or more Behat tests to fail.\n\n"
             . $BUILD_URL . "console\n\n"
             . "Please see the console output on test.mahara.org for details, and fix any failing tests."
