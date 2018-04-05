@@ -334,8 +334,9 @@ ${CURRENTDIR}/lptools/lp-project-upload mahara ${RELEASE} mahara-${RELEASE}.tar.
 ${CURRENTDIR}/lptools/lp-project-upload mahara ${RELEASE} mahara-${RELEASE}.zip changes.withasterisks.temp releasenotes-${RELEASE}.txt
 
 echo
-echo "All done. Once you've checked that the files were uploaded successfully, run this:"
+echo "All done. Once you've checked that the files were uploaded successfully, run these:"
 echo "  rm -rf ${BUILDDIR}"
+echo "  rm -rf ${CURRENTDIR}/changes.withasterisks.temp"
 CLEANUP;
 
 file_put_contents($CLEANUPSCRIPT, $cleanup);
