@@ -302,7 +302,7 @@ echo "\n";
 if ($BEHATTESTNUMBER = trim(shell_exec("git diff-tree --no-commit-id --name-only -r HEAD | grep -c $BEHATTESTREGEX")) >= 1) {
     echo "Patch includes a Behat test.\n";
     if ($BEHATTESTNUMBER == 1) {
-        $BEHATTESTFEATURE = trim(shell_exec("git diff-tree --no-commit-id --name-only -r HEAD | grep $BEHATTESTREGEX"));
+        $BEHATTESTFEATURE = basename(trim(shell_exec("git diff-tree --no-commit-id --name-only -r HEAD | grep $BEHATTESTREGEX")));
     }
 }
 else {
