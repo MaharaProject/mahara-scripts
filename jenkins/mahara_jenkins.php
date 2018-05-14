@@ -65,6 +65,10 @@ $BEHATNOTNEEDED = "behatnotneeded";
 // The regex we use to check for whether a commit includes new Behat tests (any changes to files)
 // that match this regex)
 $BEHATTESTREGEX = "^test/behat/features/";
+// Number of behat tests included in patch
+$BEHATTESTNUMBER = 0;
+// the name of the feature file if the patch includes only one test
+$BEHATTESTFEATURE = '';
 // If a user belongs to one of these groups in Gerrit, it means that a member of the Mahara community
 // has manually checked them out and added them to the group, so we can trust they're probably not
 // an attacker.
@@ -294,8 +298,12 @@ passthru_or_die(
 echo "\n";
 echo "########## Verify that the patch contains a Behat test\n";
 echo "\n";
-if (trim(shell_exec("git diff-tree --no-commit-id --name-only -r HEAD | grep -c $BEHATTESTREGEX")) >= 1) {
+
+if ($BEHATTESTNUMBER = trim(shell_exec("git diff-tree --no-commit-id --name-only -r HEAD | grep -c $BEHATTESTREGEX")) >= 1) {
     echo "Patch includes a Behat test.\n";
+    if ($BEHATTESTNUMBER == 1) {
+        $BEHATTESTFEATURE = trim(shell_exec("git diff-tree --no-commit-id --name-only -r HEAD | grep $BEHATTESTREGEX"));
+    }
 }
 else {
     # Check whether the commit message has "behatnotneeded" in it.
@@ -368,8 +376,9 @@ echo "\n";
 echo "########## Run Behat tests\n";
 echo "\n";
 
+
 passthru_or_die(
-        "MULTI_JOB_NAME=${MULTI_JOB_NAME} PHP_PORT=${PHP_PORT} SELENIUM_PORT=${SELENIUM_PORT} test/behat/mahara_behat.sh runheadless",
+        "MULTI_JOB_NAME=${MULTI_JOB_NAME} PHP_PORT=${PHP_PORT} SELENIUM_PORT=${SELENIUM_PORT} test/behat/mahara_behat.sh runheadless ${BEHATTESTFEATURE}",
         "This patch caused one or more Behat tests to fail.\n\n"
             . $BUILD_URL . "console\n\n"
             . "Please see the console output on test.mahara.org for details, and fix any failing tests."
