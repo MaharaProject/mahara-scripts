@@ -299,9 +299,9 @@ echo "\n";
 echo "########## Verify that the patch contains a Behat test\n";
 echo "\n";
 
-if ($BEHATTESTNUMBER = trim(shell_exec("git diff-tree --no-commit-id --name-only -r HEAD | grep -c $BEHATTESTREGEX")) >= 1) {
+if (($BEHATTESTNUMBER = trim(shell_exec("git diff-tree --no-commit-id --name-only -r HEAD | grep -c $BEHATTESTREGEX"))) >= 1) {
     echo "Patch includes a Behat test.\n";
-    if (intval($BEHATTESTNUMBER) == 1) {
+    if ($BEHATTESTNUMBER == 1) {
         $BEHATTESTFEATURE = basename(trim(shell_exec("git diff-tree --no-commit-id --name-only -r HEAD | grep $BEHATTESTREGEX")));
     }
 }
