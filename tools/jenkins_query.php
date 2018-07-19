@@ -42,6 +42,7 @@ if (!empty($content)) {
            exit;
        }
        echo 0;
+       exit;
     }
     echo 0;
 }
