@@ -126,7 +126,7 @@ system "git fetch --quiet origin";
 system "bzr launchpad-login dev-mahara";
 ! -d $BZRDIR && system "bzr init-repo $BZRDIR";
 # @UPDATE when there is a new series
-my @branches = qw(15.04_STABLE 15.10_STABLE 16.04_STABLE 16.10_STABLE master);
+my @branches = qw(17.04_STABLE 17.10_STABLE 18.04_STABLE 18.10_STABLE master);
 
 foreach my $branch (@branches) {
     if ( ! -d "$BZRDIR/$branch" ) {
@@ -161,7 +161,7 @@ foreach my $lang (@langkeys) {
     if ( $remote =~ m/^lp:mahara-lang/ ) {
         $repotype = 'launchpad';
         # @UPDATE when there is a new series
-        @branches = qw(15.04_STABLE 15.10_STABLE 16.04_STABLE 16.10_STABLE master);
+        @branches = qw(17.04_STABLE 17.10_STABLE 18.04_STABLE 18.10_STABLE master);
     }
     elsif ( $remote =~ m{^https://git\.mahara\.org|^https://gitlab\.com} ) {
         $repotype = 'git';
@@ -169,9 +169,9 @@ foreach my $lang (@langkeys) {
         chdir $gitlangdir;
         system "git fetch --quiet";
         # @UPDATE when there is a new series
-        # When adding a new branch name here, make sure to preface it with 
+        # When adding a new branch name here, make sure to preface it with
         # "\|", that is, a backslash, then a pipe.
-        my $remotebranchcmd = 'git branch -r | grep -v "HEAD" | grep "origin\/\(master\|15.04_STABLE\|15.10_STABLE\|16.04_STABLE\|16.10_STABLE\)$"';
+        my $remotebranchcmd = 'git branch -r | grep -v "HEAD" | grep "origin\/\(master\|17.04_STABLE\|17.10_STABLE\|18.04_STABLE\|18.10_STABLE\)$"';
         my $remotebranches = `$remotebranchcmd`;
         $remotebranches =~ s/\s+/ /;
         @branches = ();
