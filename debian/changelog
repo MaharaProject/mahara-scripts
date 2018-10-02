@@ -1,8 +1,12 @@
-mahara-scripts (1.35) UNRELEASED; urgency=medium
+mahara-scripts (1.36) UNRELEASED; urgency=medium
 
-  * Add 18.04 branch 
+  [ Son Nguyen ]
+  * Update the deb package for custom-site-mahara-langpacks
 
- -- Cecilia Vela Gurovic <ceciliavg@ceciliavg-pc.dynamic.wgtn.cat-it.co.nz>  Fri, 23 Mar 2018 15:12:40 +1300
+  [ Cecilia Vela Gurovic ]
+  * 18.10 release 
+   
+ -- Cecilia Vela Gurovic <ceciliavg@ceciliavg-pc.dynamic.wgtn.cat-it.co.nz>  Tue, 02 Oct 2018 09:31:57 +1300
 
 mahara-scripts (1.32) UNRELEASED; urgency=medium
 
