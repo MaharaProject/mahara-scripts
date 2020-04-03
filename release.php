@@ -216,6 +216,16 @@ if ($OLDVERSION >= 2016090206) {
     }
 }
 
+# Build the chrome-php
+if ($OLDVERSION >= 2020013000) {
+    echo "Building chrome-php...\n";
+    passthru("make pdfexport >> ../make.log 2>&1");
+    if (!file_exists('htdocs/lib/chrome-php/headless-chromium-php-master/src/BrowserFactory.php')) {
+        echo "Chrome headless php files did not build correctly! Check $BUILDDIR/make.log for details.";
+        exit(1);
+    }
+}
+
 # Package up the release
 $PACKAGEDIR = 'mahara-' . $VERSION;
 echo "Package directory: $BUILDDIR/$PACKAGEDIR\n";
