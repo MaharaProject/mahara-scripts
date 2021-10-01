@@ -220,7 +220,7 @@ if ($OLDVERSION >= 2016090206) {
 if ($OLDVERSION >= 2020013000) {
     echo "Building chrome-php...\n";
     passthru("make pdfexport >> ../make.log 2>&1");
-    if (!file_exists('htdocs/lib/chrome-php/headless-chromium-php-0.11/src/BrowserFactory.php')) {
+    if (!file_exists('htdocs/lib/chrome-php/chrome-0.11/src/BrowserFactory.php')) {
         echo "Chrome headless php files did not build correctly! Check $BUILDDIR/make.log for details.";
         exit(1);
     }
