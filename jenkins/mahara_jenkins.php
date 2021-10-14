@@ -500,8 +500,8 @@ function gerrit_comment($comment, $printtoconsole = true) {
  * @return bool
  */
 function branch_above($branch, $major, $minor) {
-    // If the branch is master it should have all we need
-    if ($branch == 'master') {
+    // If the branch is main it should have all we need
+    if ($branch == 'main') {
         return true;
     }
     $branch = explode('_', $branch);

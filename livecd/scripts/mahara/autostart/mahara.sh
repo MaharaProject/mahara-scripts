@@ -2,7 +2,7 @@
 
 # Update the latest code from git.mahara.org
 cd /var/www/html
-sudo -H -u www-data git pull && git checkout master
+sudo -H -u www-data git pull && git checkout main
 # Update the CSS
 sudo -H -u www-data make css
 

@@ -262,14 +262,14 @@ $sourcefiles = array();
 get_langfile_list($sourcefiles, $source);
 
 $version = 'mahara';
-if (preg_match('/master\.pot$/', $destfile)) {
+if (preg_match('/main\.pot$/', $destfile)) {
     $version .= '-trunk';
 }
 else if (preg_match('/(\d[0-9\.]+)_STABLE\.pot$/', $destfile, $matches)) {
     $version .= '-' . $matches[1];
 }
 if ($version == 'mahara') {
-    if (preg_match('/\/master$/', $source)) {
+    if (preg_match('/\/main$/', $source)) {
         $version .= '-trunk';
     }
     else if (preg_match('/\/(\d[0-9\.]+)_STABLE$/', $source, $matches)) {

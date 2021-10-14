@@ -60,7 +60,7 @@ cd ${GITDIR}
 git fetch --quiet origin
 
 # @UPDATE when there is a new series
-branches="17.04_STABLE 17.10_STABLE 18.04_STABLE 18.10_STABLE 19.04_STABLE 19.10_STABLE master"
+branches="17.04_STABLE 17.10_STABLE 18.04_STABLE 18.10_STABLE 19.04_STABLE 19.10_STABLE 20.04_STABLE 20.10_STABLE 21.04_STABLE 21.10_STABLE main"
 
 for branch in ${branches} ; do
     branchexists=`git branch | grep "${branch}$"`
@@ -145,7 +145,7 @@ for branch in ${branches} ; do
                 bzr add mahara/mahara.pot
                 bzr commit -m "Update template to ${remotecommit}"
 
-                if [ $branch = 'master' ] ; then
+                if [ $branch = 'main' ] ; then
                     # Update all the .po files from the export repo to avoid unnecessary invalidation
                     # of existing translations
 
