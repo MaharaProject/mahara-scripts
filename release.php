@@ -73,8 +73,8 @@ $BRANCH = $argv[2];
 
 // Check for unmerged drafts
 if ($releasecandidate) {
-    // If it's a release candidate, draft patches will be on the master branch still
-    $draftbranch = 'master';
+    // If it's a release candidate, draft patches will be on the main branch still
+    $draftbranch = 'main';
 }
 else {
     $draftbranch = $BRANCH;

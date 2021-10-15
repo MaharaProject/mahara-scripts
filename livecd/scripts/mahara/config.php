@@ -1,7 +1,7 @@
 <?php
 $cfg = new StdClass;
 
-$branch = 'master';
+$branch = 'main';
 
 // database connection details
 // valid values for dbtype are 'postgres8' and 'mysql5'

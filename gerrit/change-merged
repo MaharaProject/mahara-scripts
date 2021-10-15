@@ -136,7 +136,7 @@ def submit_to_cia(project, commit, branch, git_log):
     generator_version = doc.createElement('version')
     generator_version.appendChild(doc.createTextNode('1.0'))
     generator_url = doc.createElement('url')
-    generator_url.appendChild(doc.createTextNode('https://git.mahara.org/scripts/mahara-scripts/blob/master/gerrit/change-merged'))
+    generator_url.appendChild(doc.createTextNode('https://git.mahara.org/scripts/mahara-scripts/blob/main/gerrit/change-merged'))
     generator.appendChild(generator_name)
     generator.appendChild(generator_version)
     generator.appendChild(generator_url)

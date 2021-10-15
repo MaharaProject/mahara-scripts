@@ -55,7 +55,7 @@ my $TARBALLS  = "${DATA}/tarballs";
 my $MAHARA    = "${DATA}/mahara";
 
 my $MAHARAREMOTE = 'https://git.mahara.org/mahara/mahara.git';
-my $REPOLIST     = 'https://git.mahara.org/scripts/mahara-scripts/raw/master/mahara-langpacks/language-repos.txt';
+my $REPOLIST     = 'https://git.mahara.org/scripts/mahara-scripts/raw/main/mahara-langpacks/language-repos.txt';
 
 mkpath $GITDIR;
 mkpath $DIRTY;
@@ -126,7 +126,7 @@ system "git fetch --quiet origin";
 system "bzr launchpad-login dev-mahara";
 ! -d $BZRDIR && system "bzr init-repo $BZRDIR";
 # @UPDATE when there is a new series
-my @branches = qw(17.04_STABLE 17.10_STABLE 18.04_STABLE 18.10_STABLE 19.04_STABLE 19.10_STABLE master);
+my @branches = qw(17.04_STABLE 17.10_STABLE 18.04_STABLE 18.10_STABLE 19.04_STABLE 19.10_STABLE 20.04_STABLE 20.10_STABLE 21.04_STABLE 21.10_STABLE main);
 
 foreach my $branch (@branches) {
     if ( ! -d "$BZRDIR/$branch" ) {
@@ -161,7 +161,7 @@ foreach my $lang (@langkeys) {
     if ( $remote =~ m/^lp:mahara-lang/ ) {
         $repotype = 'launchpad';
         # @UPDATE when there is a new series
-        @branches = qw(17.04_STABLE 17.10_STABLE 18.04_STABLE 18.10_STABLE 19.04_STABLE 19.10_STABLE master);
+        @branches = qw(17.04_STABLE 17.10_STABLE 18.04_STABLE 18.10_STABLE 19.04_STABLE 19.10_STABLE 20.04_STABLE 20.10_STABLE 21.04_STABLE 21.10_STABLE main);
     }
     elsif ( $remote =~ m{^https://git\.mahara\.org|^https://gitlab\.com} ) {
         $repotype = 'git';
@@ -171,7 +171,7 @@ foreach my $lang (@langkeys) {
         # @UPDATE when there is a new series
         # When adding a new branch name here, make sure to preface it with
         # "\|", that is, a backslash, then a pipe.
-        my $remotebranchcmd = 'git branch -r | grep -v "HEAD" | grep "origin\/\(master\|17.04_STABLE\|17.10_STABLE\|18.04_STABLE\|18.10_STABLE\|19.04_STABLE\|19.10_STABLE\)$"';
+        my $remotebranchcmd = 'git branch -r | grep -v "HEAD" | grep "origin\/\(main\|17.04_STABLE\|17.10_STABLE\|18.04_STABLE\|18.10_STABLE\|19.04_STABLE\|19.10_STABLE\|20.04_STABLE\|20.10_STABLE\|21.04_STABLE\|21.10_STABLE\)$"';
         my $remotebranches = `$remotebranchcmd`;
         $remotebranches =~ s/\s+/ /;
         @branches = ();

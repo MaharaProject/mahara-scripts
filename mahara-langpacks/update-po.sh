@@ -46,7 +46,7 @@ for lang in ${langs} ; do
     git fetch --quiet
 done
 
-branches="1.3_STABLE 1.4_STABLE master"
+branches="1.3_STABLE 1.4_STABLE main"
 
 for branch in ${branches} ; do
     echo "${branch}:"
@@ -75,7 +75,7 @@ for branch in ${branches} ; do
         outputfile=${OUT}/${lang}-${branch}.po
         [ -f ${outputfile} ] && rm ${outputfile}
 
-        # If there's already a po file on the branch, assume it's the master version of the
+        # If there's already a po file on the branch, assume it's the main version of the
         # langpack, and don't generate one.
         if [ -f ${gitlangdir}/mahara/${lang}.po ] ; then
             echo "mahara/${lang}.po already exists for the {$branch} branch in the ${lang} git repository; skipping"
@@ -86,4 +86,3 @@ for branch in ${branches} ; do
         /usr/bin/php ${PHPSCRIPT} ${MAHARA}/htdocs/ ${gitlangdir} ${outputfile}
     done
 done
-

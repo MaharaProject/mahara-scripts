@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Builds and releases Mahara to the debian repo
-# 
+#
 # This script can release just one version (stable|unstable), or both at once
 #
 set -e
@@ -13,7 +13,7 @@ DATE="`date`"
 
 
 echo " *** STOP *** "
-echo " Make sure you have merged master into pkg-catalyst, and the latest"
+echo " Make sure you have merged main into pkg-catalyst, and the latest"
 echo " stable branch into the appropriate pkg-catalyst-* branch. If you"
 echo " have not done this, hit Ctrl-C now and do so."
 read junk
@@ -112,7 +112,7 @@ Components: mahara
 Description: Mahara ${release} repository
 MD5Sum:
 EOHDR
-    
+
     for file in `find mahara -type f -name 'Packages*'`; do
         MD5="`md5sum $file | cut -c1-32`"
         SIZE="`cat $file | wc -c`"
@@ -124,7 +124,7 @@ EOHDR
     popd
 done
 
-# Steal the latest index.html and dump into 
+# Steal the latest index.html and dump into
 pushd ${BUILDDIR}/mahara
 git cat-file blob origin/pkg-catalyst:debian/index.html > ${REPODIR}/index.html
 popd

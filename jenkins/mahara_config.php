@@ -4,7 +4,7 @@ $JOBNAME = getenv('MULTI_JOB_NAME');
 
 $cfg = new stdClass();
 
-$branch = 'master';
+$branch = 'main';
 
 // database connection details
 $cfg->dbtype   = 'postgres';
