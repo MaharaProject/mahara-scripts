@@ -70,7 +70,12 @@ $MINOR = $matches[3];
 $releasecandidate = ($matches[2] == 'rc');
 
 $BRANCH = $argv[2];
-
+if ($releasecandidate) {
+    $STABLEBRANCH = $BRANCH;
+}
+else {
+    $STABLEBRANCH = "${MAJOR}_STABLE";
+}
 // Check for unmerged drafts
 if ($releasecandidate) {
     // If it's a release candidate, draft patches will be on the main branch still
@@ -119,7 +124,19 @@ passthru("git remote add -t ${BRANCH} mahara ${PUBLIC}");
 passthru("git fetch -q mahara");
 passthru("git checkout -b ${BRANCH} mahara/${BRANCH}");
 passthru("git fetch -q -t");
-
+if ($BRANCH != $STABLEBRANCH) {
+    $refline = shell_exec("git ls-remote --heads ${PUBLIC} ${STABLEBRANCH} | wc -l");
+    if ($refline) {
+        // The stable branch already exists
+        passthru("git checkout -b ${STABLEBRANCH} mahara/${STABLEBRANCH}");
+        passthru("git fetch -q -t");
+        passthru("git merge ${BRANCH}");
+    }
+    else {
+        // Create the stable branch
+        passthru("git checkout -b ${STABLEBRANCH} ${BRANCH}");
+    }
+}
 
 // Applying gerrit patches named on the command line
 if (count($argv) > 3) {
@@ -331,7 +348,7 @@ $cleanup  = <<<CLEANUP
 set -e
 
 cd ${BUILDDIR}/mahara
-git push gerrit ${BRANCH}:refs/heads/${BRANCH}
+git push gerrit ${STABLEBRANCH}:refs/heads/${STABLEBRANCH}
 git push gerrit ${RELEASETAG}:refs/tags/${RELEASETAG}
 
 gpg --armor --sign --detach-sig ${CURRENTDIR}/mahara-${RELEASE}.tar.gz
