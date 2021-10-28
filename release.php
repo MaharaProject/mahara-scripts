@@ -126,7 +126,8 @@ passthru("git checkout -b ${BRANCH} mahara/${BRANCH}");
 passthru("git fetch -q -t");
 if ($BRANCH != $STABLEBRANCH) {
     $refline = shell_exec("git ls-remote --heads ${PUBLIC} ${STABLEBRANCH} | wc -l");
-    if ($refline) {
+    $refline = trim($refline);
+    if (!empty($refline)) {
         // The stable branch already exists
         passthru("git checkout -b ${STABLEBRANCH} mahara/${STABLEBRANCH}");
         passthru("git fetch -q -t");
@@ -326,7 +327,8 @@ else {
 }
 passthru("m4 ${TMP_M4_FILE} ${SCRIPTDIR}/${TEMPLATE} > ${CURRENTDIR}/releasenotes-${RELEASE}.txt");
 
-# Second version bump for post-release
+# Second version bump for post-release we checkout the _DEV branch
+passthru("git checkout ${BRANCH}");
 $NEWVERSION = $NEWVERSION + 1;
 $NEWRELEASE = $MAJOR . ($releasecandidate ? 'rc' : '.') . ($MINOR + 1) . "testing";
 
@@ -349,6 +351,7 @@ set -e
 
 cd ${BUILDDIR}/mahara
 git push gerrit ${STABLEBRANCH}:refs/heads/${STABLEBRANCH}
+git push gerrit ${BRANCH}:refs/heads/${BRANCH}
 git push gerrit ${RELEASETAG}:refs/tags/${RELEASETAG}
 
 gpg --armor --sign --detach-sig ${CURRENTDIR}/mahara-${RELEASE}.tar.gz
