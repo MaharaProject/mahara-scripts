@@ -129,6 +129,8 @@ if ($BRANCH != $STABLEBRANCH) {
     $refline = trim($refline);
     if (!empty($refline)) {
         // The stable branch already exists
+        passthru("git remote set-branches --add mahara ${STABLEBRANCH}");
+        passthru("git fetch mahara");
         passthru("git checkout -b ${STABLEBRANCH} mahara/${STABLEBRANCH}");
         passthru("git fetch -q -t");
         passthru("git merge ${BRANCH}");
