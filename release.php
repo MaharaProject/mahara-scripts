@@ -133,7 +133,7 @@ if ($BRANCH != $STABLEBRANCH) {
         passthru("git fetch mahara");
         passthru("git checkout -b ${STABLEBRANCH} mahara/${STABLEBRANCH}");
         passthru("git fetch -q -t");
-        passthru("git merge ${BRANCH}");
+        passthru("git merge -X theirs ${BRANCH}");
     }
     else {
         // Create the stable branch
