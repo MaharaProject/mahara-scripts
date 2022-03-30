@@ -168,10 +168,12 @@ def main():
             'change=',
             'change-url=',
             'change-owner=',
+            'change-owner-username=',
             'project=',
             'branch=',
             'topic=',
             'submitter=',
+            'submitter-username=',
             'commit=',
             'newrev=',
     ]

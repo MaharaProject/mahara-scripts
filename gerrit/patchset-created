@@ -84,10 +84,12 @@ def main():
             'kind=',
             'change-url=',
             'change-owner=',
+            'change-owner-username=',
             'project=',
             'branch=',
             'topic=',
             'uploader=',
+            'uploader-username=',
             'commit=',
             'patchset='
     ]
