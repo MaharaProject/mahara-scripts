@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #
 # Gerrit hook script to write a message about each merged patch in its
 # associated Launchpad bug.
@@ -32,7 +32,7 @@ import smtplib
 import subprocess
 import sys
 from xml.dom.minidom import Document
-import xmlrpclib
+import xmlrpc
 
 FROM_ADDRESS = 'dev@mahara.org'
 TO_ADDRESS_SUFFIX = '@bugs.launchpad.net'
@@ -193,8 +193,18 @@ def main():
     if change_url and project and branch and submitter and commit:
         send_notifications(change_url, project, branch, submitter, commit)
     else:
-        print 'Missing arguments'
-	return 1
+        print('Missing arguments')
+        if not change_url:
+            print('change-url ')
+        if not project:
+            print('project ')
+        if not branch:
+            print('branch ')
+        if not submitter:
+            print('submitter ')
+        if not commit:
+            print('commit ')
+        return 1
 
     return 0;
 
