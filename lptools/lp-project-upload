@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # Copyright (c) 2009 Canonical Ltd.
 #
@@ -34,7 +34,7 @@ from lptools import config
 def create_release(project, version):
     '''Create new release and milestone for LP project.'''
 
-    print 'Release %s could not be found for project. Create it? (Y/n)' % \
+    print('Release %s could not be found for project. Create it? (Y/n)') % \
           version
     answer = sys.stdin.readline().strip()
     if answer.startswith('n'):
@@ -46,10 +46,10 @@ def create_release(project, version):
     elif n_series > 1:
         msg = 'More than one series exist. Which one would you like to ' \
               'upload to? Possible series are (listed as index, name):'
-        print msg
+        print(msg)
         for idx, serie in enumerate(project.series):
-            print '\t%i - %s' % (idx, serie.name)
-        print 'Enter series index: '
+            print('\t%i - %s' % (idx, serie.name))
+        print('Enter series index: ')
         answer = sys.stdin.readline().strip()
         try:
             series = project.series[int(answer)]
@@ -57,7 +57,7 @@ def create_release(project, version):
             print >> sys.stderr, 'The series index is invalid (%s).' % answer
             sys.exit(3)
         else:
-            print "Using series named '%s'" % series.name
+            print("Using series named '%s'" % series.name)
     else:
         print >> sys.stderr, ('Does not support creating releases if no '
                               'series exists.')
@@ -101,7 +101,7 @@ def main():
     elif len(sys.argv) == 6:
         (project, version, tarball, changelog_file, releasenotes_file) = sys.argv[1:]
 
-    print "Uploading..."
+    print("Uploading...")
     launchpad = config.get_launchpad("project-upload")
 
     try:
@@ -122,17 +122,17 @@ def main():
             release = create_release(proj, version)
 
         # Get the file contents.
-        file_content = open(tarball, 'r').read()
+        file_content = open(tarball, 'rb').read()
         # Get the signature, if available.
         signature = tarball + '.asc'
         if not os.path.exists(signature):
-            print 'Calling GPG to create tarball signature...'
+            print('Calling GPG to create tarball signature...')
             cmd = ['gpg', '--armor', '--sign', '--detach-sig', tarball]
             if subprocess.call(cmd) != 0:
                 print >> sys.stderr, 'gpg failed, aborting'
 
         if os.path.exists(signature):
-            signature_content = open(signature, 'r').read()
+            signature_content = open(signature, 'rb').read()
         else:
             signature_content = None
 
@@ -166,8 +166,8 @@ def main():
                 if mil.name in [milestone.name for milestone in series.all_milestones]:
                     series.newMilestone(name=new_milestone)
 
-    except HTTPError, error:
-        print 'An error happened in the upload:', error.content
+    except HTTPError as error:
+        print('An error happened in the upload:'), error.content
         sys.exit(1)
 
 if __name__ == '__main__':
