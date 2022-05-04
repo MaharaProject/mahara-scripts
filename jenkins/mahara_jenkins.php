@@ -32,6 +32,12 @@ $MULTI_JOB_NAME = getenv('MULTI_JOB_NAME');
 $BUILD_URL = getenv('BUILD_URL');
 $HOME = getenv('HOME');
 
+$DO_HISTORY_CHECKS=(strlen($GERRIT_REFSPEC) > 0);
+
+if(!$DO_HISTORY_CHECKS) {
+  print("SKIPPING HISTORY CHECKS\n\n");
+}
+
 $PHP_PORT = getenv('PHP_PORT');
 $SELENIUM_PORT = getenv('SELENIUM_PORT');
 
@@ -65,10 +71,6 @@ $BEHATNOTNEEDED = "behatnotneeded";
 // The regex we use to check for whether a commit includes new Behat tests (any changes to files)
 // that match this regex)
 $BEHATTESTREGEX = "^test/behat/features/";
-// Number of behat tests included in patch
-$BEHATTESTNUMBER = 0;
-// the name of the feature file if the patch includes only one test
-$BEHATTESTFEATURE = '';
 // If a user belongs to one of these groups in Gerrit, it means that a member of the Mahara community
 // has manually checked them out and added them to the group, so we can trust they're probably not
 // an attacker.
@@ -85,8 +87,16 @@ $TRUSTED_EMAIL_DOMAINS = array(
     'catalyst-eu.net'
 );
 
-passthru_or_die("git clean -df");
-passthru_or_die("git reset --hard");
+# TIGER -- put this back when this mahara_behat.sh is in git.
+# this avoids our custom mahara_behat.sh being overwritten by the one in git
+# after the reset
+if (false) {
+  echo "DOING GIT CLEAN AND RESET\n";
+  passthru_or_die("git clean -df");
+  passthru_or_die("git reset --hard");
+}
+
+if($DO_HISTORY_CHECKS) {
 
 echo "\n";
 echo "########## Check the patch is less than $MAXBEHIND patches behind remote branch HEAD\n";
@@ -102,6 +112,7 @@ if ($behindby > $MAXBEHIND) {
     );
     exit(1);
 }
+
 
 echo "\n";
 echo "########## Check the patch and its parents are not already rejected\n";
@@ -134,6 +145,10 @@ foreach ($commitancestors as $commit) {
 
     $content = gerrit_get('/changes/?q=commit:' . $commit . '+branch:' . $GERRIT_BRANCH . '&o=LABELS&o=CURRENT_REVISION&pp=0');
     // Because we queried by commit and branch, should return exactly one record.
+    if (empty($content[0])) {
+        gerrit_comment("Unable to fetch information about this patchset. Is it a private patch?");
+        exit(1);
+    }
     $content = $content[0];
 
     // Doublecheck to see if this has already been merged
@@ -295,15 +310,13 @@ passthru_or_die(
 );
 
 
+/* gerald-2019-08-08
+ * temporarily don't check behatnotneeded and containing a behat test.
 echo "\n";
 echo "########## Verify that the patch contains a Behat test\n";
 echo "\n";
-
-if (($BEHATTESTNUMBER = trim(shell_exec("git diff-tree --no-commit-id --name-only -r HEAD | grep -c $BEHATTESTREGEX"))) >= 1) {
+if (trim(shell_exec("git diff-tree --no-commit-id --name-only -r HEAD | grep -c $BEHATTESTREGEX")) >= 1) {
     echo "Patch includes a Behat test.\n";
-    if ($BEHATTESTNUMBER === '1') {
-        $BEHATTESTFEATURE = basename(trim(shell_exec("git diff-tree --no-commit-id --name-only -r HEAD | grep $BEHATTESTREGEX")));
-    }
 }
 else {
     # Check whether the commit message has "behatnotneeded" in it.
@@ -318,6 +331,9 @@ else {
         exit(1);
     }
 }
+ */
+
+} // DO_HISTORY_CHECKS
 
 
 echo "\n";
@@ -375,10 +391,11 @@ passthru_or_die(
 echo "\n";
 echo "########## Run Behat tests\n";
 echo "\n";
-
-
+# make sure we have totally clean behat
+passthru_or_die("rm -Rf $HOME/mahara/sitedata/behat_$MULTI_JOB_NAME/behat/*");
+exec_or_die("psql $MULTI_JOB_NAME -c \"SET client_min_messages TO WARNING;DO \\\$do\\\$ DECLARE _tbl text; BEGIN FOR _tbl  IN SELECT quote_ident(table_schema) || '.' || quote_ident(table_name) FROM   information_schema.tables WHERE  table_name LIKE 'behat_' || '%' AND table_schema NOT LIKE 'pg_%' LOOP EXECUTE 'DROP TABLE ' || _tbl || ' CASCADE'; END LOOP; END \\\$do\\\$;\"", $cleanbehat);
 passthru_or_die(
-        "MULTI_JOB_NAME=${MULTI_JOB_NAME} PHP_PORT=${PHP_PORT} SELENIUM_PORT=${SELENIUM_PORT} test/behat/mahara_behat.sh runheadless ${BEHATTESTFEATURE}",
+        "MULTI_JOB_NAME=${MULTI_JOB_NAME} PHP_PORT=${PHP_PORT} SELENIUM_PORT=${SELENIUM_PORT} test/behat/mahara_behat.sh runheadless",
         "This patch caused one or more Behat tests to fail.\n\n"
             . $BUILD_URL . "console\n\n"
             . "Please see the console output on test.mahara.org for details, and fix any failing tests."
@@ -487,6 +504,8 @@ function gerrit_comment($comment, $printtoconsole = true) {
     $changeid = rawurlencode("mahara~{$GERRIT_BRANCH}~{$GERRIT_CHANGE_ID}");
     $revisionid = $GERRIT_PATCHSET_REVISION;
     $url = "/changes/{$changeid}/revisions/{$revisionid}/review?pp=0";
+
+    // TIGER-dev: remove this when pushing this back into mahara-scripts
     gerrit_post($url, $reviewinput, true);
 }
 
@@ -507,6 +526,10 @@ function branch_above($branch, $major, $minor) {
     $branch = explode('_', $branch);
     // Get the major.minor version
     $branchversion = explode('.', $branch[0]);
+    // print("dumping branchversion\n");
+    // var_dump($branchversion);
+    // print("\n\n");
+
     if (((int) $major >= (int) $branchversion[0]) && ((int) $minor > (int) $branchversion[1])) {
         return true;
     }
