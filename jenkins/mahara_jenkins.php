@@ -300,6 +300,25 @@ foreach ($commitancestors as $commit) {
     $i++;
 }
 
+
+# Check if composer is not available
+if (!file_exists("external/composer.json")) {
+    exit(0);
+}
+echo "\n";
+echo "########## Install composer dependencies\n";
+echo "\n";
+# Install composer in the external directory.
+chdir('external');
+passthru_or_die("curl -sS https://getcomposer.org/installer | php");
+# Run composer install in the external directory.
+passthru_or_die(PHP_BINARY . ' composer.phar update');
+chdir('..');
+# If we have a composer.lock file, then we need to run composer install in the Mahara directory.
+if (file_exists("composer.lock")) {
+    passthru_or_die(PHP_BINARY . ' external/composer.phar install');
+}
+
 echo "\n";
 echo "########## Run make minaccept\n";
 echo "\n";
@@ -360,20 +379,6 @@ passthru_or_die("createdb -O jenkins -E utf8 $MULTI_JOB_NAME");
 chdir('htdocs');
 passthru_or_die("cp $HOME/mahara/mahara-scripts/jenkins/mahara_config.php config.php");
 passthru_or_die("PHP_PORT=${PHP_PORT} " . PHP_BINARY . " admin/cli/install.php --adminpassword='password' --adminemail=never@example.com");
-chdir('..');
-
-# Check if composer is not available
-if (!file_exists("external/composer.json")) {
-    exit(0);
-}
-
-
-echo "\n";
-echo "########## Install composer dependencies\n";
-echo "\n";
-chdir('external');
-passthru_or_die("curl -sS https://getcomposer.org/installer | php");
-passthru_or_die(PHP_BINARY . ' composer.phar update');
 chdir('..');
 
 
