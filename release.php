@@ -275,6 +275,8 @@ passthru("rm -Rf .gitattributes");
 passthru("rm -Rf Makefile");
 passthru("rm -Rf phpunit.xml");
 passthru("rm -Rf external");
+passthru("rm -Rf dev");
+passthru("rm -Rf docker");
 passthru("rm -Rf package.json");
 passthru("rm -Rf ChangeLog.back");
 
