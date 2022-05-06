@@ -60,7 +60,7 @@ cd ${GITDIR}
 git fetch --quiet origin
 
 # @UPDATE when there is a new series
-branches="17.04_STABLE 17.10_STABLE 18.04_STABLE 18.10_STABLE 19.04_STABLE 19.10_STABLE 20.04_STABLE 20.10_STABLE 21.04_STABLE 21.10_STABLE main"
+branches="17.04_STABLE 17.10_STABLE 18.04_STABLE 18.10_STABLE 19.04_STABLE 19.10_STABLE 20.04_STABLE 20.10_STABLE 21.04_STABLE 21.10_STABLE 22.04_STABLE main"
 
 for branch in ${branches} ; do
     branchexists=`git branch | grep "${branch}$"`
