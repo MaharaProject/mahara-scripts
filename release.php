@@ -15,8 +15,16 @@ define('CLI', 1);
 
 $usage = <<<STRING
 Usage is ${argv[0]} [version] [branch] [<changesetnumber>...]
-e.g. ${argv[0]} 16.04.3 16.04_STABLE
-e.g. ${argv[0]} 15.10.1 15.10_STABLE 5793 5795
+e.g. ${argv[0]} 22.04.1 22.04_DEV
+e.g. ${argv[0]} 22.04.1 22.04_DEV 12345 12378
+
+[version] is the new version number to release.
+[branch] is the branch to release from.
+[<changesetnumber>] is the number of the changesets to include in the release. These are from the reviews site.
+
+e.g. https://reviews.mahara.org/c/mahara/+/<changesetnumber>
+
+See: https://wiki.mahara.org/wiki/Developer_Area/Release_Instructions/Major_Release#Creating_the_new_stable_branch
 
 STRING;
 
