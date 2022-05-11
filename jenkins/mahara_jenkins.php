@@ -386,7 +386,7 @@ echo "\n";
 echo "########## Run phpunit tests\n";
 echo "\n";
 passthru_or_die(
-        'external/vendor/bin/phpunit htdocs/',
+        'external/vendor/bin/phpunit htdocs/lib/',
         "This patch caused one or more phpunit tests to fail.\n\n"
             . $BUILD_URL . "console\n\n"
             . "Please see the console output on test.mahara.org for details, and fix any failing tests."
