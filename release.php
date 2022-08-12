@@ -396,5 +396,7 @@ chdir($CURRENTDIR);
 passthru("ls -l mahara-${RELEASE}.tar.gz mahara-${RELEASE}.tar.bz2 mahara-${RELEASE}.zip releasenotes-${RELEASE}.txt ${RELEASETAG}.cl");
 
 echo "\n1. Check that everything is in order in the ${BUILDDIR}/mahara repository.\n";
-echo "\n2. Create the release on launchpad at https://launchpad.net/mahara/+milestone/${RELEASE}\n";
-echo "\n3. Run the commands in ${CLEANUPSCRIPT} to push the changes back to the remote repository and upload the tarballs.\n";
+echo "- Make sure the new release tag ${RELEASETAG} exists on the ${STABLEBRANCH} branch.\n";
+echo "\n2. Manually test one of the tarballs locally. See wiki.mahara.org for latest test instructions.\n";
+echo "\n3. Create the release on launchpad at https://launchpad.net/mahara/+milestone/${RELEASE}\n";
+echo "\n4. Run the commands in ${CLEANUPSCRIPT} to push the changes back to the remote repository and upload the tarballs.\n";
