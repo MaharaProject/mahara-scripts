@@ -534,8 +534,11 @@ function branch_above($branch, $major, $minor) {
     // print("dumping branchversion\n");
     // var_dump($branchversion);
     // print("\n\n");
+    
+    // We don't always have a minor version
+    $minorbranchversion = isset($branchversion[1]) ? (int) $branchversion[1] : 0;
 
-    if (((int) $major >= (int) $branchversion[0]) && ((int) $minor > (int) $branchversion[1])) {
+    if (((int) $major >= (int) $branchversion[0]) && ((int) $minor > $minorbranchversion)) {
         return true;
     }
     return false;
