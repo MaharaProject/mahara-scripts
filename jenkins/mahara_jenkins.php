@@ -399,15 +399,25 @@ echo "\n";
 # make sure we have totally clean behat
 passthru_or_die("rm -Rf $HOME/mahara/sitedata/behat_$MULTI_JOB_NAME/behat/*");
 exec_or_die("psql $MULTI_JOB_NAME -c \"SET client_min_messages TO WARNING;DO \\\$do\\\$ DECLARE _tbl text; BEGIN FOR _tbl  IN SELECT quote_ident(table_schema) || '.' || quote_ident(table_name) FROM   information_schema.tables WHERE  table_name LIKE 'behat_' || '%' AND table_schema NOT LIKE 'pg_%' LOOP EXECUTE 'DROP TABLE ' || _tbl || ' CASCADE'; END LOOP; END \\\$do\\\$;\"", $cleanbehat);
-passthru_or_die(
-        "MULTI_JOB_NAME=${MULTI_JOB_NAME} PHP_PORT=${PHP_PORT} SELENIUM_PORT=${SELENIUM_PORT} test/behat/mahara_behat.sh runheadless",
-        "This patch caused one or more Behat tests to fail.\n\n"
+
+// Walk over the directories in test/behat/features
+$behatfeaturesdir = 'test/behat/features';
+$skipdirs = ['.', '..', 'manual_checks', 'elasticsearch7'];
+$behatdirs = array_diff(scandir($behatfeaturesdir), $skipdirs);
+foreach ($behatdirs as $behatdir) {
+    // Skip the $behatdir if it's not a directory.
+    if (!is_dir($behatdir)) {
+        continue;
+    }
+    // Run the behat features in the $behatdir.
+    passthru_or_die(
+        "MULTI_JOB_NAME=${MULTI_JOB_NAME} PHP_PORT=${PHP_PORT} SELENIUM_PORT=${SELENIUM_PORT} test/behat/mahara_behat.sh runheadless features/$behatdir",
+        "This patch caused one or more Behat tests to fail in the features/ " . $behatdir . ".\n\n"
             . $BUILD_URL . "console\n\n"
             . "Please see the console output on test.mahara.org for details, and fix any failing tests."
-);
-
+    );
+}
 exit(0);
-
 
 ///////////////////////////////////// FUNCTIONS ///////////////////////////////////////
 /**
