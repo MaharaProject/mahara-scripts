@@ -402,12 +402,9 @@ exec_or_die("psql $MULTI_JOB_NAME -c \"SET client_min_messages TO WARNING;DO \\\
 
 // Walk over the directories in test/behat/features
 $behatfeaturesdir = 'test/behat/features';
-$behatdirs = scandir($behatfeaturesdir);
 $skipdirs = ['.', '..', 'manual_checks', 'elasticsearch7'];
+$behatdirs = array_diff(scandir($behatfeaturesdir), $skipdirs);
 foreach ($behatdirs as $behatdir) {
-    if (in_array($behatdir, $skipdirs)) {
-        continue;
-    }
     // Skip the $behatdir if it's not a directory.
     if (!is_dir($behatdir)) {
         continue;
