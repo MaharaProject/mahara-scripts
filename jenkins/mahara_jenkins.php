@@ -361,12 +361,13 @@ echo "\n";
 if (branch_above($GERRIT_BRANCH, '15', '04')) {
     passthru('make clean-css');
 }
+passthru('echo npm libraries && node -v && npm list fibers');
 passthru_or_die(
         'make',
         "This patch encountered an error while attempting to build its CSS.\n\n"
             ."This may be an error in Jenkins"
 );
-
+passthru("echo node version && node -v");
 
 echo "\n";
 echo "########## Run installer\n";
