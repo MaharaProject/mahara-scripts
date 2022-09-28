@@ -407,12 +407,13 @@ $skipdirs = ['.', '..', 'manual_checks', 'elasticsearch7'];
 $behatdirs = array_diff(scandir($behatfeaturesdir), $skipdirs);
 foreach ($behatdirs as $behatdir) {
     // Skip the $behatdir if it's not a directory.
-    if (!is_dir($behatdir)) {
+    if (!is_dir($behatfeaturesdir . '/' . $behatdir)) {
         continue;
     }
+    echo "Running behat for the $behatdir directory\n";
     // Run the behat features in the $behatdir.
     passthru_or_die(
-        "MULTI_JOB_NAME=${MULTI_JOB_NAME} PHP_PORT=${PHP_PORT} SELENIUM_PORT=${SELENIUM_PORT} test/behat/mahara_behat.sh runheadless features/$behatdir",
+        "MULTI_JOB_NAME=${MULTI_JOB_NAME} PHP_PORT=${PHP_PORT} SELENIUM_PORT=${SELENIUM_PORT} test/behat/mahara_behat.sh runheadless $behatdir",
         "This patch caused one or more Behat tests to fail in the features/ " . $behatdir . ".\n\n"
             . $BUILD_URL . "console\n\n"
             . "Please see the console output on test.mahara.org for details, and fix any failing tests."
