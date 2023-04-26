@@ -14,21 +14,19 @@ define('CLI', 1);
 #
 
 $usage = <<<STRING
-Usage is ${argv[0]} [version] [branch] [<changesetnumber>...]
+Usage is ${argv[0]} [version] [branch] [access_token]
 e.g. ${argv[0]} 22.04.1 22.04_DEV
 e.g. ${argv[0]} 22.04.1 22.04_DEV 12345 12378
 
 [version] is the new version number to release.
 [branch] is the branch to release from.
-[<changesetnumber>] is the number of the changesets to include in the release. These are from the reviews site.
-
-e.g. https://reviews.mahara.org/c/mahara/+/<changesetnumber>
+[accesstoken] is the access token needed to access the repository
 
 See: https://wiki.mahara.org/wiki/Developer_Area/Release_Instructions/Major_Release#Creating_the_new_stable_branch
 
 STRING;
 
-if (count($argv) < 3) {
+if (count($argv) < 4) {
     echo $usage;
     exit(1);
 }
@@ -45,10 +43,10 @@ if (!@is_executable('/usr/bin/git')) {
   exit(1);
 }
 
-if (!@is_executable('/usr/bin/lp-project-upload')) {
-  echo "You need to install lp-project-upload: apt-get install ubuntu-dev-tools (maverick or earlier) or lptools\n";
-  exit(1);
-}
+# if (!@is_executable('/usr/bin/lp-project-upload')) {
+#   echo "You need to install lp-project-upload: apt-get install ubuntu-dev-tools (maverick or earlier) or lptools\n";
+#   exit(1);
+# }
 
 if (!@is_executable('/usr/bin/m4')) {
   echo "You need to install m4: apt-get install m4\n";
@@ -92,17 +90,17 @@ if ($releasecandidate) {
 else {
     $draftbranch = $BRANCH;
 }
-$draftlines = explode(
-    "\n",
-    `ssh \$USER@reviews.mahara.org -p 29418 gerrit query is:draft branch:$draftbranch project:mahara "label:Code-Review>=0" "label:Verified>=0"`
-);
+# $draftlines = explode(
+#     "\n",
+#     `ssh \$USER@reviews.mahara.org -p 29418 gerrit query is:draft branch:$draftbranch project:mahara "label:Code-Review>=0" "label:Verified>=0"`
+# );
 $draftcount = 0;
-foreach ($draftlines as $line) {
-    if (preg_match("/rowCount: *([0-9]+)/", $line, $matches)) {
-        $draftcount = $matches[1];
-        break;
-    }
-}
+# foreach ($draftlines as $line) {
+#    if (preg_match("/rowCount: *([0-9]+)/", $line, $matches)) {
+#         $draftcount = $matches[1];
+#         break;
+#     }
+# }
 if ($draftcount > 0) {
     $response = readline("There are Draft patches that may need to be merged. Do you want to continue with release [y/n]?");
     $response = trim(strtolower($response));
@@ -114,6 +112,11 @@ if ($draftcount > 0) {
         exit(1);
     }
 }
+$ACCESS_TOKEN = $argv[3];
+if (empty($ACCESS_TOKEN)) {
+    echo "No access token so quitting out";
+    exit(1);
+}
 
 $BUILDDIR = trim(`mktemp -d /tmp/mahara.XXXXX`);
 $CURRENTDIR = getcwd();
@@ -123,8 +126,7 @@ mkdir("${BUILDDIR}/mahara", 0777, true);
 chdir("${BUILDDIR}/mahara");
 
 # Main Mahara repo to pull from
-$PUBLIC="git@github.com:MaharaProject/mahara.git";
-$PUBLIC = "https://git.mahara.org/mahara/mahara.git";
+$PUBLIC = "https://oauth2:" . $ACCESS_TOKEN . "@git.mahara.org/catalyst/mahara.git";
 
 echo "Cloning public repository ${PUBLIC} in ${BUILDDIR}/mahara\n";
 passthru('git init');
@@ -150,6 +152,7 @@ if ($BRANCH != $STABLEBRANCH) {
 }
 
 // Applying gerrit patches named on the command line
+/*
 if (count($argv) > 3) {
     $successwithpatches = true;
     for ($i = 3; $i < count($argv); $i++) {
@@ -177,6 +180,7 @@ if (count($argv) > 3) {
         exit();
     }
 }
+*/
 
 # Edit ChangeLog
 if (!file_exists("ChangeLog")) {
@@ -277,6 +281,7 @@ passthru("rm -Rf phpunit.xml");
 passthru("rm -Rf external");
 passthru("rm -Rf dev");
 passthru("rm -Rf docker");
+passthru("rm -Rf node_modules");
 passthru("rm -Rf package.json");
 passthru("rm -Rf ChangeLog.back");
 
@@ -351,8 +356,8 @@ passthru("git add ${VERSIONFILE}");
 passthru("git commit -s -m \"Version bump for $NEWRELEASE\"");
 
 # Add gerrit repo, for pushing the new security patches, version bump & changelog commits
-$GERRIT = "ssh://reviews.mahara.org:29418/mahara";
-passthru("git remote add gerrit ${GERRIT}");
+# $GERRIT = "ssh://reviews.mahara.org:29418/mahara";
+# passthru("git remote add gerrit ${GERRIT}");
 
 # Output commands to push to the remote repository and clean up
 $CLEANUPSCRIPT = "$CURRENTDIR/release-${RELEASE}-cleanup.sh";
@@ -362,21 +367,21 @@ $cleanup  = <<<CLEANUP
 set -e
 
 cd ${BUILDDIR}/mahara
-git push gerrit ${STABLEBRANCH}:refs/heads/${STABLEBRANCH}
-git push gerrit ${BRANCH}:refs/heads/${BRANCH}
-git push gerrit ${RELEASETAG}:refs/tags/${RELEASETAG}
+git push mahara ${STABLEBRANCH}:refs/heads/${STABLEBRANCH}
+git push mahara ${BRANCH}:refs/heads/${BRANCH}
+git push mahara ${RELEASETAG}:refs/tags/${RELEASETAG}
 
 gpg --armor --sign --detach-sig ${CURRENTDIR}/mahara-${RELEASE}.tar.gz
 gpg --armor --sign --detach-sig ${CURRENTDIR}/mahara-${RELEASE}.tar.bz2
 gpg --armor --sign --detach-sig ${CURRENTDIR}/mahara-${RELEASE}.zip
 
-cd ${CURRENTDIR}
-${CURRENTDIR}/lptools/lp-project-upload mahara ${RELEASE} mahara-${RELEASE}.tar.gz changes.withasterisks.temp releasenotes-${RELEASE}.txt
-${CURRENTDIR}/lptools/lp-project-upload mahara ${RELEASE} mahara-${RELEASE}.tar.bz2 changes.withasterisks.temp releasenotes-${RELEASE}.txt
-${CURRENTDIR}/lptools/lp-project-upload mahara ${RELEASE} mahara-${RELEASE}.zip changes.withasterisks.temp releasenotes-${RELEASE}.txt
+# cd ${CURRENTDIR}
+# ${CURRENTDIR}/lptools/lp-project-upload mahara ${RELEASE} mahara-${RELEASE}.tar.gz changes.withasterisks.temp releasenotes-${RELEASE}.txt
+# ${CURRENTDIR}/lptools/lp-project-upload mahara ${RELEASE} mahara-${RELEASE}.tar.bz2 changes.withasterisks.temp releasenotes-${RELEASE}.txt
+# ${CURRENTDIR}/lptools/lp-project-upload mahara ${RELEASE} mahara-${RELEASE}.zip changes.withasterisks.temp releasenotes-${RELEASE}.txt
 
 echo
-echo "All done. Once you've checked that the files were uploaded successfully, run these:"
+echo "All done. Please copy the following files to Alfresco, then run these:"
 echo "  rm -rf ${BUILDDIR}"
 echo "  rm -rf ${CURRENTDIR}/changes.withasterisks.temp"
 CLEANUP;
@@ -391,12 +396,12 @@ chmod($CLEANUPSCRIPT, 0700);
 // passthru("rm ${CURRENTDIR}/changes.temp");
 // passthru("rm ${TMP_M4_FILE}");
 
-echo "\n\nTarballs, release notes & changelog for Launchpad:\n\n";
+echo "\n\nTarballs, release notes & changelog:\n\n";
 chdir($CURRENTDIR);
 passthru("ls -l mahara-${RELEASE}.tar.gz mahara-${RELEASE}.tar.bz2 mahara-${RELEASE}.zip releasenotes-${RELEASE}.txt ${RELEASETAG}.cl");
 
 echo "\n1. Check that everything is in order in the ${BUILDDIR}/mahara repository.\n";
 echo "- Make sure the new release tag ${RELEASETAG} exists on the ${STABLEBRANCH} branch.\n";
 echo "\n2. Manually test one of the tarballs locally. See wiki.mahara.org for latest test instructions.\n";
-echo "\n3. Create the release on launchpad at https://launchpad.net/mahara/+milestone/${RELEASE}\n";
-echo "\n4. Run the commands in ${CLEANUPSCRIPT} to push the changes back to the remote repository and upload the tarballs.\n";
+// echo "\n3. Create the release on launchpad at https://launchpad.net/mahara/+milestone/${RELEASE}\n";
+echo "\n3. Run the commands in ${CLEANUPSCRIPT} to push the git changes back to the remote repository.\n";
