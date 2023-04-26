@@ -283,7 +283,14 @@ passthru("rm -Rf dev");
 passthru("rm -Rf docker");
 passthru("rm -Rf node_modules");
 passthru("rm -Rf package.json");
+passthru("rm -Rf package-lock.json");
+passthru("rm -Rf composer.lock");
+passthru("rm -Rf composer.json");
 passthru("rm -Rf ChangeLog.back");
+passthru("rm -Rf phpstan.neon");
+passthru("rm -Rf append_composer.php");
+passthru("rm -Rf composer_patches");
+passthru("rm -Rf patches");
 
 # Get the location for all phpunit directories
 $phpunitdirs = explode("\n", `find . -type d -name 'phpunit' -path '*/tests/phpunit' 2> /dev/null`);

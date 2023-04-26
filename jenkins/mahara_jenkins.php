@@ -309,6 +309,8 @@ echo "\n";
 echo "########## Install composer dependencies\n";
 echo "\n";
 # Install composer in the external directory.
+echo "Remove htdocs/vendor to keep things fresh\n";
+passthru_or_die("rm -Rf htdocs/vendor");
 chdir('external');
 passthru_or_die("curl -sS https://getcomposer.org/installer | php");
 # Run composer install in the external directory.
