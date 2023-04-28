@@ -1,4 +1,4 @@
-#!/usr/bin/python2.7
+#!/usr/bin/python3
 #
 
 #
@@ -10,10 +10,10 @@
 # This file may be distributed under the terms of the GNU General
 # Public License, version 2.
 
-
 import database, csv, ConfigFile, reports
 import getopt, datetime
-import os, re, sys, rfc822, string
+import email.utils as email2
+import os, re, sys, string
 from patterns import *
 
 Today = datetime.date.today()
@@ -80,7 +80,7 @@ def ParseOpts ():
         elif opt[0] == '-o':
             reports.SetOutput (open (opt[1], 'w'))
         elif opt[0] == '-r':
-            print 'Filter on "%s"' % (opt[1])
+            print('Filter on "%s"' % (opt[1]))
             FileFilter = re.compile (opt[1])
         elif opt[0] == '-s':
             AuthorSOBs = 0
@@ -88,7 +88,7 @@ def ParseOpts ():
             MapUnknown = 1
         elif opt[0] == '-x':
             CSVFile = open (opt[1], 'w')
-            print "open output file " + opt[1] + "\n"
+            print("open output file " + opt[1] + "\n")
         elif opt [0] == '-w':
             Aggregate = 'week'
         elif opt[0] == '-z':
@@ -116,7 +116,7 @@ DateMap = { }
 
 def AddDateLines(date, lines):
     if lines > 1000000:
-        print 'Skip big patch (%d)' % lines
+        print('Skip big patch (%d)' % lines)
         return
     try:
         DateMap[date] += lines
@@ -124,7 +124,7 @@ def AddDateLines(date, lines):
         DateMap[date] = lines
 
 def PrintDateStats():
-    dates = DateMap.keys ()
+    dates = list(DateMap.keys ())
     dates.sort ()
     total = 0
     datef = open ('datelc.csv', 'w')
@@ -242,7 +242,7 @@ def grabpatch():
         #
         m = Pdate.match (Line)
         if m:
-            dt = rfc822.parsedate(m.group (2))
+            dt = email2.parsedate(m.group (2))
             p.date = datetime.date (dt[0], dt[1], dt[2])
             if p.date > Today:
                 sys.stderr.write ('Funky date: %s\n' % p.date)
@@ -272,7 +272,7 @@ def GripeAboutAuthorName (name):
     if name in GripedAuthorNames:
         return
     GripedAuthorNames.append (name)
-    print '%s is an author name, probably not what you want' % (name)
+    print('%s is an author name, probably not what you want' % (name))
 
 def ApplyFileFilter (line, ignore):
     #
@@ -330,12 +330,12 @@ TotalChanged = TotalAdded = TotalRemoved = 0
 #
 # Snarf changesets.
 #
-print >> sys.stderr, 'Grabbing changesets...\r',
+print('Grabbing changesets...\r', end=' ', file=sys.stderr)
 
 printcount = CSCount = 0
 while (1):
     if (printcount % 50) == 0:
-        print >> sys.stderr, 'Grabbing changesets...%d\r' % printcount,
+        print('Grabbing changesets...%d\r' % printcount, end=' ', file=sys.stderr)
     printcount += 1
     p = grabpatch()
     if not p:
@@ -375,7 +375,7 @@ while (1):
             hacker.addreport (p)
     CSCount += 1
     csv.AccumulatePatch (p, Aggregate)
-print >> sys.stderr, 'Grabbing changesets...done       '
+print('Grabbing changesets...done       ', file=sys.stderr)
 
 if DumpDB:
     database.DumpDB ()
