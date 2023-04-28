@@ -78,7 +78,7 @@ def ComparePCount (h1, h2):
     return len (h2.patches) - len (h1.patches)
 
 def ReportByPCount (hlist, cscount):
-    hlist.sort (ComparePCount)
+    #hlist.sort (ComparePCount)
     count = 0
     BeginReport ('Developers with the most changesets')
     for h in hlist:
@@ -96,7 +96,7 @@ def CompareLChanged (h1, h2):
     return max(h2.added, h2.removed) - max(h1.added, h1.removed)
 
 def ReportByLChanged (hlist, totalchanged):
-    hlist.sort (CompareLChanged)
+    #hlist.sort (CompareLChanged)
     count = 0
     BeginReport ('Developers with the most changed lines')
     for h in hlist:
@@ -114,7 +114,7 @@ def CompareLRemoved (h1, h2):
     return (h2.removed - h2.added) - (h1.removed - h1.added)
 
 def ReportByLRemoved (hlist, totalremoved):
-    hlist.sort (CompareLRemoved)
+    #hlist.sort (CompareLRemoved)
     count = 0
     BeginReport ('Developers with the most lines removed')
     for h in hlist:
@@ -132,7 +132,7 @@ def CompareEPCount (e1, e2):
     return e2.count - e1.count
 
 def ReportByPCEmpl (elist, cscount):
-    elist.sort (CompareEPCount)
+    #elist.sort (CompareEPCount)
     count = 0
 #    BeginReport ('Top changeset contributors by employer')
     BeginReport ('Top changeset contributors by organisation')
@@ -149,7 +149,7 @@ def CompareELChanged (e1, e2):
     return e2.changed - e1.changed
 
 def ReportByELChanged (elist, totalchanged):
-    elist.sort (CompareELChanged)
+    #elist.sort (CompareELChanged)
     count = 0
 #    BeginReport ('Top lines changed by employer')
     BeginReport ('Top lines changed by organisation')
@@ -311,7 +311,7 @@ def CompareHackers (e1, e2):
     return len (e2.hackers) - len (e1.hackers)
 
 def ReportByEHackers (elist):
-    elist.sort (CompareHackers)
+    #elist.sort (CompareHackers)
     totalhackers = 0
     for e in elist:
         totalhackers += len (e.hackers)
