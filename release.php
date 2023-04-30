@@ -271,7 +271,7 @@ if (getcwd() != "$BUILDDIR/$PACKAGEDIR" || $PACKAGEDIR == '') {
 }
 passthru('find . -type d -name ".git" -execdir rm -Rf {} \; 2> /dev/null');
 passthru('find . -type f -name ".gitignore" -execdir rm -Rf {} \; 2> /dev/null');
-passthru('find . -type d -name "node_modules" -execdir rm -Rf {} \; 2> /dev/null');
+# passthru('find . -type d -name "node_modules" -execdir rm -Rf {} \; 2> /dev/null');
 passthru('find . -type f -name "gulpfile.js" -execdir rm -Rf {} \; 2> /dev/null');
 passthru('find htdocs/theme -type d -name "sass" -execdir rm -Rf {} \; 2> /dev/null');
 passthru("rm -Rf test");
@@ -373,10 +373,10 @@ $cleanup  = <<<CLEANUP
 
 set -e
 
-cd ${BUILDDIR}/mahara
-git push mahara ${STABLEBRANCH}:refs/heads/${STABLEBRANCH}
-git push mahara ${BRANCH}:refs/heads/${BRANCH}
-git push mahara ${RELEASETAG}:refs/tags/${RELEASETAG}
+# cd ${BUILDDIR}/mahara
+# git push mahara ${STABLEBRANCH}:refs/heads/${STABLEBRANCH}
+# git push mahara ${BRANCH}:refs/heads/${BRANCH}
+# git push mahara ${RELEASETAG}:refs/tags/${RELEASETAG}
 
 gpg --armor --sign --detach-sig ${CURRENTDIR}/mahara-${RELEASE}.tar.gz
 gpg --armor --sign --detach-sig ${CURRENTDIR}/mahara-${RELEASE}.tar.bz2
@@ -388,9 +388,11 @@ gpg --armor --sign --detach-sig ${CURRENTDIR}/mahara-${RELEASE}.zip
 # ${CURRENTDIR}/lptools/lp-project-upload mahara ${RELEASE} mahara-${RELEASE}.zip changes.withasterisks.temp releasenotes-${RELEASE}.txt
 
 echo
-echo "All done. Please copy the following files to Alfresco, then run these:"
-echo "  rm -rf ${BUILDDIR}"
-echo "  rm -rf ${CURRENTDIR}/changes.withasterisks.temp"
+echo "You now need to do the push/upload release steps manually. See the instructions on the wiki." 
+# echo
+# echo "All done. Please copy the following files to Alfresco, then run these:"
+# echo "  rm -rf ${BUILDDIR}"
+# echo "  rm -rf ${CURRENTDIR}/changes.withasterisks.temp"
 CLEANUP;
 
 file_put_contents($CLEANUPSCRIPT, $cleanup);
