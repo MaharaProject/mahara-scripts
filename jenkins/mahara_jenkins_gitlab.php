@@ -199,6 +199,7 @@ function exec_or_die($command, &$output = null, &$return_var = null) {
     if ($return_var !== 0) {
         log_and_die($command, $return_var);
     }
+
     return $returnstring;
 }
 
